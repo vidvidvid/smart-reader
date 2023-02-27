@@ -1,5 +1,13 @@
 import './App.css';
-import { Box, Input, Select, Flex, Button, Tooltip } from '@chakra-ui/react';
+import {
+  Box,
+  Input,
+  Select,
+  Flex,
+  Button,
+  Tooltip,
+  Text,
+} from '@chakra-ui/react';
 import { useEffect, useCallback, useState } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
@@ -11,12 +19,48 @@ function App() {
   const [address, setAddress] = useState('');
   const [sourceCode, setSourceCode] = useState();
   const [inspectContract, setInspectContract] = useState();
+  const [fileExplanation, setFileExplanation] = useState('');
+
+  console.log(
+    'process.env.REACT_APP_OPENAI_API_KEY',
+    process.env.REACT_APP_OPENAI_API_KEY
+  );
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
       setInspectContract(sourceCode[0]);
     }
   }, [sourceCode]);
+
+  const fetchExplanation = async () => {
+    const requestOptions = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
+      },
+      body: JSON.stringify({
+        prompt: inspectContract.sourceCode.content.concat(
+          '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
+        ),
+        temperature: 0.3,
+        max_tokens: 1000,
+      }),
+    };
+    fetch(
+      'https://api.openai.com/v1/engines/text-davinci-003/completions',
+      requestOptions
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('data', data.choices[0].text);
+        // console.log('data', data.choices[0].text);
+        setFileExplanation(data.choices[0].text);
+      })
+      .catch((err) => {
+        console.log('err', err);
+      });
+  };
 
   const fetchSourceCode = async () => {
     try {
@@ -74,6 +118,9 @@ function App() {
           </Button>
         </Tooltip>
       </Box>
+      <Box>
+        <Button onClick={fetchExplanation}>Explain</Button>
+      </Box>
       <Select onChange={handleContractChange}>
         {sourceCode &&
           sourceCode.length > 0 &&
@@ -88,19 +135,27 @@ function App() {
           })}
       </Select>
 
-      {inspectContract ? (
-        <div style={{ height: '500px', maxWidth: '95%', overflow: 'auto' }}>
-          {/* <h1>Contract Name: {inspectContract.name}</h1> */}
-          <SyntaxHighlighter
-            children={inspectContract.sourceCode.content}
-            language="solidity"
-            style={dracula}
-            wrapLines={true}
-          />
-        </div>
-      ) : (
-        'No contract selected'
-      )}
+      <Flex p={3} gap={3} w="full">
+        {inspectContract ? (
+          <Flex overflow="auto" maxH="500px" flexGrow={1} w="50%">
+            {/* <h1>Contract Name: {inspectContract.name}</h1> */}
+            <SyntaxHighlighter
+              children={inspectContract.sourceCode.content}
+              language="solidity"
+              style={dracula}
+              wrapLines={true}
+            />
+          </Flex>
+        ) : (
+          'No contract selected'
+        )}
+
+        {fileExplanation && (
+          <Flex flexGrow={1} w="50%">
+            <Text>{fileExplanation}</Text>
+          </Flex>
+        )}
+      </Flex>
     </Flex>
   );
 }
