@@ -14,17 +14,22 @@ import axios from 'axios';
 
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import prettier from 'prettier';
+import typescript from "prettier/parser-typescript";
+
+
 
 function App() {
   const [address, setAddress] = useState('');
-  const [sourceCode, setSourceCode] = useState();
-  const [inspectContract, setInspectContract] = useState();
-  const [fileExplanation, setFileExplanation] = useState('');
+  const [sourceCode, setSourceCode] = useState([]);
+  const [contractABI, setContractABI] = useState([]);
+  const [contractExplanation, setContractExplanation] = useState('');
+  const [highlightedFunction, setHighlightedFunction] = useState(null);
+  const [selectedFunctionName, setSelectedFunctionName] = useState(null);
+  const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
 
-  console.log(
-    'process.env.REACT_APP_OPENAI_API_KEY',
-    process.env.REACT_APP_OPENAI_API_KEY
-  );
+  const [inspectContract, setInspectContract] = useState();
+  const [inspectFunction, setInspectFunction] = useState({name: '', code: ''});
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
@@ -33,6 +38,10 @@ function App() {
   }, [sourceCode]);
 
   const fetchExplanation = async () => {
+    if (!inspectContract) {
+      return;
+    }
+
     const requestOptions = {
       method: 'POST',
       headers: {
@@ -44,7 +53,7 @@ function App() {
           '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
         ),
         temperature: 0.3,
-        max_tokens: 1000,
+        max_tokens: 500,
       }),
     };
     fetch(
@@ -53,44 +62,143 @@ function App() {
     )
       .then((response) => response.json())
       .then((data) => {
-        console.log('data', data.choices[0].text);
         // console.log('data', data.choices[0].text);
-        setFileExplanation(data.choices[0].text);
+        setContractExplanation(data.choices[0].text);
       })
       .catch((err) => {
         console.log('err', err);
       });
   };
 
+  // console.log('Inspect contract:', inspectContract)
   const fetchSourceCode = async () => {
     try {
       const resp = await axios.get(
         `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=RHDB6C8IZ4K52Q36GSSVBN5GT2256S8N45`
       );
       const sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
+      const addressABI = JSON.parse(resp.data.result[0].ABI);
       const contracts = sourceObj.sources;
       const contractsArray = Object.entries(contracts).map(
         ([name, sourceCode]) => {
           return { name, sourceCode };
         }
       );
+      setContractABI(addressABI);
       setSourceCode(contractsArray);
     } catch (err) {
       // Handle Error Here
       console.error(err);
+      setSourceCode([]);
+      setInspectContract(undefined);
     }
   };
+
   const handleContractChange = useCallback(
     (e) => {
+      setContractExplanation('');
       const selectedContract = e.target.value;
       const contract = sourceCode.find(
         (contract) => contract.name === selectedContract
       );
+      console.log('Selected contract:', contract);
+
       setInspectContract(contract);
     },
     [sourceCode]
   );
 
+  const handleCodeHover = useCallback(
+    (event) => {
+      const codeNode = event.target;
+      const lineNode = codeNode.parentElement;
+
+      if (lineNode.nodeName === 'SPAN') {
+        const childSpans = lineNode.querySelectorAll('span');
+        childSpans.forEach((span) => {
+          let foundFunction = false;
+          if (span.innerText.includes('function')) {
+            foundFunction = true;
+            const codeBlock = lineNode.closest('pre');
+            const codeLines = codeBlock.querySelectorAll('span');
+            const startIndex = Array.from(codeLines).indexOf(lineNode);
+            const closingBraceRegex = /}(\s)*$/;
+            let endIndex = startIndex;
+            while (!closingBraceRegex.test(codeLines[endIndex].innerText)) {
+              endIndex++;
+            }
+            const highlightedLines = Array.from(codeLines).slice(
+              startIndex,
+              endIndex + 1
+            );
+            highlightedLines.forEach((line) => {
+              line.classList.add('highlight');
+            });
+            setHighlightedFunction(highlightedLines);
+
+            const highlightedText = highlightedLines
+              .slice(1)
+              .map((line) => line.innerText.trim())
+              .join('\n');
+            setSelectedFunctionCode(highlightedText);
+          }
+          if (foundFunction) {
+            let nextSpan = span.nextElementSibling;
+            let functionName = span.innerText.replace(/^.*function\s+/i, '');
+
+            while (nextSpan) {
+              const nextText = nextSpan.innerText.trim();
+              const openParenIndex = nextText.indexOf('(');
+              if (openParenIndex !== -1) {
+                functionName += ' ' + nextText.substring(0, openParenIndex);
+                break;
+              } else if (nextText) {
+                functionName += ' ' + nextText;
+              }
+
+              nextSpan = nextSpan.nextElementSibling;
+            }
+            const split = functionName.split(' ');
+            split.shift();
+            const concatenatedFunctionName = split.join('');
+            setSelectedFunctionName(concatenatedFunctionName);
+            foundFunction = false;
+          }
+        });
+      } else {
+        if (highlightedFunction) {
+          highlightedFunction.forEach((line) => {
+            line.classList.remove('highlight');
+          });
+          setHighlightedFunction(null);
+        }
+      }
+    },
+    [highlightedFunction]
+  );
+
+  const handleCodeClick = useCallback(() => {
+    if (!selectedFunctionName || !selectedFunctionCode) {
+      return;
+    }
+    
+    setInspectFunction({
+      name: selectedFunctionName,
+      code: selectedFunctionCode
+    });
+    // let formattedCode = '';
+    // if (inspectFunction && inspectFunction.code) {
+    //   const formattedCode = prettier.format(inspectContract.code, {
+    //     parser: 'typescript',
+    //     plugins: [typescript],
+    //   });
+    //   console.log('formattedCode', formattedCode);
+    // }
+  
+  
+  }, [selectedFunctionName, selectedFunctionCode]);
+  
+  // console.log('contracts', contractABI);
   return (
     <Flex direction="column" align="center" justify="center" h="100vh">
       <Box>
@@ -119,7 +227,13 @@ function App() {
         </Tooltip>
       </Box>
       <Box>
-        <Button onClick={fetchExplanation}>Explain</Button>
+        <Button onClick={fetchExplanation}>Explain Contract</Button>
+        <Button onClick={() => setContractExplanation('')}>
+          Clear Explanation
+        </Button>
+        <Button onClick={() => setInspectFunction('')}>
+          Clear Function
+        </Button>
       </Box>
       <Select onChange={handleContractChange}>
         {sourceCode &&
@@ -137,24 +251,48 @@ function App() {
 
       <Flex p={3} gap={3} w="full">
         {inspectContract ? (
-          <Flex overflow="auto" maxH="500px" flexGrow={1} w="50%">
+          <Flex
+            overflow="auto"
+            maxH="500px"
+            flexGrow={1}
+            w="50%"
+            onMouseOver={(event) => handleCodeHover(event)}
+          >
             {/* <h1>Contract Name: {inspectContract.name}</h1> */}
             <SyntaxHighlighter
-              children={inspectContract.sourceCode.content}
               language="solidity"
               style={dracula}
+              onClick={() => handleCodeClick()}
               wrapLines={true}
-            />
+            >
+              {inspectContract.sourceCode.content}
+            </SyntaxHighlighter>
           </Flex>
         ) : (
           'No contract selected'
         )}
-
-        {fileExplanation && (
+        {/* need to condense these into same panel */}
+        {contractExplanation && (
           <Flex flexGrow={1} w="50%">
-            <Text>{fileExplanation}</Text>
+            <Text>{contractExplanation}</Text>
           </Flex>
         )}
+
+        {inspectFunction && Object.values(inspectFunction).every(value => !value) ? null : (
+            <Flex flexDirection={"column"}>   
+              <Button onClick={fetchExplanation}>Explain Function</Button>     
+              <SyntaxHighlighter
+                language="solidity"
+                style={dracula}
+                wrapLines={true}
+              >
+                {inspectFunction.code ? inspectFunction.code : ''}
+              </SyntaxHighlighter>
+              <Text>HERE</Text>
+            </Flex> 
+          )}
+
+
       </Flex>
     </Flex>
   );
