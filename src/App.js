@@ -19,6 +19,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import prettier from 'prettier';
 import typescript from 'prettier/parser-typescript';
+import contract from 'etherscan-api/lib/contract';
 
 function App() {
   const [address, setAddress] = useState('');
@@ -86,6 +87,36 @@ function App() {
         console.log('err', err);
       });
   };
+  function extractContracts(contractString) {
+    const contractsArray = [];
+
+    let contractStart = contractString.indexOf('contract ');
+    let braceCount = 0;
+    let i = contractStart;
+
+    while (i < contractString.length) {
+      if (contractString[i] === '{') {
+        braceCount++;
+      } else if (contractString[i] === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          contractsArray.push(contractString.slice(contractStart, i + 1));
+          contractStart = contractString.indexOf('contract ', i + 1);
+        }
+      }
+      i++;
+    }
+    const contracts = {};
+    Object.entries(contractsArray).forEach(([index, sourceCode]) => {
+      const nameStart = sourceCode.indexOf('contract ') + 9;
+      const nameEnd = sourceCode.indexOf(' ', nameStart);
+      const name = sourceCode.slice(nameStart, nameEnd);
+
+      contracts[name] = { content: sourceCode };
+    });
+
+    return contracts;
+  }
 
   // console.log('Inspect contract:', inspectContract)
   const fetchSourceCode = async () => {
@@ -93,14 +124,25 @@ function App() {
       const resp = await axios.get(
         `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=RHDB6C8IZ4K52Q36GSSVBN5GT2256S8N45`
       );
-      const sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
+      let sourceObj;
+      let contracts;
+      let contractsArray;
+      try {
+        sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
+
+        contracts = sourceObj.sources;
+        console.log('lendingcontracts', contracts);
+      } catch {
+        sourceObj = resp.data.result[0].SourceCode;
+        contracts = extractContracts(sourceObj);
+      }
+      console.log('contracts', contracts);
+
+      contractsArray = Object.entries(contracts).map(([name, sourceCode]) => {
+        return { name, sourceCode };
+      });
       const addressABI = JSON.parse(resp.data.result[0].ABI);
-      const contracts = sourceObj.sources;
-      const contractsArray = Object.entries(contracts).map(
-        ([name, sourceCode]) => {
-          return { name, sourceCode };
-        }
-      );
+
       setContractABI(addressABI);
       setSourceCode(contractsArray);
     } catch (err) {
@@ -269,6 +311,7 @@ function App() {
         fileExplanation={contractExplanation}
       />
       <Select onChange={handleContractChange}>
+        {/* {console.log("SRC", sourceCode[0].sourceCode)} */}
         {sourceCode &&
           sourceCode.length > 0 &&
           sourceCode.map((contract) => {
@@ -330,7 +373,10 @@ function App() {
             <Box style={{ border: '1px solid gray' }}>
               <Text>{functionExplanation}</Text>
             </Box>
-            <SimulateTransaction />
+            <SimulateTransaction
+              contractABI={contractABI}
+              inspectFunction={inspectFunction}
+            />
           </Flex>
         )}
       </Flex>

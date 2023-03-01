@@ -1,23 +1,45 @@
 import axios from 'axios';
 import {
-    Box,
-    Input,
-    Select,
-    Flex,
-    Button,
-    Tooltip,
-    Text,
-  } from '@chakra-ui/react';
+  Box,
+  Input,
+  Select,
+  Flex,
+  Button,
+  Tooltip,
+  Text,
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
 
+export const SimulateTransaction = ({ contractABI, inspectFunction }) => {
+  const [simulationValid, setSimulationValid] = useState(false);
+  const [functionInputs, setFunctionInputs] = useState([]);
+  const { name, code } = inspectFunction;
 
-export const SimulateTransaction = () => {
-    return (
-        <div style={{margin: '0 auto'}}>
-            <h1 >Simulate This Transaction!</h1>
-            <button>Simulate Transaction</button>
-        </div>
-    )
-}
+  useEffect(() => {
+    contractABI.forEach((abi) => {
+      if (abi.name === name) {
+        setSimulationValid(true);
+        const { inputs } = abi;
+        const inputTypes = inputs.map((input) => input.type);
+        setFunctionInputs(inputTypes);
+      }
+    });
+  }, [name, code]);
+
+  return (
+    <div style={{ margin: '0 auto' }}>
+      <h1>Simulate This Transaction!</h1>
+      {simulationValid ? (
+        <button>Simulate Transaction</button>
+      ) : (
+        <p>
+          Sorry, this transaction cannot be simulated. The function is either
+          internal or private.
+        </p>
+      )}
+    </div>
+  );
+};
 
 // const approveDai = async () => {
 //   // assuming environment variables TENDERLY_USER, TENDERLY_PROJECT and TENDERLY_ACCESS_KEY are set
