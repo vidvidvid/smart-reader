@@ -1,13 +1,5 @@
 import axios from 'axios';
-import {
-  Box,
-  Input,
-  Select,
-  Flex,
-  Button,
-  Tooltip,
-  Text,
-} from '@chakra-ui/react';
+import { Box, Input, Button } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
@@ -17,6 +9,8 @@ export const SimulateTransaction = ({
   contractABI,
   inspectFunction,
 }) => {
+  console.log('network', network);
+  console.log('address', address);
   const [simulationValid, setSimulationValid] = useState(false);
   const [simulationReady, setSimulationReady] = useState(false);
 
@@ -26,6 +20,7 @@ export const SimulateTransaction = ({
   const [txnFrom, setTxnFrom] = useState('');
 
   const { name, code } = inspectFunction;
+  console.log('code', code);
   const {
     REACT_APP_TENDERLY_USER,
     REACT_APP_TENDERLY_PROJECT,
@@ -150,9 +145,9 @@ export const SimulateTransaction = ({
         <Box>
           Simluating this transaction on: {network}
           <hr />
-          <Box style={{border: '10px red solid'}}>
+          <Box style={{ border: '10px red solid' }}>
             <i>which account is sending this txn?</i>
-            <hr style={{borderBottom: "5px solid red" }} />
+            <hr style={{ borderBottom: '5px solid red' }} />
             Transaction from:
             <Input
               value={txnFrom}
@@ -200,7 +195,7 @@ export const SimulateTransaction = ({
             </Box>
           ))}
           <Button isDisabled={!simulationReady} onClick={transaction}>
-            Simulation Transaction
+            Simulate Transaction
           </Button>
         </Box>
       ) : (
