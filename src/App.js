@@ -217,9 +217,22 @@ function App() {
 
               nextSpan = nextSpan.nextElementSibling;
             }
+
             const split = functionName.split(' ');
-            split.shift();
-            const concatenatedFunctionName = split.join('');
+
+            if (split[0] === 'function') {
+              split.shift();
+            }
+
+            let concatenatedFunctionName = '';
+            for (let i = 0; i < split.length; i++) {
+              if (split[i].includes('(')) {
+                concatenatedFunctionName += split[i].split('(')[0];
+                break;
+              } else {
+                concatenatedFunctionName += split[i];
+              }
+            }
             setSelectedFunctionName(concatenatedFunctionName);
             foundFunction = false;
           }
@@ -374,6 +387,8 @@ function App() {
               <Text>{functionExplanation}</Text>
             </Box>
             <SimulateTransaction
+              address={address}
+              network={network}
               contractABI={contractABI}
               inspectFunction={inspectFunction}
             />
