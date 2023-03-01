@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
 export const SimulateTransaction = ({
+  address,
   network,
   contractABI,
   inspectFunction,
@@ -22,7 +23,6 @@ export const SimulateTransaction = ({
   const [functionInputs, setFunctionInputs] = useState([]);
   const [encodedInput, setEncodedInput] = useState('');
   const [inputTypeError, setInputTypeError] = useState(false);
-  const [txnTo, setTxnTo] = useState('');
   const [txnFrom, setTxnFrom] = useState('');
 
   const { name, code } = inspectFunction;
@@ -113,7 +113,7 @@ export const SimulateTransaction = ({
         // from: '0xdc6bdc37b2714ee601734cf55a05625c9e512461',
         // to: '0x6b175474e89094c44da98b954eedeac495271d0f',
         from: txnFrom,
-        to: txnTo,
+        to: address,
         input: encodedInput,
         gas: 8000000,
         gas_price: 0,
@@ -130,7 +130,7 @@ export const SimulateTransaction = ({
     const transcation = resp.data.transaction;
     console.log('RETURN TXN', JSON.stringify(transcation, null, 2));
   };
-
+  console.log('address', address);
   const handleAddressInputChange = (e, setInputTypeError) => {
     const inputValue = e.target.value;
     if (!ethers.utils.isAddress(inputValue)) {
@@ -140,8 +140,7 @@ export const SimulateTransaction = ({
     }
     return inputValue;
   };
-  console.log('txnFrom', txnFrom);
-  console.log('txnTo', txnTo);
+
   return (
     <div style={{ margin: '0 auto' }}>
       <h1 style={{ textAlign: 'center', fontWeight: 'bold' }}>
@@ -152,22 +151,13 @@ export const SimulateTransaction = ({
           Simluating this transaction on: {network}
           <hr />
           <Box style={{border: '10px red solid'}}>
-            <i>These inputs are ideally temporary, as from/to should ideally be abstracted. There are no checks on these address for simulation readiness.</i>
+            <i>which account is sending this txn?</i>
             <hr style={{borderBottom: "5px solid red" }} />
             Transaction from:
             <Input
               value={txnFrom}
               onChange={(e) =>
                 setTxnFrom(handleAddressInputChange(e, setInputTypeError))
-              }
-              borderColor={inputTypeError ? 'red' : 'gray.300'}
-              _focus={{ borderColor: inputTypeError ? 'red' : 'blue.400' }}
-            />
-            Transaction To:
-            <Input
-              value={txnTo}
-              onChange={(e) =>
-                setTxnTo(handleAddressInputChange(e, setInputTypeError))
               }
               borderColor={inputTypeError ? 'red' : 'gray.300'}
               _focus={{ borderColor: inputTypeError ? 'red' : 'blue.400' }}

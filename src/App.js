@@ -383,6 +383,7 @@ function App() {
               <Text>{functionExplanation}</Text>
             </Box>
             <SimulateTransaction
+              address={address}
               network={network}
               contractABI={contractABI}
               inspectFunction={inspectFunction}
