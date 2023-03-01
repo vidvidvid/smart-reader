@@ -11,25 +11,34 @@ import {
 import { useEffect, useCallback, useState } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
+import { SimulateTransaction } from './components/SimulateTransaction';
 
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import prettier from 'prettier';
-import typescript from "prettier/parser-typescript";
-
-
+import typescript from 'prettier/parser-typescript';
 
 function App() {
   const [address, setAddress] = useState('');
   const [sourceCode, setSourceCode] = useState([]);
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
+  const [functionExplanation, setFunctionExplanation] = useState('');
   const [highlightedFunction, setHighlightedFunction] = useState(null);
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
 
+
   const [inspectContract, setInspectContract] = useState();
-  const [inspectFunction, setInspectFunction] = useState({name: '', code: ''});
+  const [inspectFunction, setInspectFunction] = useState({
+    name: '',
+    code: '',
+  });
+
+  const explanation = {
+    contract: 'contract',
+    function: 'function',
+  };
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
@@ -37,11 +46,10 @@ function App() {
     }
   }, [sourceCode]);
 
-  const fetchExplanation = async () => {
+  const fetchExplanation = async (code, type) => {
     if (!inspectContract) {
       return;
     }
-
     const requestOptions = {
       method: 'POST',
       headers: {
@@ -49,7 +57,7 @@ function App() {
         Authorization: 'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
       },
       body: JSON.stringify({
-        prompt: inspectContract.sourceCode.content.concat(
+        prompt: code.concat(
           '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
         ),
         temperature: 0.3,
@@ -62,8 +70,11 @@ function App() {
     )
       .then((response) => response.json())
       .then((data) => {
-        // console.log('data', data.choices[0].text);
-        setContractExplanation(data.choices[0].text);
+        if (type === explanation.contract) {
+          setContractExplanation(data.choices[0].text);
+        } else {
+          setFunctionExplanation(data.choices[0].text);
+        }
       })
       .catch((err) => {
         console.log('err', err);
@@ -181,10 +192,10 @@ function App() {
     if (!selectedFunctionName || !selectedFunctionCode) {
       return;
     }
-    
+
     setInspectFunction({
       name: selectedFunctionName,
-      code: selectedFunctionCode
+      code: selectedFunctionCode,
     });
     // let formattedCode = '';
     // if (inspectFunction && inspectFunction.code) {
@@ -194,10 +205,8 @@ function App() {
     //   });
     //   console.log('formattedCode', formattedCode);
     // }
-  
-  
   }, [selectedFunctionName, selectedFunctionCode]);
-  
+
   // console.log('contracts', contractABI);
   return (
     <Flex direction="column" align="center" justify="center" h="100vh">
@@ -227,11 +236,20 @@ function App() {
         </Tooltip>
       </Box>
       <Box>
-        <Button onClick={fetchExplanation}>Explain Contract</Button>
+        <Button
+          onClick={() =>
+            fetchExplanation(
+              inspectContract.sourceCode.content,
+              explanation.contract
+            )
+          }
+        >
+          Explain Contract
+        </Button>
         <Button onClick={() => setContractExplanation('')}>
           Clear Explanation
         </Button>
-        <Button onClick={() => setInspectFunction('')}>
+        <Button onClick={() => setInspectFunction({ name: '', code: '' })}>
           Clear Function
         </Button>
       </Box>
@@ -278,21 +296,29 @@ function App() {
           </Flex>
         )}
 
-        {inspectFunction && Object.values(inspectFunction).every(value => !value) ? null : (
-            <Flex flexDirection={"column"}>   
-              <Button onClick={fetchExplanation}>Explain Function</Button>     
-              <SyntaxHighlighter
-                language="solidity"
-                style={dracula}
-                wrapLines={true}
-              >
-                {inspectFunction.code ? inspectFunction.code : ''}
-              </SyntaxHighlighter>
-              <Text>HERE</Text>
-            </Flex> 
-          )}
-
-
+        {inspectFunction &&
+        Object.values(inspectFunction).every((value) => !value) ? null : (
+          <Flex flexDirection={'column'}>
+            <Button
+              onClick={() =>
+                fetchExplanation(inspectFunction.code, explanation.function)
+              }
+            >
+              Explain Function
+            </Button>
+            <SyntaxHighlighter
+              language="solidity"
+              style={dracula}
+              wrapLines={true}
+            >
+              {inspectFunction.code ? inspectFunction.code : ''}
+            </SyntaxHighlighter>
+            <Box style={{ border: '1px solid gray' }}>
+              <Text>{functionExplanation}</Text>
+            </Box>
+            <SimulateTransaction />
+          </Flex>
+        )}
       </Flex>
     </Flex>
   );
