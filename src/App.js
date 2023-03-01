@@ -17,17 +17,18 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import prettier from 'prettier';
 import typescript from 'prettier/parser-typescript';
+import Storage from './components/Storage';
 
 function App() {
   const [address, setAddress] = useState('');
   const [sourceCode, setSourceCode] = useState([]);
   const [contractABI, setContractABI] = useState([]);
+  const [network, setNetwork] = useState('');
   const [contractExplanation, setContractExplanation] = useState('');
   const [functionExplanation, setFunctionExplanation] = useState('');
   const [highlightedFunction, setHighlightedFunction] = useState(null);
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
-
 
   const [inspectContract, setInspectContract] = useState();
   const [inspectFunction, setInspectFunction] = useState({
@@ -216,7 +217,10 @@ function App() {
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
-        <Select placeholder="Blockchain">
+        <Select
+          placeholder="Network"
+          onChange={(e) => setNetwork(e.target.value)}
+        >
           <option value="ethereum">Ethereum</option>
           <option value="polygon">Polygon</option>
         </Select>
@@ -253,6 +257,14 @@ function App() {
           Clear Function
         </Button>
       </Box>
+      <Storage
+        data={{
+          address,
+          network,
+          fileName: inspectContract?.name,
+          fileExplanation: contractExplanation,
+        }}
+      />
       <Select onChange={handleContractChange}>
         {sourceCode &&
           sourceCode.length > 0 &&
