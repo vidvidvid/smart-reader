@@ -7,6 +7,7 @@ import {
   Button,
   Tooltip,
   Text,
+  Spinner,
 } from '@chakra-ui/react';
 import { useEffect, useCallback, useState } from 'react';
 import { ethers } from 'ethers';
@@ -29,6 +30,7 @@ function App() {
   const [highlightedFunction, setHighlightedFunction] = useState(null);
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [inspectContract, setInspectContract] = useState();
   const [inspectFunction, setInspectFunction] = useState({
@@ -51,6 +53,7 @@ function App() {
     if (!inspectContract) {
       return;
     }
+    setIsLoading(true);
     const requestOptions = {
       method: 'POST',
       headers: {
@@ -76,8 +79,10 @@ function App() {
         } else {
           setFunctionExplanation(data.choices[0].text);
         }
+        setIsLoading(false);
       })
       .catch((err) => {
+        setIsLoading(false);
         console.log('err', err);
       });
   };
@@ -300,11 +305,10 @@ function App() {
           'No contract selected'
         )}
         {/* need to condense these into same panel */}
-        {contractExplanation && (
-          <Flex flexGrow={1} w="50%">
-            <Text>{contractExplanation}</Text>
-          </Flex>
-        )}
+        <Flex flexGrow={1} w="50%">
+          {isLoading && <Spinner />}
+          {contractExplanation && <Text>{contractExplanation}</Text>}
+        </Flex>
 
         {inspectFunction &&
         Object.values(inspectFunction).every((value) => !value) ? null : (
