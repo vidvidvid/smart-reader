@@ -385,12 +385,14 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
                       <Box style={{ border: '1px solid gray' }}>
                         <Text>{functionExplanation}</Text>
                       </Box>
-                      <SimulateTransaction
-                        address={address}
-                        network={network}
-                        contractABI={contractABI}
-                        inspectFunction={inspectFunction}
-                      />
+                      {inspectFunction && address && network && contractABI && (
+                        <SimulateTransaction
+                          address={address}
+                          network={network}
+                          contractABI={contractABI}
+                          inspectFunction={inspectFunction}
+                        />
+                      )}
                     </Flex>
                   )}
                 </ModalBody>

@@ -33,16 +33,20 @@ export const SimulateTransaction = ({
   };
 
   useEffect(() => {
-    if (functionInputs) {
-      Object.values(functionInputs).forEach((param) => {
-        if (param.value.length > 0 && !inputTypeError) {
-          setSimulationReady(true);
-        } else {
-          setSimulationReady(false);
-        }
-      });
+    if (functionInputs || txnFrom) {
+      // if each of the functionInputs has a value, and txnFrom is a valid address, then set simulationReady to true
+      if (
+        Object.values(functionInputs).every(
+          (param) => param.value.length > 0
+        ) &&
+        ethers.utils.isAddress(txnFrom)
+      ) {
+        setSimulationReady(true);
+      } else {
+        setSimulationReady(false);
+      }
     }
-  }, [functionInputs, inputTypeError]);
+  }, [functionInputs, inputTypeError, txnFrom]);
 
   useEffect(() => {
     if (simulationReady) {
