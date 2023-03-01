@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Box, Input, Button } from '@chakra-ui/react';
+import { Box, Input, Button, Flex, Text } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 
@@ -161,18 +161,16 @@ export const SimulateTransaction = ({
   };
 
   return (
-    <div style={{ margin: '0 auto' }}>
-      <h1 style={{ textAlign: 'center', fontWeight: 'bold' }}>
-        Simulate This Transaction!
-      </h1>
+    <Flex direction="column">
       {simulationValid ? (
-        <Box>
-          Simluating this transaction on: {network}
+        <Flex direction="column" gap={3}>
+          <h1 style={{ textAlign: 'center', fontWeight: 'bold' }}>
+            Simulate This Transaction on {network}
+          </h1>
           <hr />
-          <Box style={{ border: '10px red solid' }}>
+          <Flex gap={2} direction="column">
             <i>which account is sending this txn?</i>
-            <hr style={{ borderBottom: '5px solid red' }} />
-            Transaction from:
+            <Text>Transaction from:</Text>
             <Input
               value={txnFrom}
               onChange={(e) =>
@@ -181,7 +179,7 @@ export const SimulateTransaction = ({
               borderColor={inputTypeError ? 'red' : 'gray.300'}
               _focus={{ borderColor: inputTypeError ? 'red' : 'blue.400' }}
             />
-          </Box>
+          </Flex>
           {Object.keys(functionInputs).map((key, index) => (
             <Box key={index}>
               Param: {key} Type: {functionInputs[key].type}
@@ -221,13 +219,13 @@ export const SimulateTransaction = ({
           <Button isDisabled={!simulationReady} onClick={transaction}>
             Simulate Transaction
           </Button>
-        </Box>
+        </Flex>
       ) : (
         <p>
           This transaction cannot be simulated. The function is either internal
           or private.
         </p>
       )}
-    </div>
+    </Flex>
   );
 };
