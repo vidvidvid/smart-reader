@@ -10,7 +10,7 @@ export const Context = React.createContext();
 
 function App() {
   const [address, setAddress] = useState('');
-  const [network, setNetwork] = useState('');
+  const [network, setNetwork] = useState('ethereum');
   const [fetching, setFetching] = useState(false);
 
   return (
