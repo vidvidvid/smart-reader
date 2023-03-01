@@ -3,8 +3,7 @@ import { Box, Button, Flex } from '@chakra-ui/react';
 import { Buffer } from 'buffer';
 import { useState } from 'react';
 
-export const Storage = ({ data }) => {
-  const { address, fileName, fileExplanation, network } = data;
+export const Storage = ({ address, fileName, fileExplanation, network }) => {
   const INFURA_ID = process.env.REACT_APP_PROJECT_ID;
   const INFURA_SECRET_KEY = process.env.REACT_APP_PROJECT_KEY;
 

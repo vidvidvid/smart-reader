@@ -12,12 +12,12 @@ import { useEffect, useCallback, useState } from 'react';
 import { ethers } from 'ethers';
 import axios from 'axios';
 import { SimulateTransaction } from './components/SimulateTransaction';
+import { Storage } from './components/Storage';
 
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import prettier from 'prettier';
 import typescript from 'prettier/parser-typescript';
-import { Storage } from './components/Storage';
 
 function App() {
   const [address, setAddress] = useState('');
@@ -258,12 +258,10 @@ function App() {
         </Button>
       </Box>
       <Storage
-        data={{
-          address,
-          network,
-          fileName: inspectContract?.name,
-          fileExplanation: contractExplanation,
-        }}
+        address={address}
+        network={network}
+        fileName={inspectContract?.name}
+        fileExplanation={contractExplanation}
       />
       <Select onChange={handleContractChange}>
         {sourceCode &&
