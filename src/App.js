@@ -17,7 +17,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import prettier from 'prettier';
 import typescript from 'prettier/parser-typescript';
-import Storage from './components/Storage';
+import { Storage } from './components/Storage';
 
 function App() {
   const [address, setAddress] = useState('');
