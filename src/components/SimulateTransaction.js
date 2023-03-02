@@ -33,20 +33,38 @@ export const SimulateTransaction = ({
   };
 
   useEffect(() => {
-    if (functionInputs || txnFrom) {
-      // if each of the functionInputs has a value, and txnFrom is a valid address, then set simulationReady to true
-      if (
-        Object.values(functionInputs).every(
-          (param) => param.value.length > 0
-        ) &&
-        ethers.utils.isAddress(txnFrom)
-      ) {
+    if (functionInputs) {
+      console.log('functionInputs', functionInputs);
+      const inputValues = Object.values(functionInputs);
+      if (inputValues.length === 0) {
         setSimulationReady(true);
       } else {
-        setSimulationReady(false);
+        let ready = true;
+        inputValues.forEach((param) => {
+          if (param.value.length === 0 || inputTypeError) {
+            ready = false;
+          }
+        });
+        setSimulationReady(ready);
       }
     }
-  }, [functionInputs, inputTypeError, txnFrom]);
+  }, [functionInputs, inputTypeError]);
+
+  // useEffect(() => {
+  //   if (functionInputs || txnFrom) {
+  //     // if each of the functionInputs has a value, and txnFrom is a valid address, then set simulationReady to true
+  //     if (
+  //       Object.values(functionInputs).every(
+  //         (param) => param.value.length > 0
+  //       ) &&
+  //       ethers.utils.isAddress(txnFrom)
+  //     ) {
+  //       setSimulationReady(true);
+  //     } else {
+  //       setSimulationReady(false);
+  //     }
+  //   }
+  // }, [functionInputs, inputTypeError, txnFrom]);
 
   useEffect(() => {
     if (simulationReady) {
@@ -76,7 +94,9 @@ export const SimulateTransaction = ({
   useEffect(() => {
     if (name && contractABI) {
       contractABI.forEach((abi) => {
-        if (abi.name && abi.name.toLowerCase() === name.toLowerCase()) {
+        
+        if (abi.name && abi.name.toLowerCase().trim() === name.toLowerCase().trim()) {
+          console.log("aib.name", abi.name, "name", name)
           setSimulationValid(true);
           const { inputs } = abi;
           const inputsObj = inputs.reduce((params, input) => {
