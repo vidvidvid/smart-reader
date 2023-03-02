@@ -34,6 +34,7 @@ export const Header = ({
         onChange={(e) => setNetwork(e.target.value)}
         maxW="300px"
         background="#191919"
+        color="white"
         textColor="white"
         defaultValue={network}
       >
@@ -49,9 +50,11 @@ export const Header = ({
         <Button
           onClick={() => setFetching(true)}
           isDisabled={!ethers.utils.isAddress(address) || !network}
+          background="black"
+          textColor="white"
+          _hover={{ background: 'black' }}
         >
-          {' '}
-          Go{' '}
+          Go
         </Button>
       </Tooltip>
     </Flex>
