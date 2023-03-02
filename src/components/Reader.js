@@ -19,6 +19,22 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 
+const functionMessages = [
+  'Deciphering the function',
+  'Unpacking the function',
+  'Analyzing the function',
+  'Interpreting the function',
+  'Uncovering the function',
+];
+
+const contractMessages = [
+  "Unravelling the contract's source code",
+  "Cracking the contract's source code",
+  "Decoding the contract's source code",
+  "Decrypting the contract's source code",
+  "Unveiling the contract's source code",
+];
+
 export const Reader = ({ address, network, fetching, setFetching }) => {
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
@@ -26,7 +42,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   const [highlightedFunction, setHighlightedFunction] = useState(null);
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingContract, setIsLoadingContract] = useState(false);
+  const [isLoadingFunction, setIsLoadingFunction] = useState(false);
   const [sourceCode, setSourceCode] = useState([]);
   const [inspectContract, setInspectContract] = useState();
   const [inspectFunction, setInspectFunction] = useState({
@@ -49,7 +66,12 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     async (code, type) => {
       console.log('code', code);
       console.log('type', type);
-      setIsLoading(true);
+      if (type === explanation.contract) {
+        setIsLoadingContract(true);
+      } else {
+        setIsLoadingFunction(true);
+      }
+
       const requestOptions = {
         method: 'POST',
         headers: {
@@ -73,13 +95,15 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         .then((data) => {
           if (type === explanation.contract) {
             setContractExplanation(data.choices[0].text);
+            setIsLoadingContract(false);
           } else {
             setFunctionExplanation(data.choices[0].text);
+            setIsLoadingFunction(false);
           }
-          setIsLoading(false);
         })
         .catch((err) => {
-          setIsLoading(false);
+          setIsLoadingContract(false);
+          setIsLoadingFunction(false);
           console.log('err', err);
         });
     },
@@ -360,10 +384,12 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             )}
             {/* need to condense these into same panel */}
             <Flex flexGrow={1} w="50%">
-              {isLoading && (
+              {isLoadingContract && (
                 <Flex w="full" justifyContent="center" alignItems="center">
                   <Spinner />
-                  <Text ml={2}>Translating the contract's source code ...</Text>
+                  <Text ml={2}>
+                    {contractMessages[Math.floor(Math.random() * 5)]}
+                  </Text>
                 </Flex>
               )}
 
@@ -383,6 +409,18 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
                     (value) => !value
                   ) ? null : (
                     <Flex flexDirection={'column'} gap={3}>
+                      {isLoadingFunction && (
+                        <Flex
+                          w="full"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <Spinner />
+                          <Text ml={2}>
+                            {functionMessages[Math.floor(Math.random() * 5)]}
+                          </Text>
+                        </Flex>
+                      )}
                       <Box>
                         <Text>{functionExplanation}</Text>
                       </Box>
