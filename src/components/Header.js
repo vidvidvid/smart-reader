@@ -17,7 +17,7 @@ export const Header = ({
       alignItems="center"
       position="fixed"
       justifyContent="center"
-      background="linear-gradient(rgba(255, 255, 255, 0.1), transparent)"
+      background="#355CA7"
       backdropFilter="blur(8px)"
       zIndex={1}
       gap={3}
@@ -27,11 +27,16 @@ export const Header = ({
         value={address}
         onChange={(e) => setAddress(e.target.value)}
         maxW="300px"
+        background="#191919"
+        textColor="white"
       />
       <Select
-        placeholder="Network"
         onChange={(e) => setNetwork(e.target.value)}
         maxW="300px"
+        background="#191919"
+        color="white"
+        textColor="white"
+        defaultValue={network}
       >
         <option value="ethereum">Ethereum</option>
         <option value="polygon">Polygon</option>
@@ -45,9 +50,11 @@ export const Header = ({
         <Button
           onClick={() => setFetching(true)}
           isDisabled={!ethers.utils.isAddress(address) || !network}
+          background="black"
+          textColor="white"
+          _hover={{ background: 'black' }}
         >
-          {' '}
-          Go{' '}
+          Go
         </Button>
       </Tooltip>
     </Flex>

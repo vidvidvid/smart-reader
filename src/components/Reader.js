@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Flex,
   Box,
-  Button,
   Select,
   Spinner,
   Text,
@@ -10,7 +9,6 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
   useDisclosure,
@@ -21,6 +19,22 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 
+const functionMessages = [
+  'Deciphering the function',
+  'Unpacking the function',
+  'Analyzing the function',
+  'Interpreting the function',
+  'Uncovering the function',
+];
+
+const contractMessages = [
+  "Unravelling the contract's source code",
+  "Cracking the contract's source code",
+  "Decoding the contract's source code",
+  "Decrypting the contract's source code",
+  "Unveiling the contract's source code",
+];
+
 export const Reader = ({ address, network, fetching, setFetching }) => {
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
@@ -28,7 +42,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   const [highlightedFunction, setHighlightedFunction] = useState(null);
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingContract, setIsLoadingContract] = useState(false);
+  const [isLoadingFunction, setIsLoadingFunction] = useState(false);
   const [sourceCode, setSourceCode] = useState([]);
   const [inspectContract, setInspectContract] = useState();
   const [inspectFunction, setInspectFunction] = useState({
@@ -51,7 +66,12 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     async (code, type) => {
       console.log('code', code);
       console.log('type', type);
-      setIsLoading(true);
+      if (type === explanation.contract) {
+        setIsLoadingContract(true);
+      } else {
+        setIsLoadingFunction(true);
+      }
+
       const requestOptions = {
         method: 'POST',
         headers: {
@@ -75,13 +95,15 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         .then((data) => {
           if (type === explanation.contract) {
             setContractExplanation(data.choices[0].text);
+            setIsLoadingContract(false);
           } else {
             setFunctionExplanation(data.choices[0].text);
+            setIsLoadingFunction(false);
           }
-          setIsLoading(false);
         })
         .catch((err) => {
-          setIsLoading(false);
+          setIsLoadingContract(false);
+          setIsLoadingFunction(false);
           console.log('err', err);
         });
     },
@@ -173,8 +195,10 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       console.log('Selected contract:', contract);
 
       setInspectContract(contract);
+
+      fetchExplanation(contract.sourceCode.content, explanation.contract);
     },
-    [sourceCode]
+    [explanation.contract, fetchExplanation, sourceCode]
   );
 
   const handleCodeHover = useCallback(
@@ -259,6 +283,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     [highlightedFunction]
   );
 
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const handleCodeClick = useCallback(() => {
     if (!selectedFunctionName || !selectedFunctionCode) {
       return;
@@ -270,6 +295,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       name: selectedFunctionName,
       code: selectedFunctionCode,
     });
+    fetchExplanation(selectedFunctionCode, explanation.function);
     // let formattedCode = '';
     // if (inspectFunction && inspectFunction.code) {
     //   const formattedCode = prettier.format(inspectContract.code, {
@@ -278,16 +304,24 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     //   });
     //   console.log('formattedCode', formattedCode);
     // }
-  }, [selectedFunctionName, selectedFunctionCode]);
-
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  }, [
+    selectedFunctionName,
+    selectedFunctionCode,
+    onOpen,
+    fetchExplanation,
+    explanation.function,
+  ]);
 
   return (
     <Flex pt={16} direction="column">
-      {fetching && <Spinner />}
+      {fetching && (
+        <Flex>
+          <Spinner />
+        </Flex>
+      )}
       {!fetching && inspectContract && (
         <Flex direction="column">
-          <Flex>
+          {/* <Flex>
             <Button
               onClick={() =>
                 fetchExplanation(
@@ -304,7 +338,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             <Button onClick={() => setInspectFunction({ name: '', code: '' })}>
               Clear Function
             </Button>
-          </Flex>
+          </Flex> */}
           <Storage
             address={address}
             network={network}
@@ -330,7 +364,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             {inspectContract ? (
               <Flex
                 overflow="auto"
-                maxH="500px"
+                maxH="calc(100vh - 180px)"
                 flexGrow={1}
                 w="50%"
                 onMouseOver={(event) => handleCodeHover(event)}
@@ -350,31 +384,46 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             )}
             {/* need to condense these into same panel */}
             <Flex flexGrow={1} w="50%">
-              {isLoading && <Spinner />}
-              {contractExplanation && <Text>{contractExplanation}</Text>}
+              {isLoadingContract && (
+                <Flex w="full" justifyContent="center" alignItems="center">
+                  <Spinner />
+                  <Text ml={2}>
+                    {contractMessages[Math.floor(Math.random() * 5)]}
+                  </Text>
+                </Flex>
+              )}
+
+              {contractExplanation && (
+                <Text fontSize={18}>{contractExplanation}</Text>
+              )}
             </Flex>
 
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
               <ModalContent>
-                <ModalHeader>Modal Title</ModalHeader>
+                <ModalHeader>{inspectFunction.name}</ModalHeader>
                 <ModalCloseButton />
-                <ModalBody>
+                <ModalBody py={6}>
                   {inspectFunction &&
                   Object.values(inspectFunction).every(
                     (value) => !value
                   ) ? null : (
-                    <Flex flexDirection={'column'}>
-                      <Button
-                        onClick={() =>
-                          fetchExplanation(
-                            inspectFunction.code,
-                            explanation.function
-                          )
-                        }
-                      >
-                        Explain Function
-                      </Button>
+                    <Flex flexDirection={'column'} gap={3}>
+                      {isLoadingFunction && (
+                        <Flex
+                          w="full"
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <Spinner />
+                          <Text ml={2}>
+                            {functionMessages[Math.floor(Math.random() * 5)]}
+                          </Text>
+                        </Flex>
+                      )}
+                      <Box>
+                        <Text>{functionExplanation}</Text>
+                      </Box>
                       <SyntaxHighlighter
                         language="solidity"
                         style={dracula}
@@ -382,9 +431,6 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
                       >
                         {inspectFunction.code ? inspectFunction.code : ''}
                       </SyntaxHighlighter>
-                      <Box style={{ border: '1px solid gray' }}>
-                        <Text>{functionExplanation}</Text>
-                      </Box>
                       {inspectFunction && address && network && contractABI && (
                         <SimulateTransaction
                           address={address}
