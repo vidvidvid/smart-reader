@@ -19,6 +19,7 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 import { uploadJSON } from '../utils/ipfs';
+import { useAccount } from 'wagmi';
 
 const functionMessages = [
   'Deciphering the function',
@@ -52,6 +53,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     code: '',
   });
 
+  const { address: userAddress, isConnected } = useAccount();
+
   const explanation = {
     contract: 'contract',
     function: 'function',
@@ -65,6 +68,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
 
   const fetchExplanation = useCallback(
     async (code, type) => {
+      // query subgraph endpoint to check if contract exists
+      // if it does, fetch the explanation from IPFS
       const uploadResult = await uploadJSON(
         address,
         network,
@@ -448,6 +453,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
                           network={network}
                           contractABI={contractABI}
                           inspectFunction={inspectFunction}
+                          userAddress={userAddress}
+                          isConnected={isConnected}
                         />
                       )}
                     </Flex>
