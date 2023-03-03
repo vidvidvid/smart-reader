@@ -68,6 +68,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
 
   const fetchExplanation = useCallback(
     async (code, type) => {
+      // query subgraph endpoint to check if contract exists
+      // if it does, fetch the explanation from IPFS
       const uploadResult = await uploadJSON(
         address,
         network,
