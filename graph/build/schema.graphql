@@ -1,0 +1,22 @@
+type Contract @entity {
+  id: ID!
+  network: String!
+  createdAt: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  blockTimestamp: BigInt!
+  address: Bytes!
+  ipfsSchema: String!
+  Annotations: [Annotation!]! 
+}
+
+type Annotation @entity {
+  id: ID!
+  parentContract: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  functionId: BigInt!
+  annotation: String!
+  createdAt: BigInt!
+}

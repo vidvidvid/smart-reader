@@ -18,6 +18,7 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
+import { uploadJSON } from '../utils/ipfs';
 
 const functionMessages = [
   'Deciphering the function',
@@ -64,8 +65,13 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
 
   const fetchExplanation = useCallback(
     async (code, type) => {
-      console.log('code', code);
-      console.log('type', type);
+      const uploadResult = await uploadJSON(
+        address,
+        network,
+        inspectContract?.name,
+        contractExplanation
+      );
+      console.log('upload Result', uploadResult);
       if (type === explanation.contract) {
         setIsLoadingContract(true);
       } else {
@@ -107,7 +113,13 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
           console.log('err', err);
         });
     },
-    [explanation.contract]
+    [
+      explanation.contract,
+      address,
+      network,
+      inspectContract?.name,
+      contractExplanation,
+    ]
   );
   function extractContracts(contractString) {
     const contractsArray = [];
@@ -346,7 +358,6 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             fileExplanation={contractExplanation}
           />
           <Select onChange={handleContractChange}>
-            {/* {console.log("SRC", sourceCode[0].sourceCode)} */}
             {sourceCode &&
               sourceCode.length > 0 &&
               sourceCode.map((contract) => {
