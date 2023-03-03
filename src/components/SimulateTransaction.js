@@ -94,9 +94,11 @@ export const SimulateTransaction = ({
   useEffect(() => {
     if (name && contractABI) {
       contractABI.forEach((abi) => {
-        
-        if (abi.name && abi.name.toLowerCase().trim() === name.toLowerCase().trim()) {
-          console.log("aib.name", abi.name, "name", name)
+        if (
+          abi.name &&
+          abi.name.toLowerCase().trim() === name.toLowerCase().trim()
+        ) {
+          console.log('aib.name', abi.name, 'name', name);
           setSimulationValid(true);
           const { inputs } = abi;
           const inputsObj = inputs.reduce((params, input) => {

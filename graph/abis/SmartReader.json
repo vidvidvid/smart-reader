@@ -1,0 +1,86 @@
+[
+  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "parentContract",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "functionId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "annotation",
+        "type": "string"
+      }
+    ],
+    "name": "AnnotationAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "parentContract",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "explanation",
+        "type": "string"
+      }
+    ],
+    "name": "ContractAdded",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "parentContract",
+        "type": "address"
+      },
+      { "internalType": "uint256", "name": "functionId", "type": "uint256" },
+      { "internalType": "string", "name": "annotation", "type": "string" }
+    ],
+    "name": "addAnnotation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newContract", "type": "address" },
+      { "internalType": "string", "name": "explanation", "type": "string" }
+    ],
+    "name": "addContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "contractStorage",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
