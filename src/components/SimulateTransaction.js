@@ -8,16 +8,18 @@ export const SimulateTransaction = ({
   network,
   contractABI,
   inspectFunction,
+  userAddress,
+  isConnected,
 }) => {
-  console.log('network', network);
-  console.log('address', address);
   const [simulationValid, setSimulationValid] = useState(false);
   const [simulationReady, setSimulationReady] = useState(false);
 
   const [functionInputs, setFunctionInputs] = useState([]);
   const [encodedInput, setEncodedInput] = useState('');
   const [inputTypeError, setInputTypeError] = useState(false);
-  const [txnFrom, setTxnFrom] = useState('');
+  const [txnFrom, setTxnFrom] = useState(isConnected ? userAddress : '');
+  console.log('userAddress', userAddress);
+  console.log('isConnected', isConnected);
 
   const { name, code } = inspectFunction;
   console.log('code', code);

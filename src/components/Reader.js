@@ -19,6 +19,7 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 import { uploadJSON } from '../utils/ipfs';
+import { useAccount } from 'wagmi';
 
 const functionMessages = [
   'Deciphering the function',
@@ -51,6 +52,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     name: '',
     code: '',
   });
+
+  const { address: userAddress, isConnected } = useAccount();
 
   const explanation = {
     contract: 'contract',
@@ -448,6 +451,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
                           network={network}
                           contractABI={contractABI}
                           inspectFunction={inspectFunction}
+                          userAddress={userAddress}
+                          isConnected={isConnected}
                         />
                       )}
                     </Flex>
