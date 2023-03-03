@@ -43,7 +43,7 @@ const SideMenu = () => {
 
   return (
     <Box position="fixed" zIndex={2}>
-      <Button ref={btnRef} colorScheme="teal" onClick={onOpen} m={3}>
+      <Button ref={btnRef} colorScheme="blue" onClick={onOpen} m={3}>
         <HamburgerIcon />
       </Button>
       <Drawer
