@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Header } from './components/Header';
 import { Reader } from './components/Reader';
 import React from 'react';
+import SideMenu from './components/SideMenu';
 
 export const Context = React.createContext();
 
@@ -15,6 +16,7 @@ function App() {
 
   return (
     <Flex direction="column" h="100vh">
+      <SideMenu />
       <Header
         address={address}
         network={network}
