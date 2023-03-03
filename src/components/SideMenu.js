@@ -63,18 +63,25 @@ const SideMenu = () => {
               onChange={(e) => setSearch(e.target.value)}
               value={search}
             />
-            {solFiles.map((file) => (
-              <Link
-                href={`https://etherscan.io/address/${file.address}`}
-                key={file.name + file.contract}
-              >
-                <Flex key={file.name}>
-                  <Text>{file.name}</Text>
-                  <Text>{file.contract}</Text>
-                  <Text>{file.address}</Text>
-                </Flex>
-              </Link>
-            ))}
+            {solFiles
+              .filter((file) => {
+                return (
+                  file.name.toLowerCase().includes(search.toLowerCase()) ||
+                  file.contract.toLowerCase().includes(search.toLowerCase())
+                );
+              })
+              .map((file) => (
+                <Link
+                  href={`https://etherscan.io/address/${file.address}`}
+                  key={file.name + file.contract}
+                >
+                  <Flex key={file.name}>
+                    <Text>{file.name}</Text>
+                    <Text>{file.contract}</Text>
+                    <Text>{file.address}</Text>
+                  </Flex>
+                </Link>
+              ))}
           </DrawerBody>
 
           <DrawerFooter>
