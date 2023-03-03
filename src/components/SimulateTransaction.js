@@ -1,7 +1,23 @@
 import axios from 'axios';
-import { Box, Input, Button, Flex, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Input,
+  Button,
+  Flex,
+  Spinner,
+  VStack,
+  Text,
+} from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
+
+const simulatingFunctionMessages = [
+  'Plotting the function ...',
+  'Calculating the function ... ',
+  'Demonstrating the function ... ',
+  'Evaluating the function ...',
+  'Applying the function ...',
+];
 
 export const SimulateTransaction = ({
   address,
@@ -13,6 +29,8 @@ export const SimulateTransaction = ({
 }) => {
   const [simulationValid, setSimulationValid] = useState(false);
   const [simulationReady, setSimulationReady] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationResult, setSimulationResult] = useState();
 
   const [functionInputs, setFunctionInputs] = useState([]);
   const [encodedInput, setEncodedInput] = useState('');
@@ -114,7 +132,8 @@ export const SimulateTransaction = ({
   }, [name, contractABI]);
   const transaction = async () => {
     console.log('encodedInput', encodedInput);
-    console.time('Simulation');
+    // console.time('Simulation');
+    setIsSimulating(true);
     // network selector
     // map inputs
     // encode inputs
@@ -148,11 +167,15 @@ export const SimulateTransaction = ({
         },
       }
     );
-    console.timeEnd('Simulation');
+    // console.timeEnd('Simulation');
 
-    const transcation = resp.data.transaction;
-    console.log('RETURN TXN', JSON.stringify(transcation, null, 2));
+    setIsSimulating(false);
+
+    console.log('transcation', resp.data.transaction);
+    setSimulationResult(resp.data.transaction);
+    console.log('RETURN TXN', JSON.stringify(resp.data.transaction, null, 2));
   };
+
   console.log('address', address);
   const handleAddressInputChange = (e, setInputTypeError) => {
     const inputValue = e.target.value;
@@ -169,17 +192,16 @@ export const SimulateTransaction = ({
       {simulationValid ? (
         <Flex direction="column" gap={3}>
           <h1 style={{ textAlign: 'center', fontWeight: 'bold' }}>
-            Simulate This Transaction on {network}
+            Simulate this transaction on {network}
           </h1>
           <hr />
           <Flex gap={2} direction="column">
-            <i>which account is sending this txn?</i>
-            <Text>Transaction from:</Text>
             <Input
               value={txnFrom}
               onChange={(e) =>
                 setTxnFrom(handleAddressInputChange(e, setInputTypeError))
               }
+              placeholder="Which account is sending this txn?"
               borderColor={inputTypeError ? 'red' : 'gray.300'}
               _focus={{ borderColor: inputTypeError ? 'red' : 'blue.400' }}
             />
@@ -223,6 +245,26 @@ export const SimulateTransaction = ({
           <Button isDisabled={!simulationReady} onClick={transaction}>
             Simulate Transaction
           </Button>
+          <Flex justifyContent="center">
+            {isSimulating ? (
+              <Flex w="full" justifyContent="center" alignItems="center">
+                <Spinner />
+                <Text ml={2}>
+                  {simulatingFunctionMessages[Math.floor(Math.random() * 5)]}
+                </Text>
+              </Flex>
+            ) : (
+              <VStack>
+                {/* <Text>Status: {simulationResult?.status}</Text> */}
+                <Text>Gas Used: {simulationResult?.gas_used}</Text>
+                <Text>Block Number: {simulationResult?.block_number}</Text>
+                <Text>Hash: {simulationResult?.hash}</Text>
+                <Text>Sender: {simulationResult?.from}</Text>
+                <Text>Recipient: {simulationResult?.to}</Text>
+                <Text>Timestamp: {simulationResult?.timestamp}</Text>
+              </VStack>
+            )}
+          </Flex>
         </Flex>
       ) : (
         <p>

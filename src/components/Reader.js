@@ -499,7 +499,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
 
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
-              <ModalContent>
+              <ModalContent minW="700px">
                 <ModalHeader>{inspectFunction.name}</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody py={6}>
@@ -508,28 +508,37 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
                     (value) => !value
                   ) ? null : (
                     <Flex flexDirection={'column'} gap={3}>
-                      {isLoadingFunction && (
-                        <Flex
-                          w="full"
-                          justifyContent="center"
-                          alignItems="center"
-                        >
-                          <Spinner />
-                          <Text ml={2}>
-                            {functionMessages[Math.floor(Math.random() * 5)]}
-                          </Text>
-                        </Flex>
-                      )}
-                      <Box>
-                        <Text>{functionExplanation}</Text>
-                      </Box>
-                      <SyntaxHighlighter
-                        language="solidity"
-                        style={dracula}
-                        wrapLines={true}
-                      >
-                        {inspectFunction.code ? inspectFunction.code : ''}
-                      </SyntaxHighlighter>
+                      <Flex gap={3}>
+                        <Box flexGrow={1} w="50%">
+                          <SyntaxHighlighter
+                            language="solidity"
+                            style={dracula}
+                            wrapLines={true}
+                          >
+                            {inspectFunction.code ? inspectFunction.code : ''}
+                          </SyntaxHighlighter>
+                        </Box>
+
+                        <Box flexGrow={1} w="50%">
+                          {isLoadingFunction && (
+                            <Flex
+                              w="full"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Spinner />
+                              <Text ml={2}>
+                                {
+                                  functionMessages[
+                                    Math.floor(Math.random() * 5)
+                                  ]
+                                }
+                              </Text>
+                            </Flex>
+                          )}
+                          <Text>{functionExplanation}</Text>
+                        </Box>
+                      </Flex>
                       {inspectFunction && address && network && contractABI && (
                         <SimulateTransaction
                           address={address}
