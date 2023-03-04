@@ -6,7 +6,8 @@ import { ethers } from 'ethers';
 export const Header = ({ address, setAddress, setFetching }) => {
   return (
     <Flex
-      w="calc(100% - 16px)"
+      // w="calc(100% - 16px)"
+      w="full"
       h={16}
       alignItems="center"
       background="#355CA7"
@@ -14,7 +15,6 @@ export const Header = ({ address, setAddress, setFetching }) => {
       zIndex={1}
       borderTopRadius={16}
       px={3}
-      margin={3}
       justifyContent="space-between"
     >
       <Flex gap={3}>
@@ -27,8 +27,8 @@ export const Header = ({ address, setAddress, setFetching }) => {
             setAddress(e.target.value);
           }}
           maxW="300px"
-          background="#191919"
-          textColor="white"
+          background="white"
+          textColor="black"
         />
         <Web3NetworkSwitch />
 

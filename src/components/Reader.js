@@ -27,6 +27,7 @@ import { ipfsGateway } from '../utils/constants';
 import { getContract } from '../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 // import { contractName } from '../utils/ipfs';
+import chainInfo from '../utils/chainInfo';
 
 const functionMessages = [
   'Deciphering the function',
@@ -64,18 +65,8 @@ export const Reader = ({ address, fetching, setFetching }) => {
   const { chain } = useNetwork();
   const network = chain?.name.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
-
   const { data: signer } = useSigner();
-
-  let APIKEY;
-
-  if (chain?.id === 1) {
-    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
-  } else if (chain?.id === 137) {
-    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
-  } else if (chain?.id === 5) {
-    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
-  }
+  const { APIKEY, blockExplorerUrl } = chainInfo({ chain });
 
   const explanation = {
     contract: 'contract',
@@ -91,7 +82,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
     async (code, type) => {
       const relay = new GelatoRelay();
       console.log('inspectContract', inspectContract?.name);
-    
+
       const result = await getExplanation(address, inspectContract?.name);
       console.log('result', result);
       let fileExplanationSuccess = false;
@@ -102,7 +93,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
             console.log('DID IT WORK? ', response.data);
             setContractExplanation(response.data.fileExplanation);
             fileExplanationSuccess = true;
-            
           })
           .catch((error) => {
             console.log(
@@ -110,11 +100,9 @@ export const Reader = ({ address, fetching, setFetching }) => {
               error.response.data.error
             );
             fileExplanationSuccess = false;
-
           });
       } else {
         fileExplanationSuccess = false;
-
       }
 
       if (!fileExplanationSuccess) {
@@ -155,7 +143,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 inspectContract?.name,
                 data.choices[0].text
               );
-                console.log('uploadResult', uploadResult);
+              console.log('uploadResult', uploadResult);
               const smartReader = getContract(network, signer);
               const { data: sponsoredData } =
                 await smartReader.populateTransaction.addContract(
@@ -175,7 +163,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 process.env.REACT_APP_GELATO_API_KEY
               );
               console.log('Gelato relay result: ', relayResponse);
-              
             } else {
               setFunctionExplanation(data.choices[0].text);
               setIsLoadingFunction(false);
@@ -188,14 +175,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
           });
       }
     },
-    [
-      explanation.contract,
-      inspectContract,
-      address,
-      signer,
-      network,
-      chain?.id,
-    ]
+    [explanation.contract, inspectContract, address, signer, network, chain?.id]
   );
 
   function extractContracts(contractString) {
@@ -229,16 +209,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
     return contracts;
   }
 
-  let blockExplorerUrl;
-
-  if (chain?.id === 137) {
-    blockExplorerUrl = 'api.polygonscan.com/api';
-  } else if (chain?.id === 1) {
-    blockExplorerUrl = 'api.etherscan.io/api';
-  } else if (chain?.id === 5) {
-    blockExplorerUrl = 'api-goerli.etherscan.io/api';
-  }
-
   const fetchSourceCode = useCallback(async () => {
     try {
       const resp = await axios.get(
@@ -264,12 +234,11 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
       setContractABI(addressABI);
       setSourceCode(contractsArray);
-     
+
       fetchExplanation(
         contractsArray[0].sourceCode.content,
         explanation.contract
       );
-      
     } catch (err) {
       // Handle Error Here
 
@@ -418,16 +387,26 @@ export const Reader = ({ address, fetching, setFetching }) => {
   ]);
 
   return (
-    <Flex direction="column" h="full" px={3}>
+    <Flex
+      direction="column"
+      h="full"
+      px={3}
+      pb={3}
+      borderBottomRadius={8}
+      overflow="hidden"
+      maxH="full"
+    >
       {!inspectContract && (
-        <Box h="full" alignItems="center" justifyContent="center">
-          {!fetching && <Box>Search for a contract!</Box>}
-          {fetching && (
-            <Flex>
-              <Spinner />
-            </Flex>
+        <Flex h="full" alignItems="center" justifyContent="center">
+          {fetching ? (
+            <Spinner />
+          ) : (
+            <Text>
+              Search for a contract by inputting a contract address & selecting
+              the right network.
+            </Text>
           )}
-        </Box>
+        </Flex>
       )}
       {inspectContract && !fetching && (
         <Flex direction="column">
@@ -469,7 +448,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
               })}
           </Select>
 
-          <Flex py={3} gap={3} w="full">
+          <Flex py={3} gap={3} w="full" maxH="calc(100% - 140px)">
             {inspectContract ? (
               <Flex
                 overflow="auto"
@@ -498,9 +477,24 @@ export const Reader = ({ address, fetching, setFetching }) => {
               'No contract selected'
             )}
             {/* need to condense these into same panel */}
-            <Flex flexGrow={1} w="50%" direction="column" gap={3}>
+            <Flex
+              flexGrow={1}
+              w="50%"
+              direction="column"
+              gap={3}
+              // alignSelf="center"
+            >
+              <Flex gap={3}>
+                <Image src="/images/explanation.png" w={6} />
+                <Text fontWeight="bold">Explanation</Text>
+              </Flex>
               {isLoadingContract && (
-                <Flex w="full" justifyContent="center" alignItems="center">
+                <Flex
+                  w="full"
+                  justifyContent="center"
+                  alignItems="center"
+                  h="full"
+                >
                   <Spinner />
                   <Text ml={2}>
                     {contractMessages[Math.floor(Math.random() * 5)]}
@@ -510,10 +504,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
               {contractExplanation && (
                 <Flex direction="column" gap={3}>
-                  <Flex gap={3}>
-                    <Image src="/images/explanation.png" w={6} />
-                    <Text fontWeight="bold">Explanation</Text>
-                  </Flex>
                   <Text fontSize={18}>{contractExplanation}</Text>
                 </Flex>
               )}
