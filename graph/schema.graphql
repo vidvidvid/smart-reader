@@ -1,5 +1,6 @@
 type Contract @entity {
   id: ID!
+  smartReaderContract: Bytes!
   network: String!
   createdAt: BigInt!
   blockNumber: BigInt!
@@ -7,7 +8,7 @@ type Contract @entity {
   blockTimestamp: BigInt!
   address: Bytes!
   ipfsSchema: String!
-  Annotations: [Annotation!]! 
+  Annotations: [Annotation!]!
 }
 
 type Annotation @entity {

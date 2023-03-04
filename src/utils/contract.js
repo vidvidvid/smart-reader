@@ -1,25 +1,30 @@
-const { ethers, Contract, Wallet } = require('ethers');
-const dotenv = require('dotenv');
-const path = require('path');
+const { Contract } = require('ethers');
+const SmartReaderABI = require('./SmartReader.json').abi;
 
-dotenv.config({ path: path.resolve(__dirname, '../../contracts/.env') });
+// const getProvider = (network) => {
+//   switch (network) {
+//     case 'goerli':
+//       return new ethers.providers.JsonRpcProvider(
+//         'https://rpc.ankr.com/eth_goerli'
+//       );
+//     case 'ethereum':
+//       return new ethers.providers.JsonRpcProvider(
+//         'https://rpc.ankr.com/eth_goerli'
+//       );
+//     case 'polygon':
+//       return new ethers.providers.JsonRpcProvider(
+//         'https://rpc-mainnet.maticvigil.com'
+//       );
+//     case 'hardhat':
+//     default:
+//       return new ethers.providers.JsonRpcProvider();
+//   }
+// };
 
+const getContract = (network, signer) => {
+  const deploymentData = require(`./deployments/${network}.json`);
+  const contractAddress = deploymentData.contract;
+  return new Contract(contractAddress, SmartReaderABI, signer);
+};
 
-const abi = require('../../contracts/build/contracts/SmartReader.sol/SmartReader.json').abi;
-const provider = new ethers.providers.JsonRpcProvider('https://rpc.ankr.com/eth_goerli');
-const signer = new Wallet(process.env.PRIVATE_KEY, provider);
-
-  
-export const contract = new Contract('0x02994059E2270d85ceff0E7E2510281d50eaCb1C', abi, signer);
-
-
-
-
-
-
-
-
-
-
-
-
+module.exports = { getContract };

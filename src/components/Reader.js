@@ -12,6 +12,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  Button,
 } from '@chakra-ui/react';
 import { Storage } from './Storage';
 import SyntaxHighlighter from 'react-syntax-highlighter';
@@ -19,7 +20,11 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 import { uploadJSON } from '../utils/ipfs';
-import { useAccount } from 'wagmi';
+import { useAccount, useSigner, useNetwork } from 'wagmi';
+import { getExplanation } from '../utils/queries';
+import { ipfsGateway } from '../utils/constants';
+import { getContract } from '../utils/contract';
+import { GelatoRelay, SponsoredCallRequest } from '@gelatonetwork/relay-sdk';
 
 const functionMessages = [
   'Deciphering the function',
@@ -52,8 +57,11 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     name: '',
     code: '',
   });
-
+  
+  const { chain } = useNetwork();
   const { address: userAddress, isConnected } = useAccount();
+
+  const { data: signer } = useSigner();
 
   const explanation = {
     contract: 'contract',
@@ -65,67 +73,202 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       setInspectContract(sourceCode[0]);
     }
   }, [sourceCode]);
-
   const fetchExplanation = useCallback(
     async (code, type) => {
-      // query subgraph endpoint to check if contract exists
-      // if it does, fetch the explanation from IPFS
-      const uploadResult = await uploadJSON(
-        address,
-        network,
-        inspectContract?.name,
-        contractExplanation
-      );
-      console.log('upload Result', uploadResult);
-      if (type === explanation.contract) {
-        setIsLoadingContract(true);
+      console.log('fetchExplanation', code);
+      const relay = new GelatoRelay();
+      const result = await getExplanation(address);
+      console.log('getExplanation in fetchExplanation', result);
+      let logNewExplanation = true;
+      if (result.length > 0) {
+        axios.get(ipfsGateway + '/' + result[0].ipfsSchema)
+          .then(response => {
+            console.log('response', response.data.fileExplanation);
+            setContractExplanation(response.data.fileExplanation);
+            logNewExplanation = false;
+          })
+          .catch(error => {
+            console.log('Error fetching IPFS content:', error.response.data.error);
+            logNewExplanation = true;
+          });
       } else {
-        setIsLoadingFunction(true);
+        logNewExplanation = true;
       }
-
-      const requestOptions = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization:
-            'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
-        },
-        body: JSON.stringify({
-          prompt: code.concat(
-            '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
-          ),
-          temperature: 0.3,
-          max_tokens: 500,
-        }),
-      };
-      fetch(
-        'https://api.openai.com/v1/engines/text-davinci-003/completions',
-        requestOptions
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          if (type === explanation.contract) {
-            setContractExplanation(data.choices[0].text);
+      console.log('logNewExplanation', logNewExplanation)
+      if (logNewExplanation) {
+        console.log('trigger bool', logNewExplanation)
+        const uploadResult = await uploadJSON(
+          address,
+          network,
+          inspectContract?.name,
+          contractExplanation
+        );
+        console.log('upload Result', uploadResult);
+        if (type === explanation.contract) {
+          setIsLoadingContract(true);
+        } else {
+          setIsLoadingFunction(true);
+        }
+  
+        const requestOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization:
+              'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
+          },
+          body: JSON.stringify({
+            prompt: code.concat(
+              '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
+            ),
+            temperature: 0.3,
+            max_tokens: 500,
+          }),
+        };
+        fetch(
+          'https://api.openai.com/v1/engines/text-davinci-003/completions',
+          requestOptions
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            if (type === explanation.contract) {
+              setContractExplanation(data.choices[0].text);
+              setIsLoadingContract(false);
+            } else {
+              setFunctionExplanation(data.choices[0].text);
+              setIsLoadingFunction(false);
+            }
+          })
+          .catch((err) => {
             setIsLoadingContract(false);
-          } else {
-            setFunctionExplanation(data.choices[0].text);
             setIsLoadingFunction(false);
-          }
-        })
-        .catch((err) => {
-          setIsLoadingContract(false);
-          setIsLoadingFunction(false);
-          console.log('err', err);
-        });
+            console.log('err', err);
+          });
+        const smartReader = getContract(network, signer);
+        const { data } = await smartReader.populateTransaction.addContract(
+          address,
+          uploadResult
+        );
+  
+        const sponsoredCallRequest = {
+          chainId: chain.id,
+          target: smartReader.address,
+          data: data,
+        };
+  
+  
+        const relayResponse = await relay.sponsoredCall(
+          sponsoredCallRequest,
+          process.env.REACT_APP_GELATO_API_KEY
+        );
+        console.log('Gelato relay result: ', relayResponse);
+      }
     },
     [
       explanation.contract,
-      address,
-      network,
       inspectContract?.name,
+      address,
+      signer,
+      network,
       contractExplanation,
+      chain.id,
     ]
   );
+  
+
+  // const fetchExplanation = useCallback(
+  //   async (code, type) => {
+  //     const relay = new GelatoRelay();
+  //     const result = await getExplanation(address);
+  //     console.log('getExplanation in fetchExplanation', result);
+  //     if (result.length > 0) {
+      
+  //         const ipfsSchema = axios.get(
+  //           ipfsGateway + '/' + result[0].ipfsSchema
+  //         )
+  //        .catch(error => {
+  //           console.log('error', error)
+  //        })
+        
+  //     } else {
+  //       const uploadResult = await uploadJSON(
+  //         address,
+  //         network,
+  //         inspectContract?.name,
+  //         contractExplanation
+  //       );
+  //       console.log('upload Result', uploadResult);
+  //       if (type === explanation.contract) {
+  //         setIsLoadingContract(true);
+  //       } else {
+  //         setIsLoadingFunction(true);
+  //       }
+
+  //       const requestOptions = {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization:
+  //             'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
+  //         },
+  //         body: JSON.stringify({
+  //           prompt: code.concat(
+  //             '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
+  //           ),
+  //           temperature: 0.3,
+  //           max_tokens: 500,
+  //         }),
+  //       };
+  //       fetch(
+  //         'https://api.openai.com/v1/engines/text-davinci-003/completions',
+  //         requestOptions
+  //       )
+  //         .then((response) => response.json())
+  //         .then((data) => {
+  //           if (type === explanation.contract) {
+  //             setContractExplanation(data.choices[0].text);
+  //             setIsLoadingContract(false);
+  //           } else {
+  //             setFunctionExplanation(data.choices[0].text);
+  //             setIsLoadingFunction(false);
+  //           }
+  //         })
+  //         .catch((err) => {
+  //           setIsLoadingContract(false);
+  //           setIsLoadingFunction(false);
+  //           console.log('err', err);
+  //         });
+  //       const smartReader = getContract(network, signer);
+  //       const { data } = await smartReader.populateTransaction.addContract(
+  //         address,
+  //         uploadResult
+  //       );
+
+  //       const sponsoredCallRequest = {
+  //         chainId: chain.id,
+  //         target: smartReader.address,
+  //         data: data,
+  //       };
+
+
+  //       const relayResponse = await relay.sponsoredCall(
+  //         sponsoredCallRequest,
+  //         process.env.REACT_APP_GELATO_API_KEY
+  //       );
+  //       console.log('Gelato relay result: ', relayResponse);
+  //     }
+  //   },
+  //   [
+  //     explanation.contract,
+  //     inspectContract?.name,
+  //     address,
+  //     signer,
+  //     network,
+  //     contractExplanation,
+  //     chain.id,
+  //   ]
+  // );
+
   function extractContracts(contractString) {
     const contractsArray = [];
 
@@ -338,7 +481,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       )}
       {!fetching && inspectContract && (
         <Flex direction="column">
-          {/* <Flex>
+          <Flex>
             <Button
               onClick={() =>
                 fetchExplanation(
@@ -355,7 +498,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             <Button onClick={() => setInspectFunction({ name: '', code: '' })}>
               Clear Function
             </Button>
-          </Flex> */}
+          </Flex>
           <Storage
             address={address}
             network={network}

@@ -9,9 +9,7 @@
     "remove-local": "graph remove --node http://localhost:8020/ test/smart-reader",
     "deploy-local": "graph codegen && graph build && graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 test/smart-reader",
     "deploy-only-goerli": "graph deploy --product hosted-service psparacino/smart-reader-goerli --ipfs https://api.thegraph.com/ipfs/ --node https://api.thegraph.com/deploy/ --debug",
-
     "deploy-goerli": "graph codegen && graph build && yarn deploy-only-goerli",
-
     "test": "graph test"
   },
   "dependencies": {
@@ -22,5 +20,3 @@
     "matchstick-as": "0.5.0"
   }
 }
-
-

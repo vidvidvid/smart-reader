@@ -30,7 +30,6 @@ export const uploadJSON = async (
   fileName,
   fileExplanation
 ) => {
-
   const file = new File(
     [
       JSON.stringify({
