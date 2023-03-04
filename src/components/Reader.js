@@ -19,7 +19,7 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 import { uploadJSON } from '../utils/ipfs';
-import { useAccount } from 'wagmi';
+import { useAccount, useNetwork } from 'wagmi';
 
 const functionMessages = [
   'Deciphering the function',
@@ -55,6 +55,16 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
 
   const { address: userAddress, isConnected } = useAccount();
 
+  const { chain } = useNetwork();
+
+  let APIKEY;
+
+  if (chain?.id === 1) {
+    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
+  } else if (chain?.id === 137) {
+    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
+  }
+
   const explanation = {
     contract: 'contract',
     function: 'function',
@@ -74,7 +84,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         inspectContract?.name,
         contractExplanation
       );
-      console.log('upload Result', uploadResult);
+
       if (type === explanation.contract) {
         setIsLoadingContract(true);
       } else {
@@ -113,7 +123,6 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         .catch((err) => {
           setIsLoadingContract(false);
           setIsLoadingFunction(false);
-          console.log('err', err);
         });
     },
     [
@@ -155,10 +164,18 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     return contracts;
   }
 
+  let blockExplorerUrl;
+
+  if (chain?.id === 137) {
+    blockExplorerUrl = 'api.polygonscan.com/api';
+  } else if (chain?.id === 1) {
+    blockExplorerUrl = 'api.etherscan.io/api';
+  }
+
   const fetchSourceCode = useCallback(async () => {
     try {
       const resp = await axios.get(
-        `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=RHDB6C8IZ4K52Q36GSSVBN5GT2256S8N45`
+        `https://${blockExplorerUrl}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
       );
       let sourceObj;
       let contracts;
@@ -167,12 +184,10 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
 
         contracts = sourceObj.sources;
-        console.log('lendingcontracts', contracts);
       } catch {
         sourceObj = resp.data.result[0].SourceCode;
         contracts = extractContracts(sourceObj);
       }
-      console.log('contracts', contracts);
 
       contractsArray = Object.entries(contracts).map(([name, sourceCode]) => {
         return { name, sourceCode };
@@ -187,7 +202,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       );
     } catch (err) {
       // Handle Error Here
-      console.error(err);
+
       setSourceCode([]);
       setInspectContract(undefined);
     }
@@ -207,7 +222,6 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       const contract = sourceCode.find(
         (contract) => contract.name === selectedContract
       );
-      console.log('Selected contract:', contract);
 
       setInspectContract(contract);
 
@@ -317,7 +331,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     //     parser: 'typescript',
     //     plugins: [typescript],
     //   });
-    //   console.log('formattedCode', formattedCode);
+    //
     // }
   }, [
     selectedFunctionName,
