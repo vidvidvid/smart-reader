@@ -6,7 +6,7 @@ pragma solidity ^0.8.9;
 contract SmartReader {
     address public owner;
 
-    event ContractAdded(address parentContract, string explanation);
+    event ContractAdded(address addedContract, string explanation);
     event AnnotationAdded(
         address parentContract,
         uint256 functionId,
@@ -36,7 +36,10 @@ contract SmartReader {
         uint256 functionId,
         string memory annotation
     ) public {
-        require(bytes(contractStorage[parentContract]).length != 0, 'Contract does not exist');
+        require(
+            bytes(contractStorage[parentContract]).length != 0,
+            'Contract does not exist'
+        );
 
         emit AnnotationAdded(parentContract, functionId, annotation);
     }

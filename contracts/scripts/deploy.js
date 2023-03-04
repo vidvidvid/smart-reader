@@ -24,7 +24,7 @@ async function main() {
 
   const txHash = smartReader.deployTransaction.hash;
 
-  console.log("Transaction Hash:", txHash);
+  console.log('Transaction Hash:', txHash);
 
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
 
@@ -37,7 +37,12 @@ async function main() {
 
   fs.writeFileSync(
     `deployments/${networkName[chainId]}.json`,
-    JSON.stringify(deploymentInfo, undefined, 2),
+    JSON.stringify(deploymentInfo, undefined, 2)
+  );
+
+  fs.writeFileSync(
+    `../src/utils/deployments/${networkName[chainId]}.json`,
+    JSON.stringify(deploymentInfo, undefined, 2)
   );
 }
 
