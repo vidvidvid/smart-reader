@@ -20,7 +20,7 @@ import {
   mainnet,
   optimism,
   polygon,
-  goerli
+  goerli,
 } from 'wagmi/chains';
 
 export const Context = React.createContext();

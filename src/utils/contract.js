@@ -22,6 +22,7 @@ const SmartReaderABI = require('./SmartReader.json').abi;
 // };
 
 const getContract = (network, signer) => {
+  console.log('network', network);
   const deploymentData = require(`./deployments/${network}.json`);
   const contractAddress = deploymentData.contract;
   return new Contract(contractAddress, SmartReaderABI, signer);

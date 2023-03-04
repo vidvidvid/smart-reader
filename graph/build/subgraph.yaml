@@ -6,9 +6,9 @@ dataSources:
     name: SmartReader
     network: goerli
     source:
-      address: '0xe10f3438eb667b7185ef8f680bd9bee529c4f720'
+      address: "0xf7Ff1339513e1a66550173630E8dbf871fd1c0C2"
       abi: SmartReader
-      startBlock: 8593519
+      startBlock: 8597403
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

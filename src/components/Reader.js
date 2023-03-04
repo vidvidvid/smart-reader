@@ -43,7 +43,8 @@ const contractMessages = [
   "Unveiling the contract's source code",
 ];
 
-export const Reader = ({ address, network, fetching, setFetching }) => {
+// export const Reader = ({ address, network, fetching, setFetching }) => {
+export const Reader = ({ address, fetching, setFetching }) => {
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
   const [functionExplanation, setFunctionExplanation] = useState('');
@@ -58,8 +59,9 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     name: '',
     code: '',
   });
-  
+
   const { chain } = useNetwork();
+  const network = chain.name.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
 
   const { data: signer } = useSigner();
@@ -70,6 +72,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
   } else if (chain?.id === 137) {
     APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
+  } else if (chain?.id === 5) {
+    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
   }
 
   const explanation = {
@@ -84,41 +88,52 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   }, [sourceCode]);
   const fetchExplanation = useCallback(
     async (code, type) => {
-      console.log('fetchExplanation', code);
       const relay = new GelatoRelay();
       const result = await getExplanation(address);
+      const uploadResult = await uploadJSON(
+        address,
+        network,
+        inspectContract?.name,
+        contractExplanation
+      );
       console.log('getExplanation in fetchExplanation', result);
-      let logNewExplanation = true;
+      let fileExplanationSuccess = false;
       if (result.length > 0) {
-        axios.get(ipfsGateway + '/' + result[0].ipfsSchema)
-          .then(response => {
-            console.log('response', response.data.fileExplanation);
-            setContractExplanation(response.data.fileExplanation);
-            logNewExplanation = false;
+        axios
+          .get(ipfsGateway + '/' + result[0].ipfsSchema)
+          .then((response) => {
+            if (uploadResult === response.data.fileExplanation) {
+              fileExplanationSuccess = false;
+            } else {
+              setContractExplanation(response.data.fileExplanation);
+              fileExplanationSuccess = true;
+            }
           })
-          .catch(error => {
-            console.log('Error fetching IPFS content:', error.response.data.error);
-            logNewExplanation = true;
+          .catch((error) => {
+            console.log(
+              'Error fetching IPFS content:',
+              error.response.data.error
+            );
+            fileExplanationSuccess = false;
           });
       } else {
-        logNewExplanation = true;
+        fileExplanationSuccess = false;
       }
-      console.log('logNewExplanation', logNewExplanation)
-      if (logNewExplanation) {
-        console.log('trigger bool', logNewExplanation)
-        const uploadResult = await uploadJSON(
-          address,
-          network,
-          inspectContract?.name,
-          contractExplanation
-        );
+
+      if (!fileExplanationSuccess) {
+        // const uploadResult = await uploadJSON(
+        //   address,
+        //   network,
+        //   inspectContract?.name,
+        //   contractExplanation
+        // );
         console.log('upload Result', uploadResult);
         if (type === explanation.contract) {
           setIsLoadingContract(true);
         } else {
           setIsLoadingFunction(true);
         }
-  
+
         const requestOptions = {
           method: 'POST',
           headers: {
@@ -153,19 +168,19 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             setIsLoadingFunction(false);
             console.log('err', err);
           });
+
         const smartReader = getContract(network, signer);
         const { data } = await smartReader.populateTransaction.addContract(
           address,
           uploadResult
         );
-  
+
         const sponsoredCallRequest = {
           chainId: chain.id,
           target: smartReader.address,
           data: data,
         };
-  
-  
+
         const relayResponse = await relay.sponsoredCall(
           sponsoredCallRequest,
           process.env.REACT_APP_GELATO_API_KEY
@@ -183,9 +198,104 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       chain.id,
     ]
   );
-  
 
-  
+  //     const result = await getExplanation(address);
+  //     console.log('getExplanation in fetchExplanation', result);
+  //     let fileExplanationSuccess = false;
+  //     if (result.length > 0) {
+  //       axios.get(ipfsGateway + '/' + result[0].ipfsSchema)
+  //         .then(response => {
+  //           console.log('response', response.data.fileExplanation);
+  //           setContractExplanation(response.data.fileExplanation);
+  //           fileExplanationSuccess = false;
+  //         })
+  //         .catch(error => {
+  //           console.log('Error fetching IPFS content:', error.response.data.error);
+  //           fileExplanationSuccess = true;
+  //         });
+  //     } else {
+  //       fileExplanationSuccess = true;
+  //     }
+  //     console.log('fileExplanationSuccess', fileExplanationSuccess)
+
+  //     // if (fileExplanationSuccess) {
+  //     //   console.log('trigger bool', logNewExplanation)
+  //     //   const uploadResult = await uploadJSON(
+  //     //     address,
+  //     //     network,
+  //     //     inspectContract?.name,
+  //     //     contractExplanation
+  //     //   );
+  //     //   console.log('upload Result', uploadResult);
+  //     //   if (type === explanation.contract) {
+  //     //     setIsLoadingContract(true);
+  //     //   } else {
+  //     //     setIsLoadingFunction(true);
+  //     //   }
+
+  //     //   const requestOptions = {
+  //     //     method: 'POST',
+  //     //     headers: {
+  //     //       'Content-Type': 'application/json',
+  //     //       Authorization:
+  //     //         'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
+  //     //     },
+  //     //     body: JSON.stringify({
+  //     //       prompt: code.concat(
+  //     //         '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
+  //     //       ),
+  //     //       temperature: 0.3,
+  //     //       max_tokens: 500,
+  //     //     }),
+  //     //   };
+  //     //   fetch(
+  //     //     'https://api.openai.com/v1/engines/text-davinci-003/completions',
+  //     //     requestOptions
+  //     //   )
+  //     //     .then((response) => response.json())
+  //     //     .then((data) => {
+  //     //       if (type === explanation.contract) {
+  //     //         setContractExplanation(data.choices[0].text);
+  //     //         setIsLoadingContract(false);
+  //     //       } else {
+  //     //         setFunctionExplanation(data.choices[0].text);
+  //     //         setIsLoadingFunction(false);
+  //     //       }
+  //     //     })
+  //     //     .catch((err) => {
+  //     //       setIsLoadingContract(false);
+  //     //       setIsLoadingFunction(false);
+  //     //       console.log('err', err);
+  //     //     });
+  //     //   const smartReader = getContract(network, signer);
+  //     //   const { data } = await smartReader.populateTransaction.addContract(
+  //     //     address,
+  //     //     uploadResult
+  //     //   );
+
+  //     //   const sponsoredCallRequest = {
+  //     //     chainId: chain.id,
+  //     //     target: smartReader.address,
+  //     //     data: data,
+  //     //   };
+
+  //     //   const relayResponse = await relay.sponsoredCall(
+  //     //     sponsoredCallRequest,
+  //     //     process.env.REACT_APP_GELATO_API_KEY
+  //     //   );
+  //     //   console.log('Gelato relay result: ', relayResponse);
+  //     // }
+  //   },
+  //   [
+  //     explanation.contract,
+  //     inspectContract?.name,
+  //     address,
+  //     signer,
+  //     network,
+  //     contractExplanation,
+  //     chain.id,
+  //   ]
+  // );
 
   function extractContracts(contractString) {
     const contractsArray = [];
@@ -224,6 +334,8 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     blockExplorerUrl = 'api.polygonscan.com/api';
   } else if (chain?.id === 1) {
     blockExplorerUrl = 'api.etherscan.io/api';
+  } else if (chain?.id === 5) {
+    blockExplorerUrl = 'api-goerli.etherscan.io/api';
   }
 
   const fetchSourceCode = useCallback(async () => {
@@ -246,6 +358,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       contractsArray = Object.entries(contracts).map(([name, sourceCode]) => {
         return { name, sourceCode };
       });
+
       const addressABI = JSON.parse(resp.data.result[0].ABI);
 
       setContractABI(addressABI);
@@ -254,13 +367,20 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         contractsArray[0].sourceCode.content,
         explanation.contract
       );
+      console.log('name', contractsArray[0].name);
     } catch (err) {
       // Handle Error Here
 
       setSourceCode([]);
       setInspectContract(undefined);
     }
-  }, [address, explanation.contract, APIKEY, blockExplorerUrl, fetchExplanation]);
+  }, [
+    address,
+    explanation.contract,
+    APIKEY,
+    blockExplorerUrl,
+    fetchExplanation,
+  ]);
 
   useEffect(() => {
     if (fetching) {
