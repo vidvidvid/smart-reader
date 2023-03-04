@@ -19,9 +19,9 @@ const client = create({
 });
 
 const contractName = (url) => {
-  const start = url.lastIndexOf('/') + 1;
-  const end = url.lastIndexOf('.');
-  return url.substring(start, end);
+  const start = url?.lastIndexOf('/') + 1;
+  const end = url?.lastIndexOf('.');
+  return url?.substring(start, end);
 };
 
 export const uploadJSON = async (

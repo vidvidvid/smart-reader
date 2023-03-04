@@ -1,9 +1,7 @@
 import './App.css';
 import { Flex } from '@chakra-ui/react';
-import { useState } from 'react';
 
-import { Header } from './components/Header';
-import { Reader } from './components/Reader';
+import { Main } from './components/Main';
 import React from 'react';
 import SideMenu from './components/SideMenu';
 import {
@@ -11,8 +9,7 @@ import {
   modalConnectors,
   walletConnectProvider,
 } from '@web3modal/ethereum';
-
-import { Web3Button, Web3Modal, Web3NetworkSwitch } from '@web3modal/react';
+import { Web3Modal } from '@web3modal/react';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import {
   arbitrum,
@@ -23,16 +20,12 @@ import {
   mainnet,
   optimism,
   polygon,
-  goerli,
+  goerli
 } from 'wagmi/chains';
 
 export const Context = React.createContext();
 
 function App() {
-  const [address, setAddress] = useState('');
-  const [network, setNetwork] = useState('ethereum');
-  const [fetching, setFetching] = useState(false);
-
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [
     arbitrum,
@@ -40,8 +33,8 @@ function App() {
     bsc,
     fantom,
     gnosis,
-    mainnet,
     optimism,
+    mainnet,
     polygon,
     goerli,
   ];
@@ -63,26 +56,22 @@ function App() {
 
   const ethereumClient = new EthereumClient(wagmiClient, chains);
   return (
-    <Flex direction="column" h="100vh">
+    <Flex
+      direction="column"
+      h="100vh"
+      p={6}
+      bgImage="/images/bg.png"
+      backgroundRepeat="round"
+    >
       <WagmiConfig client={wagmiClient}>
-        {/* <Flex position="fixed" right={3} top={3} zIndex={3} gap={3}>
-          <Web3Button />
-          <Web3NetworkSwitch />
-        </Flex> */}
-        <SideMenu />
-        <Header
-          address={address}
-          network={network}
-          setAddress={setAddress}
-          setNetwork={setNetwork}
-          setFetching={setFetching}
-        />
-        <Reader
-          address={address}
-          network={network}
-          fetching={fetching}
-          setFetching={setFetching}
-        />
+        <Flex h="full">
+          <Flex w="20%" h="100%" zIndex={2}>
+            <SideMenu />
+          </Flex>
+          <Flex w="80%" h="100%">
+            <Main />
+          </Flex>
+        </Flex>
       </WagmiConfig>
 
       <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />

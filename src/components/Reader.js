@@ -4,6 +4,7 @@ import {
   Box,
   Select,
   Spinner,
+  Image,
   Text,
   Modal,
   ModalOverlay,
@@ -24,7 +25,7 @@ import { useAccount, useSigner, useNetwork } from 'wagmi';
 import { getExplanation } from '../utils/queries';
 import { ipfsGateway } from '../utils/constants';
 import { getContract } from '../utils/contract';
-import { GelatoRelay, SponsoredCallRequest } from '@gelatonetwork/relay-sdk';
+import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 
 const functionMessages = [
   'Deciphering the function',
@@ -62,6 +63,14 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   const { address: userAddress, isConnected } = useAccount();
 
   const { data: signer } = useSigner();
+
+  let APIKEY;
+
+  if (chain?.id === 1) {
+    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
+  } else if (chain?.id === 137) {
+    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
+  }
 
   const explanation = {
     contract: 'contract',
@@ -176,98 +185,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   );
   
 
-  // const fetchExplanation = useCallback(
-  //   async (code, type) => {
-  //     const relay = new GelatoRelay();
-  //     const result = await getExplanation(address);
-  //     console.log('getExplanation in fetchExplanation', result);
-  //     if (result.length > 0) {
-      
-  //         const ipfsSchema = axios.get(
-  //           ipfsGateway + '/' + result[0].ipfsSchema
-  //         )
-  //        .catch(error => {
-  //           console.log('error', error)
-  //        })
-        
-  //     } else {
-  //       const uploadResult = await uploadJSON(
-  //         address,
-  //         network,
-  //         inspectContract?.name,
-  //         contractExplanation
-  //       );
-  //       console.log('upload Result', uploadResult);
-  //       if (type === explanation.contract) {
-  //         setIsLoadingContract(true);
-  //       } else {
-  //         setIsLoadingFunction(true);
-  //       }
-
-  //       const requestOptions = {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           Authorization:
-  //             'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
-  //         },
-  //         body: JSON.stringify({
-  //           prompt: code.concat(
-  //             '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
-  //           ),
-  //           temperature: 0.3,
-  //           max_tokens: 500,
-  //         }),
-  //       };
-  //       fetch(
-  //         'https://api.openai.com/v1/engines/text-davinci-003/completions',
-  //         requestOptions
-  //       )
-  //         .then((response) => response.json())
-  //         .then((data) => {
-  //           if (type === explanation.contract) {
-  //             setContractExplanation(data.choices[0].text);
-  //             setIsLoadingContract(false);
-  //           } else {
-  //             setFunctionExplanation(data.choices[0].text);
-  //             setIsLoadingFunction(false);
-  //           }
-  //         })
-  //         .catch((err) => {
-  //           setIsLoadingContract(false);
-  //           setIsLoadingFunction(false);
-  //           console.log('err', err);
-  //         });
-  //       const smartReader = getContract(network, signer);
-  //       const { data } = await smartReader.populateTransaction.addContract(
-  //         address,
-  //         uploadResult
-  //       );
-
-  //       const sponsoredCallRequest = {
-  //         chainId: chain.id,
-  //         target: smartReader.address,
-  //         data: data,
-  //       };
-
-
-  //       const relayResponse = await relay.sponsoredCall(
-  //         sponsoredCallRequest,
-  //         process.env.REACT_APP_GELATO_API_KEY
-  //       );
-  //       console.log('Gelato relay result: ', relayResponse);
-  //     }
-  //   },
-  //   [
-  //     explanation.contract,
-  //     inspectContract?.name,
-  //     address,
-  //     signer,
-  //     network,
-  //     contractExplanation,
-  //     chain.id,
-  //   ]
-  // );
+  
 
   function extractContracts(contractString) {
     const contractsArray = [];
@@ -300,10 +218,18 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     return contracts;
   }
 
+  let blockExplorerUrl;
+
+  if (chain?.id === 137) {
+    blockExplorerUrl = 'api.polygonscan.com/api';
+  } else if (chain?.id === 1) {
+    blockExplorerUrl = 'api.etherscan.io/api';
+  }
+
   const fetchSourceCode = useCallback(async () => {
     try {
       const resp = await axios.get(
-        `https://api.etherscan.io/api?module=contract&action=getsourcecode&address=${address}&apikey=RHDB6C8IZ4K52Q36GSSVBN5GT2256S8N45`
+        `https://${blockExplorerUrl}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
       );
       let sourceObj;
       let contracts;
@@ -312,12 +238,10 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
         sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
 
         contracts = sourceObj.sources;
-        console.log('lendingcontracts', contracts);
       } catch {
         sourceObj = resp.data.result[0].SourceCode;
         contracts = extractContracts(sourceObj);
       }
-      console.log('contracts', contracts);
 
       contractsArray = Object.entries(contracts).map(([name, sourceCode]) => {
         return { name, sourceCode };
@@ -332,11 +256,11 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       );
     } catch (err) {
       // Handle Error Here
-      console.error(err);
+
       setSourceCode([]);
       setInspectContract(undefined);
     }
-  }, [address, explanation.contract, fetchExplanation]);
+  }, [address, explanation.contract, APIKEY, blockExplorerUrl, fetchExplanation]);
 
   useEffect(() => {
     if (fetching) {
@@ -352,7 +276,6 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
       const contract = sourceCode.find(
         (contract) => contract.name === selectedContract
       );
-      console.log('Selected contract:', contract);
 
       setInspectContract(contract);
 
@@ -462,7 +385,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
     //     parser: 'typescript',
     //     plugins: [typescript],
     //   });
-    //   console.log('formattedCode', formattedCode);
+    //
     // }
   }, [
     selectedFunctionName,
@@ -473,13 +396,18 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   ]);
 
   return (
-    <Flex pt={16} direction="column">
-      {fetching && (
-        <Flex>
-          <Spinner />
-        </Flex>
+    <Flex direction="column" h="full" px={3}>
+      {!inspectContract && (
+        <Box h="full" alignItems="center" justifyContent="center">
+          {!fetching && <Box>Search for a contract!</Box>}
+          {fetching && (
+            <Flex>
+              <Spinner />
+            </Flex>
+          )}
+        </Box>
       )}
-      {!fetching && inspectContract && (
+      {inspectContract && !fetching && (
         <Flex direction="column">
           <Flex>
             <Button
@@ -505,7 +433,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             fileName={inspectContract?.name}
             fileExplanation={contractExplanation}
           />
-          <Select onChange={handleContractChange}>
+          <Select onChange={handleContractChange} my={4}>
             {sourceCode &&
               sourceCode.length > 0 &&
               sourceCode.map((contract) => {
@@ -519,16 +447,22 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
               })}
           </Select>
 
-          <Flex p={3} gap={3} w="full">
+          <Flex py={3} gap={3} w="full">
             {inspectContract ? (
               <Flex
                 overflow="auto"
                 maxH="calc(100vh - 180px)"
                 flexGrow={1}
                 w="50%"
+                direction="column"
+                gap={3}
                 onMouseOver={(event) => handleCodeHover(event)}
               >
                 {/* <h1>Contract Name: {inspectContract.name}</h1> */}
+                <Flex gap={3}>
+                  <Image src="/images/sourcecode.png" w={6} />
+                  <Text fontWeight="bold"> Source code </Text>
+                </Flex>
                 <SyntaxHighlighter
                   language="solidity"
                   style={dracula}
@@ -542,7 +476,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
               'No contract selected'
             )}
             {/* need to condense these into same panel */}
-            <Flex flexGrow={1} w="50%">
+            <Flex flexGrow={1} w="50%" direction="column" gap={3}>
               {isLoadingContract && (
                 <Flex w="full" justifyContent="center" alignItems="center">
                   <Spinner />
@@ -553,7 +487,13 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
               )}
 
               {contractExplanation && (
-                <Text fontSize={18}>{contractExplanation}</Text>
+                <Flex direction="column" gap={3}>
+                  <Flex gap={3}>
+                    <Image src="/images/explanation.png" w={6} />
+                    <Text fontWeight="bold">Explanation</Text>
+                  </Flex>
+                  <Text fontSize={18}>{contractExplanation}</Text>
+                </Flex>
               )}
             </Flex>
 
