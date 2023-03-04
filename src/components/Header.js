@@ -6,7 +6,7 @@ import { ethers } from 'ethers';
 export const Header = ({ address, setAddress, setFetching }) => {
   return (
     <Flex
-      w="full"
+      w="calc(100% - 16px)"
       h={16}
       alignItems="center"
       background="#355CA7"
@@ -14,6 +14,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
       zIndex={1}
       borderTopRadius={16}
       px={3}
+      margin={3}
       justifyContent="space-between"
     >
       <Flex gap={3}>

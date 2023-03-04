@@ -44,9 +44,15 @@ function App() {
   const ethereumClient = new EthereumClient(wagmiClient, chains);
 
   return (
-    <Flex direction="column" h="100vh" p={6}>
+    <Flex
+      direction="column"
+      h="100vh"
+      p={6}
+      bgImage="/images/bg.png"
+      backgroundRepeat="round"
+    >
       <WagmiConfig client={wagmiClient}>
-        <Flex>
+        <Flex h="full">
           <Flex w="20%" h="100%" zIndex={2}>
             <SideMenu />
           </Flex>

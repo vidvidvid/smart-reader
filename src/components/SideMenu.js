@@ -24,7 +24,7 @@ const SideMenu = () => {
   ]);
 
   return (
-    <Box position="fixed" zIndex={2}>
+    <Box position="fixed" zIndex={2} textColor="white">
       <Box p={3}>
         <Text>sR</Text>
         <Divider p={3} />

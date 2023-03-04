@@ -11,7 +11,13 @@ export const Main = () => {
   const [address, setAddress] = useState('');
 
   return (
-    <Flex h="full" w="full" direction="column">
+    <Flex
+      h="full"
+      w="full"
+      direction="column"
+      bgColor="white"
+      borderRadius={16}
+    >
       <Header
         address={address}
         setAddress={setAddress}

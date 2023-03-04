@@ -19,9 +19,9 @@ const client = create({
 });
 
 const contractName = (url) => {
-  const start = url.lastIndexOf('/') + 1;
-  const end = url.lastIndexOf('.');
-  return url.substring(start, end);
+  const start = url?.lastIndexOf('/') + 1;
+  const end = url?.lastIndexOf('.');
+  return url?.substring(start, end);
 };
 
 export const uploadJSON = async (
@@ -30,7 +30,6 @@ export const uploadJSON = async (
   fileName,
   fileExplanation
 ) => {
-
   const file = new File(
     [
       JSON.stringify({

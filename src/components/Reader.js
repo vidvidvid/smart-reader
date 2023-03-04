@@ -4,6 +4,7 @@ import {
   Box,
   Select,
   Spinner,
+  Image,
   Text,
   Modal,
   ModalOverlay,
@@ -342,13 +343,18 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
   ]);
 
   return (
-    <Flex pt={16} direction="column">
-      {fetching && (
-        <Flex>
-          <Spinner />
-        </Flex>
+    <Flex direction="column" h="full" px={3}>
+      {!inspectContract && (
+        <Box h="full" alignItems="center" justifyContent="center">
+          {!fetching && <Box>Search for a contract!</Box>}
+          {fetching && (
+            <Flex>
+              <Spinner />
+            </Flex>
+          )}
+        </Box>
       )}
-      {!fetching && inspectContract && (
+      {inspectContract && !fetching && (
         <Flex direction="column">
           {/* <Flex>
             <Button
@@ -374,7 +380,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
             fileName={inspectContract?.name}
             fileExplanation={contractExplanation}
           />
-          <Select onChange={handleContractChange}>
+          <Select onChange={handleContractChange} my={4}>
             {sourceCode &&
               sourceCode.length > 0 &&
               sourceCode.map((contract) => {
@@ -388,16 +394,22 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
               })}
           </Select>
 
-          <Flex p={3} gap={3} w="full">
+          <Flex py={3} gap={3} w="full">
             {inspectContract ? (
               <Flex
                 overflow="auto"
                 maxH="calc(100vh - 180px)"
                 flexGrow={1}
                 w="50%"
+                direction="column"
+                gap={3}
                 onMouseOver={(event) => handleCodeHover(event)}
               >
                 {/* <h1>Contract Name: {inspectContract.name}</h1> */}
+                <Flex gap={3}>
+                  <Image src="/images/sourcecode.png" w={6} />
+                  <Text fontWeight="bold"> Source code </Text>
+                </Flex>
                 <SyntaxHighlighter
                   language="solidity"
                   style={dracula}
@@ -411,7 +423,7 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
               'No contract selected'
             )}
             {/* need to condense these into same panel */}
-            <Flex flexGrow={1} w="50%">
+            <Flex flexGrow={1} w="50%" direction="column" gap={3}>
               {isLoadingContract && (
                 <Flex w="full" justifyContent="center" alignItems="center">
                   <Spinner />
@@ -422,7 +434,13 @@ export const Reader = ({ address, network, fetching, setFetching }) => {
               )}
 
               {contractExplanation && (
-                <Text fontSize={18}>{contractExplanation}</Text>
+                <Flex direction="column" gap={3}>
+                  <Flex gap={3}>
+                    <Image src="/images/explanation.png" w={6} />
+                    <Text fontWeight="bold">Explanation</Text>
+                  </Flex>
+                  <Text fontSize={18}>{contractExplanation}</Text>
+                </Flex>
               )}
             </Flex>
 
