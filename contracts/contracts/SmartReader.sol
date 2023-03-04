@@ -24,9 +24,11 @@ contract SmartReader {
         string memory explanation
     ) public {
         require(
-            bytes(contractStorage[newContract]).length == 0,
-            'Contract already exists'
+            keccak256(bytes(explanation)) !=
+                keccak256(bytes(contractStorage[newContract])),
+            'Contract explanation is already set to this value'
         );
+
         contractStorage[newContract] = explanation;
         emit ContractAdded(newContract, explanation);
     }
