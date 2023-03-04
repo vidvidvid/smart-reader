@@ -23,7 +23,7 @@ describe('SmartReader', function () {
 
     it('should emit a ContractAdded event', async function () {
       const newContract = '0x1234567890123456789012345678901234567890';
-      
+
       const tx = await smartReader.addContract(newContract, explanation);
       const receipt = await tx.wait();
       const event = receipt.events.find((e) => e.event === 'ContractAdded');
@@ -57,14 +57,10 @@ describe('SmartReader', function () {
       const nonExistentContract = '0x0000000000000000000000000000000000000000';
       const functionId = 42;
       const annotation = 'ipfsHash of annotation';
-      
 
-        await expect(
-          smartReader.addAnnotation(nonExistentContract, functionId, annotation)
-        ).to.be.revertedWith('Contract does not exist');
-      
+      await expect(
+        smartReader.addAnnotation(nonExistentContract, functionId, annotation)
+      ).to.be.revertedWith('Contract does not exist');
     });
-    
-    
   });
 });

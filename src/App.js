@@ -11,26 +11,38 @@ import {
 } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
-import { mainnet, polygon } from 'wagmi/chains';
+import {
+  arbitrum,
+  avalanche,
+  bsc,
+  fantom,
+  gnosis,
+  mainnet,
+  optimism,
+  polygon,
+  goerli
+} from 'wagmi/chains';
 
 export const Context = React.createContext();
 
 function App() {
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [
-    // arbitrum,
-    // avalanche,
-    // bsc,
-    // fantom,
-    // gnosis,
-    // optimism,
+    arbitrum,
+    avalanche,
+    bsc,
+    fantom,
+    gnosis,
+    optimism,
     mainnet,
     polygon,
+    goerli,
   ];
 
   const { provider } = configureChains(chains, [
     walletConnectProvider({ projectId }),
   ]);
+
   const wagmiClient = createClient({
     autoConnect: true,
     connectors: modalConnectors({
@@ -41,8 +53,8 @@ function App() {
     }),
     provider,
   });
-  const ethereumClient = new EthereumClient(wagmiClient, chains);
 
+  const ethereumClient = new EthereumClient(wagmiClient, chains);
   return (
     <Flex
       direction="column"
