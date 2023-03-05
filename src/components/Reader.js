@@ -89,28 +89,30 @@ export const Reader = ({ address, fetching, setFetching }) => {
       console.log('getExplanation in fetchExplanation', result);
 
       let fileExplanationSuccess = false;
-      if (result?.length > 0) {
-        const fileExplanationPromise = new Promise((resolve, reject) => {
-          axios
-            .get(ipfsGateway + '/' + result[0].ipfsSchema)
-            .then((response) => {
-              console.log('DID IT WORK? ', response.data);
-              setContractExplanation(response.data.fileExplanation);
-              resolve(true);
-            })
-            .catch((error) => {
-              console.log(
-                'Error fetching IPFS content:',
-                error.response.data.error
-              );
-              reject(false);
-            });
-        });
+      // if (result?.length > 0) {
+      //   const fileExplanationPromise = new Promise((resolve, reject) => {
+      //     axios
+      //       .get(ipfsGateway + '/' + result[0].ipfsSchema)
+      //       .then((response) => {
+      //         console.log('DID IT WORK? ', response.data);
+      //         setContractExplanation(response.data.fileExplanation);
+      //         resolve(true);
+      //       })
+      //       .catch((error) => {
+      //         console.log(
+      //           'Error fetching IPFS content:',
+      //           error.response.data.error
+      //         );
+      //         reject(false);
+      //       });
+      //   });
 
-        fileExplanationSuccess = await fileExplanationPromise;
-      } else {
-        fileExplanationSuccess = false;
-      }
+      //   fileExplanationSuccess = await fileExplanationPromise;
+      // } else {
+      //   fileExplanationSuccess = false;
+      // }
+
+      console.log('lol');
 
       let content;
       if (!fileExplanationSuccess) {
@@ -142,6 +144,8 @@ export const Reader = ({ address, fetching, setFetching }) => {
             max_tokens: 3000,
           }),
         };
+
+        console.log('fetchhh');
         fetch('https://api.openai.com/v1/chat/completions', requestOptions)
           .then((response) => response.json())
           .then(async (data) => {
@@ -507,6 +511,14 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 <Flex gap={3} pl={2}>
                   <Image src="/images/explanation.png" w={6} />
                   <Text fontWeight="bold">Explanation</Text>
+                  <Button
+                    onClick={() =>
+                      fetchExplanation(
+                        inspectContract.sourceCode.content,
+                        explanation.contract
+                      )
+                    }
+                  />
                 </Flex>
                 <Button
                   variant="ghost"
