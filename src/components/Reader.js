@@ -13,9 +13,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
-  Button,
 } from '@chakra-ui/react';
-import { Storage } from './Storage';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
@@ -61,7 +59,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
     name: '',
     code: '',
   });
-
+  console.log('inspectContract', inspectContract);
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
@@ -78,11 +76,18 @@ export const Reader = ({ address, fetching, setFetching }) => {
       setInspectContract(sourceCode[0]);
     }
   }, [sourceCode]);
+
+  
+  
   const fetchExplanation = useCallback(
     async (code, type) => {
       const relay = new GelatoRelay();
-      const result = await getExplanation(address, inspectContract?.name);
+
+
+      const result = await getExplanation(address, inspectContract.name);
+      
       console.log('getExplanation in fetchExplanation', result);
+
       let fileExplanationSuccess = false;
       if (result?.length > 0) {
         const fileExplanationPromise = new Promise((resolve, reject) => {
@@ -142,14 +147,16 @@ export const Reader = ({ address, fetching, setFetching }) => {
               setContractExplanation(data.choices[0].message.content);
               setIsLoadingContract(false);
               console.log('inspectContract2', inspectContract?.name);
+              // console.log('new message', data.choices[0].message.content);
               const uploadResult = await uploadJSON(
                 address,
                 network,
                 inspectContract?.name,
-                data.choices[0].text
+                data.choices[0].message.content
               );
               console.log('uploadResult', uploadResult);
               const smartReader = getContract(network, signer);
+              console.log('inspectContract3', inspectContract?.name);
               const { data: sponsoredData } =
                 await smartReader.populateTransaction.addContract(
                   address,
@@ -182,11 +189,10 @@ export const Reader = ({ address, fetching, setFetching }) => {
     },
     [
       explanation.contract,
-      inspectContract?.name,
+      inspectContract,
       address,
       signer,
       network,
-      contractExplanation,
       chain?.id,
     ]
   );
@@ -247,6 +253,9 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
       setContractABI(addressABI);
       setSourceCode(contractsArray);
+      while (!inspectContract) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
 
       fetchExplanation(
         contractsArray[0].sourceCode.content,
@@ -262,6 +271,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
     }
   }, [
     blockExplorerApi,
+    inspectContract,
     address,
     APIKEY,
     fetchExplanation,
@@ -274,6 +284,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
       fetchSourceCode();
     }
   }, [fetching, fetchSourceCode, setFetching]);
+
 
   const handleContractChange = useCallback(
     (e) => {
