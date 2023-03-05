@@ -681,7 +681,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody py={6}>
-            <Annotate address={address} />
+            <Annotate address={address} inspectContract={inspectContract} />
           </ModalBody>
         </ModalContent>
       </Modal>
