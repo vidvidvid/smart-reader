@@ -1,16 +1,40 @@
 import { Textarea, Flex, Button } from '@chakra-ui/react';
 import React, { useState } from 'react';
+import { useSigner, useNetwork } from 'wagmi';
+import { getContract } from '../utils/contract';
+import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 
-export const Annotate = ({ address }) => {
-  console.log('addres', address);
+export const Annotate = ({ address, inspectContract }) => {
+  const { chain } = useNetwork();
+  const network = chain?.name?.toLowerCase();
+  const { data: signer } = useSigner();
   const [annotation, setAnnotation] = useState('');
+  
+  console.log(network, signer)
 
   const sendAnnotation = async () => {
-    const data = {
+    const relay = new GelatoRelay();
+
+    const smartReader = getContract(network, signer);
+
+    const { data: sponsoredData } =
+    await smartReader.populateTransaction.addAnnotation(
       address,
-      annotation,
-    };
-    console.log('data', data);
+      inspectContract?.name,
+      annotation
+    );
+
+  const sponsoredCallRequest = {
+    chainId: chain?.id,
+    target: smartReader.address,
+    data: sponsoredData,
+  };
+
+  const relayResponse = await relay.sponsoredCall(
+    sponsoredCallRequest,
+    process.env.REACT_APP_GELATO_API_KEY
+  );
+  console.log("annotation relay response", relayResponse)
   };
 
   return (
