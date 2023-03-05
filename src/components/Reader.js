@@ -14,6 +14,7 @@ import {
   ModalCloseButton,
   useDisclosure,
   Button,
+  Code,
 } from '@chakra-ui/react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
@@ -504,6 +505,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
                   alignItems="center"
                   gap={2}
                   cursor="pointer"
+                  color="#6EB3FF"
                   _hover={{
                     transform: 'scale(1.05)',
                   }}
@@ -530,9 +532,15 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
               {contractExplanation && !isLoadingContract && (
                 <Flex direction="column" gap={3}>
-                  <Text whiteSpace="pre-line" fontSize={16}>
+                  <Code
+                    whiteSpace="pre-line"
+                    p={3}
+                    borderRadius={16}
+                    fontSize={14}
+                    type="solid"
+                  >
                     {contractExplanation.replace(/^\n\n/, '')}
-                  </Text>
+                  </Code>
                 </Flex>
               )}
             </Flex>
