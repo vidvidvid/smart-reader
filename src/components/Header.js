@@ -14,7 +14,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
       backdropFilter="blur(8px)"
       zIndex={1}
       borderTopRadius={16}
-      px={3}
+      px={8}
       justifyContent="space-between"
       border="5px solid #FFFFFF"
       filter="drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))"
