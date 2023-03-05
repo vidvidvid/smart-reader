@@ -64,10 +64,20 @@ export const Reader = ({ address, fetching, setFetching }) => {
   });
   console.log('inspectContract', inspectContract);
   const { chain } = useNetwork();
-  const network = chain?.name?.toLowerCase();
+  const network = chain?.name.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
+
   const { data: signer } = useSigner();
-  const { APIKEY, blockExplorerApi } = chainInfo({ chain });
+
+  let APIKEY;
+
+  if (chain?.id === 1) {
+    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
+  } else if (chain?.id === 137) {
+    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
+  } else if (chain?.id === 5) {
+    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
+  }
 
   const explanation = {
     contract: 'contract',
@@ -109,11 +119,12 @@ export const Reader = ({ address, fetching, setFetching }) => {
               reject(false);
             });
         });
-
+      
         fileExplanationSuccess = await fileExplanationPromise;
       } else {
         fileExplanationSuccess = false;
       }
+      
 
       if (!fileExplanationSuccess) {
         if (type === explanation.contract) {
@@ -130,24 +141,21 @@ export const Reader = ({ address, fetching, setFetching }) => {
               'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
           },
           body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
-            messages: [
-              { role: 'system', content: 'You are a great teacher.' },
-              {
-                role: 'user',
-                content: `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes.`,
-              },
-            ],
+            prompt: code.concat(
+              '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
+            ),
             temperature: 0.3,
             max_tokens: 3000,
           }),
         };
-        fetch('https://api.openai.com/v1/chat/completions', requestOptions)
+        fetch(
+          'https://api.openai.com/v1/engines/text-davinci-003/completions',
+          requestOptions
+        )
           .then((response) => response.json())
           .then(async (data) => {
-            console.log('data', data);
             if (type === explanation.contract) {
-              setContractExplanation(data.choices[0].message.content);
+              setContractExplanation(data.choices[0].text);
               setIsLoadingContract(false);
               console.log('inspectContract2', inspectContract?.name);
               // console.log('new message', data.choices[0].message.content);
@@ -157,7 +165,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 inspectContract?.name,
                 data.choices[0].message.content
               );
-              console.log('uploadResult', uploadResult);
+                console.log('uploadResult', uploadResult);
               const smartReader = getContract(network, signer);
               console.log('inspectContract3', inspectContract?.name);
               const { data: sponsoredData } =
@@ -178,8 +186,9 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 process.env.REACT_APP_GELATO_API_KEY
               );
               console.log('Gelato relay result: ', relayResponse);
+              
             } else {
-              setFunctionExplanation(data.choices[0].message.content);
+              setFunctionExplanation(data.choices[0].text);
               setIsLoadingFunction(false);
             }
           })
@@ -231,10 +240,20 @@ export const Reader = ({ address, fetching, setFetching }) => {
     return contracts;
   }
 
+  let blockExplorerUrl;
+
+  if (chain?.id === 137) {
+    blockExplorerUrl = 'api.polygonscan.com/api';
+  } else if (chain?.id === 1) {
+    blockExplorerUrl = 'api.etherscan.io/api';
+  } else if (chain?.id === 5) {
+    blockExplorerUrl = 'api-goerli.etherscan.io/api';
+  }
+
   const fetchSourceCode = useCallback(async () => {
     try {
       const resp = await axios.get(
-        `https://${blockExplorerApi}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
+        `https://${blockExplorerUrl}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
       );
       let sourceObj;
       let contracts;
@@ -264,11 +283,10 @@ export const Reader = ({ address, fetching, setFetching }) => {
         contractsArray[0].sourceCode.content,
         explanation.contract
       );
-      console.log('name', contractsArray[0].name);
-      setFetching(false);
+      
     } catch (err) {
       // Handle Error Here
-      setFetching(false);
+
       setSourceCode([]);
       setInspectContract(undefined);
     }
@@ -276,15 +294,16 @@ export const Reader = ({ address, fetching, setFetching }) => {
     blockExplorerApi,
     inspectContract,
     address,
-    APIKEY,
-    fetchExplanation,
     explanation.contract,
-    setFetching,
+    APIKEY,
+    blockExplorerUrl,
+    fetchExplanation,
   ]);
 
   useEffect(() => {
     if (fetching) {
       fetchSourceCode();
+      setFetching(false);
     }
   }, [fetching, fetchSourceCode, setFetching]);
 
@@ -424,6 +443,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
     fetchExplanation,
     explanation.function,
   ]);
+
 
   return (
     <Flex
