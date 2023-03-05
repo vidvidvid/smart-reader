@@ -6,7 +6,7 @@ dataSources:
     name: SmartReader
     network: goerli
     source:
-      address: '0xdFFfB2E3CCeB7D25B4be73Ce5e03a78Fb22342A2'
+      address: "0xdFFfB2E3CCeB7D25B4be73Ce5e03a78Fb22342A2"
       abi: SmartReader
       startBlock: 8598408
     mapping:

@@ -50,7 +50,7 @@ export function handleAnnotationAdded(event: AnnotationAddedEvent): void {
   log.info('handleAnnotationAdded {}', [
     event.params.mainContract.toHexString(),
   ]);
-  if (contract != null) {
+  if (contract !== null) {
     let annotation = new Annotation(event.transaction.hash.toHexString());
     log.info('lizard {}', [event.transaction.hash.toHexString()]);
     annotation.mainContract = event.params.mainContract;
