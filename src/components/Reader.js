@@ -27,6 +27,7 @@ import { ipfsGateway } from '../utils/constants';
 import { getContract } from '../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 // import { contractName } from '../utils/ipfs';
+import chainInfo from '../utils/chainInfo';
 
 const functionMessages = [
   'Deciphering the function',
@@ -62,20 +63,10 @@ export const Reader = ({ address, fetching, setFetching }) => {
   });
 
   const { chain } = useNetwork();
-  const network = chain?.name.toLowerCase();
+  const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
-
   const { data: signer } = useSigner();
-
-  let APIKEY;
-
-  if (chain?.id === 1) {
-    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
-  } else if (chain?.id === 137) {
-    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
-  } else if (chain?.id === 5) {
-    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
-  }
+  const { APIKEY, blockExplorerApi } = chainInfo({ chain });
 
   const explanation = {
     contract: 'contract',
@@ -91,7 +82,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
     async (code, type) => {
       const relay = new GelatoRelay();
       console.log('inspectContract', inspectContract?.name);
-    
+
       const result = await getExplanation(address, inspectContract?.name);
       console.log('result', result);
       let fileExplanationSuccess = false;
@@ -102,7 +93,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
             console.log('DID IT WORK? ', response.data);
             setContractExplanation(response.data.fileExplanation);
             fileExplanationSuccess = true;
-            
           })
           .catch((error) => {
             console.log(
@@ -110,11 +100,9 @@ export const Reader = ({ address, fetching, setFetching }) => {
               error.response.data.error
             );
             fileExplanationSuccess = false;
-
           });
       } else {
         fileExplanationSuccess = false;
-
       }
 
       if (!fileExplanationSuccess) {
@@ -155,7 +143,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 inspectContract?.name,
                 data.choices[0].text
               );
-                console.log('uploadResult', uploadResult);
+              console.log('uploadResult', uploadResult);
               const smartReader = getContract(network, signer);
               const { data: sponsoredData } =
                 await smartReader.populateTransaction.addContract(
@@ -175,7 +163,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 process.env.REACT_APP_GELATO_API_KEY
               );
               console.log('Gelato relay result: ', relayResponse);
-              
             } else {
               setFunctionExplanation(data.choices[0].text);
               setIsLoadingFunction(false);
@@ -190,10 +177,11 @@ export const Reader = ({ address, fetching, setFetching }) => {
     },
     [
       explanation.contract,
-      inspectContract,
+      inspectContract?.name,
       address,
       signer,
       network,
+      contractExplanation,
       chain?.id,
     ]
   );
@@ -229,20 +217,10 @@ export const Reader = ({ address, fetching, setFetching }) => {
     return contracts;
   }
 
-  let blockExplorerUrl;
-
-  if (chain?.id === 137) {
-    blockExplorerUrl = 'api.polygonscan.com/api';
-  } else if (chain?.id === 1) {
-    blockExplorerUrl = 'api.etherscan.io/api';
-  } else if (chain?.id === 5) {
-    blockExplorerUrl = 'api-goerli.etherscan.io/api';
-  }
-
   const fetchSourceCode = useCallback(async () => {
     try {
       const resp = await axios.get(
-        `https://${blockExplorerUrl}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
+        `https://${blockExplorerApi}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
       );
       let sourceObj;
       let contracts;
@@ -264,30 +242,31 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
       setContractABI(addressABI);
       setSourceCode(contractsArray);
-     
+
       fetchExplanation(
         contractsArray[0].sourceCode.content,
         explanation.contract
       );
-      
+      console.log('name', contractsArray[0].name);
+      setFetching(false);
     } catch (err) {
       // Handle Error Here
-
+      setFetching(false);
       setSourceCode([]);
       setInspectContract(undefined);
     }
   }, [
+    blockExplorerApi,
     address,
-    explanation.contract,
     APIKEY,
-    blockExplorerUrl,
     fetchExplanation,
+    explanation.contract,
+    setFetching,
   ]);
 
   useEffect(() => {
     if (fetching) {
       fetchSourceCode();
-      setFetching(false);
     }
   }, [fetching, fetchSourceCode, setFetching]);
 
@@ -418,43 +397,29 @@ export const Reader = ({ address, fetching, setFetching }) => {
   ]);
 
   return (
-    <Flex direction="column" h="full" px={3}>
+    <Flex
+      direction="column"
+      h="full"
+      pb={3}
+      borderBottomRadius={8}
+      overflow="hidden"
+      maxH="calc(100% - 10px)"
+      px={2}
+    >
       {!inspectContract && (
-        <Box h="full" alignItems="center" justifyContent="center">
-          {!fetching && <Box>Search for a contract!</Box>}
-          {fetching && (
-            <Flex>
-              <Spinner />
-            </Flex>
+        <Flex h="full" alignItems="center" justifyContent="center">
+          {fetching ? (
+            <Spinner />
+          ) : (
+            <Text>
+              Search for a contract by inputting a contract address & selecting
+              the network where it was deployed. 🛠️
+            </Text>
           )}
-        </Box>
+        </Flex>
       )}
       {inspectContract && !fetching && (
-        <Flex direction="column">
-          <Flex>
-            <Button
-              onClick={() =>
-                fetchExplanation(
-                  inspectContract.sourceCode.content,
-                  explanation.contract
-                )
-              }
-            >
-              Explain Contract
-            </Button>
-            <Button onClick={() => setContractExplanation('')}>
-              Clear Explanation
-            </Button>
-            <Button onClick={() => setInspectFunction({ name: '', code: '' })}>
-              Clear Function
-            </Button>
-          </Flex>
-          <Storage
-            address={address}
-            network={network}
-            fileName={inspectContract?.name}
-            fileExplanation={contractExplanation}
-          />
+        <Flex direction="column" h="full">
           <Select onChange={handleContractChange} my={4}>
             {sourceCode &&
               sourceCode.length > 0 &&
@@ -469,13 +434,13 @@ export const Reader = ({ address, fetching, setFetching }) => {
               })}
           </Select>
 
-          <Flex py={3} gap={3} w="full">
+          <Flex py={3} gap={4} w="full" h="full">
             {inspectContract ? (
               <Flex
-                overflow="auto"
-                maxH="calc(100vh - 180px)"
+                overflow="hidden"
                 flexGrow={1}
                 w="50%"
+                h="100%"
                 direction="column"
                 gap={3}
                 onMouseOver={(event) => handleCodeHover(event)}
@@ -485,22 +450,42 @@ export const Reader = ({ address, fetching, setFetching }) => {
                   <Image src="/images/sourcecode.png" w={6} />
                   <Text fontWeight="bold"> Source code </Text>
                 </Flex>
-                <SyntaxHighlighter
-                  language="solidity"
-                  style={dracula}
-                  onClick={() => handleCodeClick()}
-                  wrapLines={true}
-                >
-                  {inspectContract.sourceCode.content}
-                </SyntaxHighlighter>
+                <Flex overflow="auto" h="calc(100% - 84px)" borderRadius={16}>
+                  <SyntaxHighlighter
+                    language="solidity"
+                    style={{
+                      ...dracula,
+                      display: 'inline-table',
+                    }}
+                    onClick={() => handleCodeClick()}
+                    wrapLines={true}
+                  >
+                    {inspectContract.sourceCode.content}
+                  </SyntaxHighlighter>
+                </Flex>
               </Flex>
             ) : (
               'No contract selected'
             )}
             {/* need to condense these into same panel */}
-            <Flex flexGrow={1} w="50%" direction="column" gap={3}>
+            <Flex
+              flexGrow={1}
+              w="50%"
+              direction="column"
+              gap={3}
+              // alignSelf="center"
+            >
+              <Flex gap={3}>
+                <Image src="/images/explanation.png" w={6} />
+                <Text fontWeight="bold">Explanation</Text>
+              </Flex>
               {isLoadingContract && (
-                <Flex w="full" justifyContent="center" alignItems="center">
+                <Flex
+                  w="full"
+                  justifyContent="center"
+                  alignItems="center"
+                  h="full"
+                >
                   <Spinner />
                   <Text ml={2}>
                     {contractMessages[Math.floor(Math.random() * 5)]}
@@ -508,12 +493,8 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 </Flex>
               )}
 
-              {contractExplanation && (
+              {contractExplanation && !isLoadingContract && (
                 <Flex direction="column" gap={3}>
-                  <Flex gap={3}>
-                    <Image src="/images/explanation.png" w={6} />
-                    <Text fontWeight="bold">Explanation</Text>
-                  </Flex>
                   <Text fontSize={18}>{contractExplanation}</Text>
                 </Flex>
               )}
@@ -521,8 +502,21 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
-              <ModalContent minW="700px">
-                <ModalHeader>{inspectFunction.name}</ModalHeader>
+              <ModalContent
+                minW="800px"
+                maxH="calc(100% - 80px)"
+                borderRadius={16}
+              >
+                <ModalHeader
+                  background="#262545"
+                  mt={2}
+                  mx={2}
+                  color="white"
+                  borderTopRadius={16}
+                  justifyItems="space-between"
+                >
+                  <code>Simulate function: {inspectFunction.name}</code>
+                </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody py={6}>
                   {inspectFunction &&
@@ -531,15 +525,33 @@ export const Reader = ({ address, fetching, setFetching }) => {
                   ) ? null : (
                     <Flex flexDirection={'column'} gap={3}>
                       <Flex gap={3}>
-                        <Box flexGrow={1} w="50%">
-                          <SyntaxHighlighter
-                            language="solidity"
-                            style={dracula}
-                            wrapLines={true}
+                        <Flex
+                          flexGrow={1}
+                          w="50%"
+                          maxH="600px"
+                          overflowY="auto"
+                          direction="column"
+                          gap={3}
+                        >
+                          <Flex gap={3}>
+                            <Image src="/images/sourcecode.png" w={6} />
+                            <Text fontWeight="bold"> Source code </Text>
+                          </Flex>
+                          <Flex
+                            p={2}
+                            bg="rgb(40, 42, 54)"
+                            overflow="hidden"
+                            borderRadius={16}
                           >
-                            {inspectFunction.code ? inspectFunction.code : ''}
-                          </SyntaxHighlighter>
-                        </Box>
+                            <SyntaxHighlighter
+                              language="solidity"
+                              style={dracula}
+                              wrapLines={true}
+                            >
+                              {inspectFunction.code ? inspectFunction.code : ''}
+                            </SyntaxHighlighter>
+                          </Flex>
+                        </Flex>
 
                         <Box flexGrow={1} w="50%">
                           {isLoadingFunction && (
@@ -558,7 +570,23 @@ export const Reader = ({ address, fetching, setFetching }) => {
                               </Text>
                             </Flex>
                           )}
-                          <Text>{functionExplanation}</Text>
+
+                          {!isLoadingFunction && (
+                            <Flex direction="column" gap={3} h="full">
+                              <Flex gap={3}>
+                                <Image src="/images/explanation.png" w={6} />
+                                <Text fontWeight="bold">Explanation</Text>
+                              </Flex>
+                              <Text
+                                boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
+                                borderRadius={16}
+                                h="full"
+                                p={4}
+                              >
+                                {functionExplanation}
+                              </Text>
+                            </Flex>
+                          )}
                         </Box>
                       </Flex>
                       {inspectFunction && address && network && contractABI && (

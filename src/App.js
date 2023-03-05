@@ -17,8 +17,8 @@ import {
   bsc,
   fantom,
   gnosis,
-  mainnet,
   optimism,
+  mainnet,
   polygon,
   goerli,
 } from 'wagmi/chains';
@@ -28,12 +28,12 @@ export const Context = React.createContext();
 function App() {
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [
-    arbitrum,
-    avalanche,
-    bsc,
-    fantom,
-    gnosis,
-    optimism,
+    // arbitrum,
+    // avalanche,
+    // bsc,
+    // fantom,
+    // gnosis,
+    // optimism,
     mainnet,
     polygon,
     goerli,
@@ -56,26 +56,26 @@ function App() {
 
   const ethereumClient = new EthereumClient(wagmiClient, chains);
   return (
-    <Flex
-      direction="column"
-      h="100vh"
-      p={6}
-      bgImage="/images/bg.png"
-      backgroundRepeat="round"
-    >
-      <WagmiConfig client={wagmiClient}>
-        <Flex h="full">
-          <Flex w="20%" h="100%" zIndex={2}>
+    <WagmiConfig client={wagmiClient}>
+      <Flex
+        direction="column"
+        h="100vh"
+        p={6}
+        bgImage="/images/bg.png"
+        backgroundRepeat="round"
+      >
+        <Flex h="full" gap={6}>
+          <Flex w="20%" h="full" zIndex={2}>
             <SideMenu />
           </Flex>
-          <Flex w="80%" h="100%">
+          <Flex w="80%" h="full">
             <Main />
           </Flex>
         </Flex>
-      </WagmiConfig>
 
-      <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
-    </Flex>
+        <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+      </Flex>
+    </WagmiConfig>
   );
 }
 

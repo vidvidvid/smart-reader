@@ -7,6 +7,15 @@ import {
   Spinner,
   VStack,
   Text,
+  Table,
+  Thead,
+  Tbody,
+  Tfoot,
+  Tr,
+  Th,
+  Td,
+  TableCaption,
+  TableContainer,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
@@ -27,6 +36,7 @@ export const SimulateTransaction = ({
   userAddress,
   isConnected,
 }) => {
+  console.log('network', network);
   const [simulationValid, setSimulationValid] = useState(false);
   const [simulationReady, setSimulationReady] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -36,11 +46,8 @@ export const SimulateTransaction = ({
   const [encodedInput, setEncodedInput] = useState('');
   const [inputTypeError, setInputTypeError] = useState(false);
   const [txnFrom, setTxnFrom] = useState(isConnected ? userAddress : '');
-  console.log('userAddress', userAddress);
-  console.log('isConnected', isConnected);
-
   const { name, code } = inspectFunction;
-  console.log('code', code);
+
   const {
     REACT_APP_TENDERLY_USER,
     REACT_APP_TENDERLY_PROJECT,
@@ -49,12 +56,12 @@ export const SimulateTransaction = ({
 
   const chainId = {
     ethereum: 1,
+    goerli: 5,
     polygon: 137,
   };
 
   useEffect(() => {
     if (functionInputs) {
-      console.log('functionInputs', functionInputs);
       const inputValues = Object.values(functionInputs);
       if (inputValues.length === 0) {
         setSimulationReady(true);
@@ -118,7 +125,6 @@ export const SimulateTransaction = ({
           abi.name &&
           abi.name.toLowerCase().trim() === name.toLowerCase().trim()
         ) {
-          console.log('aib.name', abi.name, 'name', name);
           setSimulationValid(true);
           const { inputs } = abi;
           const inputsObj = inputs.reduce((params, input) => {
@@ -131,8 +137,6 @@ export const SimulateTransaction = ({
     }
   }, [name, contractABI]);
   const transaction = async () => {
-    console.log('encodedInput', encodedInput);
-    // console.time('Simulation');
     setIsSimulating(true);
     // network selector
     // map inputs
@@ -167,16 +171,11 @@ export const SimulateTransaction = ({
         },
       }
     );
-    // console.timeEnd('Simulation');
 
     setIsSimulating(false);
-
-    console.log('transcation', resp.data.transaction);
     setSimulationResult(resp.data.transaction);
-    console.log('RETURN TXN', JSON.stringify(resp.data.transaction, null, 2));
   };
 
-  console.log('address', address);
   const handleAddressInputChange = (e, setInputTypeError) => {
     const inputValue = e.target.value;
     if (!ethers.utils.isAddress(inputValue)) {
@@ -191,10 +190,7 @@ export const SimulateTransaction = ({
     <Flex direction="column">
       {simulationValid ? (
         <Flex direction="column" gap={3}>
-          <h1 style={{ textAlign: 'center', fontWeight: 'bold' }}>
-            Simulate this transaction on {network}
-          </h1>
-          <hr />
+          <code>Params:</code>
           <Flex gap={2} direction="column">
             <Input
               value={txnFrom}
@@ -246,22 +242,48 @@ export const SimulateTransaction = ({
             Simulate Transaction
           </Button>
           <Flex justifyContent="center">
-            {isSimulating ? (
+            {isSimulating && (
               <Flex w="full" justifyContent="center" alignItems="center">
                 <Spinner />
                 <Text ml={2}>
                   {simulatingFunctionMessages[Math.floor(Math.random() * 5)]}
                 </Text>
               </Flex>
-            ) : (
-              <VStack>
+            )}
+            {simulationResult && !isSimulating && (
+              <VStack pb={3} w="full">
                 {/* <Text>Status: {simulationResult?.status}</Text> */}
-                <Text>Gas Used: {simulationResult?.gas_used}</Text>
-                <Text>Block Number: {simulationResult?.block_number}</Text>
-                <Text>Hash: {simulationResult?.hash}</Text>
-                <Text>Sender: {simulationResult?.from}</Text>
-                <Text>Recipient: {simulationResult?.to}</Text>
-                <Text>Timestamp: {simulationResult?.timestamp}</Text>
+                <TableContainer w="full">
+                  <Table size="sm">
+                    <TableCaption>Transaction results</TableCaption>
+                    <Tbody>
+                      <Tr>
+                        <Td>Gas Used:</Td>
+                        <Td>{simulationResult?.gas_used}</Td>
+                      </Tr>
+                      <Tr>
+                        <Td>Block Number</Td>
+                        <Td>{simulationResult?.block_number}</Td>
+                      </Tr>
+                      <Tr>
+                        <Td>Hash</Td>
+                        <Td>{simulationResult?.hash}</Td>
+                      </Tr>
+                      <Tr>
+                        <Td>Sender</Td>
+                        <Td>{simulationResult?.from}</Td>
+                      </Tr>
+                      <Tr>
+                        <Td>Recipient</Td>
+                        <Td>{simulationResult?.to}</Td>
+                      </Tr>
+                      <Tr>
+                        <Td>Timestamp</Td>
+                        <Td>{simulationResult?.timestamp}</Td>
+                      </Tr>
+                    </Tbody>
+                  </Table>
+                </TableContainer>
               </VStack>
             )}
           </Flex>

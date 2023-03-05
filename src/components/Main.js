@@ -17,6 +17,7 @@ export const Main = () => {
       direction="column"
       bgColor="white"
       borderRadius={16}
+      pb={2}
     >
       <Header
         address={address}
