@@ -256,9 +256,9 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
       setContractABI(addressABI);
       setSourceCode(contractsArray);
-      while (!inspectContract) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      // while (!inspectContract) {
+      //   await new Promise(resolve => setTimeout(resolve, 100));
+      // }
 
       fetchExplanation(
         contractsArray[0].sourceCode.content,
@@ -274,7 +274,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
     }
   }, [
     blockExplorerApi,
-    inspectContract,
+    // inspectContract,
     address,
     APIKEY,
     fetchExplanation,
