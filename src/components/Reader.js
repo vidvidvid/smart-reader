@@ -85,20 +85,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
       console.log('getExplanation in fetchExplanation', result);
       let fileExplanationSuccess = false;
       if (result?.length > 0) {
-        axios
-          .get(ipfsGateway + '/' + result[0].ipfsSchema)
-          .then((response) => {
-            console.log('DID IT WORK? ', response.data);
-            setContractExplanation(response.data.fileExplanation);
-            fileExplanationSuccess = true;
-          })
-          .catch((error) => {
-            console.log(
-              'Error fetching IPFS content:',
-              error.response.data.error
-            );
-            fileExplanationSuccess = false;
-          });
         const fileExplanationPromise = new Promise((resolve, reject) => {
           axios
             .get(ipfsGateway + '/' + result[0].ipfsSchema)
