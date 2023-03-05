@@ -80,15 +80,12 @@ export const Reader = ({ address, fetching, setFetching }) => {
     }
   }, [sourceCode]);
 
-  
-  
   const fetchExplanation = useCallback(
     async (code, type) => {
       const relay = new GelatoRelay();
 
-
       const result = await getExplanation(address, inspectContract.name);
-      
+
       console.log('getExplanation in fetchExplanation', result);
 
       let fileExplanationSuccess = false;
@@ -115,10 +112,13 @@ export const Reader = ({ address, fetching, setFetching }) => {
         fileExplanationSuccess = false;
       }
 
+      let content;
       if (!fileExplanationSuccess) {
         if (type === explanation.contract) {
+          content = `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes.`;
           setIsLoadingContract(true);
         } else {
+          content = `Give me a simple explanation of the following solidity code: ${code}`;
           setIsLoadingFunction(true);
         }
 
@@ -135,7 +135,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
               { role: 'system', content: 'You are a great teacher.' },
               {
                 role: 'user',
-                content: `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes.`,
+                content,
               },
             ],
             temperature: 0.3,
@@ -179,6 +179,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
               );
               console.log('Gelato relay result: ', relayResponse);
             } else {
+              console.log('data.choices[0]', data.choices[0]);
               setFunctionExplanation(data.choices[0].message.content);
               setIsLoadingFunction(false);
             }
@@ -190,20 +191,13 @@ export const Reader = ({ address, fetching, setFetching }) => {
           });
       }
     },
-    [
-      explanation.contract,
-      inspectContract,
-      address,
-      signer,
-      network,
-      chain?.id,
-    ]
+    [explanation.contract, inspectContract, address, signer, network, chain?.id]
   );
 
   function extractContracts(contractString) {
     const contractsArray = [];
 
-    let contractStart = contractString.indexOf('contract ');
+    let contractStart = contractString?.indexOf('contract ');
     let braceCount = 0;
     let i = contractStart;
 
@@ -257,7 +251,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
       setContractABI(addressABI);
       setSourceCode(contractsArray);
       while (!inspectContract) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       fetchExplanation(
@@ -268,7 +262,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
       setFetching(false);
     } catch (err) {
       // Handle Error Here
-      console.log('fetch source code error', err)
+      console.log('fetch source code error', err);
       setFetching(false);
       setSourceCode([]);
       setInspectContract(undefined);
@@ -288,7 +282,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
       fetchSourceCode();
     }
   }, [fetching, fetchSourceCode, setFetching]);
-
 
   const handleContractChange = useCallback(
     (e) => {
