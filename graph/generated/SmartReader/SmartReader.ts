@@ -7,8 +7,8 @@ import {
   Entity,
   Bytes,
   Address,
-  BigInt,
-} from '@graphprotocol/graph-ts';
+  BigInt
+} from "@graphprotocol/graph-ts";
 
 export class AnnotationAdded extends ethereum.Event {
   get params(): AnnotationAdded__Params {
@@ -64,13 +64,13 @@ export class ContractAdded__Params {
 
 export class SmartReader extends ethereum.SmartContract {
   static bind(address: Address): SmartReader {
-    return new SmartReader('SmartReader', address);
+    return new SmartReader("SmartReader", address);
   }
 
   contractStorage(param0: Address, param1: string): string {
     let result = super.call(
-      'contractStorage',
-      'contractStorage(address,string):(string)',
+      "contractStorage",
+      "contractStorage(address,string):(string)",
       [ethereum.Value.fromAddress(param0), ethereum.Value.fromString(param1)]
     );
 
@@ -82,8 +82,8 @@ export class SmartReader extends ethereum.SmartContract {
     param1: string
   ): ethereum.CallResult<string> {
     let result = super.tryCall(
-      'contractStorage',
-      'contractStorage(address,string):(string)',
+      "contractStorage",
+      "contractStorage(address,string):(string)",
       [ethereum.Value.fromAddress(param0), ethereum.Value.fromString(param1)]
     );
     if (result.reverted) {
@@ -94,13 +94,13 @@ export class SmartReader extends ethereum.SmartContract {
   }
 
   owner(): Address {
-    let result = super.call('owner', 'owner():(address)', []);
+    let result = super.call("owner", "owner():(address)", []);
 
     return result[0].toAddress();
   }
 
   try_owner(): ethereum.CallResult<Address> {
-    let result = super.tryCall('owner', 'owner():(address)', []);
+    let result = super.tryCall("owner", "owner():(address)", []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
