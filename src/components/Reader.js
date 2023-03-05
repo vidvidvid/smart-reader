@@ -511,14 +511,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 <Flex gap={3} pl={2}>
                   <Image src="/images/explanation.png" w={6} />
                   <Text fontWeight="bold">Explanation</Text>
-                  <Button
-                    onClick={() =>
-                      fetchExplanation(
-                        inspectContract.sourceCode.content,
-                        explanation.contract
-                      )
-                    }
-                  />
                 </Flex>
                 <Button
                   variant="ghost"
