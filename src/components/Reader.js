@@ -14,8 +14,8 @@ import {
   ModalCloseButton,
   useDisclosure,
   Button,
+  Code,
 } from '@chakra-ui/react';
-import { Storage } from './Storage';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
@@ -26,8 +26,9 @@ import { getExplanation } from '../utils/queries';
 import { ipfsGateway } from '../utils/constants';
 import { getContract } from '../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
-// import { contractName } from '../utils/ipfs';
 import chainInfo from '../utils/chainInfo';
+import { ChatIcon } from '@chakra-ui/icons';
+import { Annotate } from './Annotate';
 
 const functionMessages = [
   'Deciphering the function',
@@ -131,7 +132,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
               },
             ],
             temperature: 0.3,
-            max_tokens: 1200,
+            max_tokens: 3000,
           }),
         };
         fetch('https://api.openai.com/v1/chat/completions', requestOptions)
@@ -186,7 +187,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
       address,
       signer,
       network,
-      contractExplanation,
       chain?.id,
     ]
   );
@@ -372,13 +372,23 @@ export const Reader = ({ address, fetching, setFetching }) => {
     [highlightedFunction]
   );
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isOpenSimulate,
+    onOpen: onOpenSimulate,
+    onClose: onCloseSimulate,
+  } = useDisclosure();
+  const {
+    isOpen: isOpenAnnotation,
+    onOpen: onOpenAnnotation,
+    onClose: onCloseAnnotation,
+  } = useDisclosure();
+
   const handleCodeClick = useCallback(() => {
     if (!selectedFunctionName || !selectedFunctionCode) {
       return;
     }
 
-    onOpen();
+    onOpenSimulate();
 
     setInspectFunction({
       name: selectedFunctionName,
@@ -396,7 +406,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
   }, [
     selectedFunctionName,
     selectedFunctionCode,
-    onOpen,
+    onOpenSimulate,
     fetchExplanation,
     explanation.function,
   ]);
@@ -451,7 +461,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 onMouseOver={(event) => handleCodeHover(event)}
               >
                 {/* <h1>Contract Name: {inspectContract.name}</h1> */}
-                <Flex gap={3}>
+                <Flex gap={3} pl={2}>
                   <Image src="/images/sourcecode.png" w={6} />
                   <Text fontWeight="bold"> Source code </Text>
                 </Flex>
@@ -480,9 +490,31 @@ export const Reader = ({ address, fetching, setFetching }) => {
               gap={3}
               // alignSelf="center"
             >
-              <Flex gap={3}>
-                <Image src="/images/explanation.png" w={6} />
-                <Text fontWeight="bold">Explanation</Text>
+              <Flex
+                justifyContent="space-between"
+                alignItems="center"
+                pr={3}
+                h={5}
+              >
+                <Flex gap={3} pl={2}>
+                  <Image src="/images/explanation.png" w={6} />
+                  <Text fontWeight="bold">Explanation</Text>
+                </Flex>
+                <Button
+                  variant="ghost"
+                  alignItems="center"
+                  gap={2}
+                  cursor="pointer"
+                  color="#6EB3FF"
+                  _hover={{
+                    transform: 'scale(1.05)',
+                  }}
+                  transition="transform 0.25s"
+                  onClick={onOpenAnnotation}
+                >
+                  <Text fontWeight="bold">Annotate! :)</Text>
+                  <ChatIcon />
+                </Button>
               </Flex>
               {isLoadingContract && (
                 <Flex
@@ -500,12 +532,20 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
               {contractExplanation && !isLoadingContract && (
                 <Flex direction="column" gap={3}>
-                  <Text fontSize={18}>{contractExplanation}</Text>
+                  <Code
+                    whiteSpace="pre-line"
+                    p={3}
+                    borderRadius={16}
+                    fontSize={14}
+                    type="solid"
+                  >
+                    {contractExplanation.replace(/^\n\n/, '')}
+                  </Code>
                 </Flex>
               )}
             </Flex>
 
-            <Modal isOpen={isOpen} onClose={onClose}>
+            <Modal isOpen={isOpenSimulate} onClose={onCloseSimulate}>
               <ModalOverlay />
               <ModalContent
                 minW="800px"
@@ -612,6 +652,25 @@ export const Reader = ({ address, fetching, setFetching }) => {
           </Flex>
         </Flex>
       )}
+      <Modal isOpen={isOpenAnnotation} onClose={onCloseAnnotation}>
+        <ModalOverlay />
+        <ModalContent minW="800px" maxH="calc(100% - 80px)" borderRadius={16}>
+          <ModalHeader
+            background="#262545"
+            mt={2}
+            mx={2}
+            color="white"
+            borderTopRadius={16}
+            justifyItems="space-between"
+          >
+            <code>Annotate contract: {inspectContract?.name}</code>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody py={6}>
+            <Annotate address={address} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Flex>
   );
 };
