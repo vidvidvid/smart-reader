@@ -65,10 +65,10 @@ function App() {
         backgroundRepeat="round"
       >
         <Flex h="full" gap={6}>
-          <Flex w="20%" h="100%" zIndex={2}>
+          <Flex w="20%" h="full" zIndex={2}>
             <SideMenu />
           </Flex>
-          <Flex w="80%" h="100%">
+          <Flex w="80%" h="full">
             <Main />
           </Flex>
         </Flex>

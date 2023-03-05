@@ -1,25 +1,25 @@
 const chainInfo = ({ chain }) => {
   let APIKEY;
+  let blockExplorerApi;
   let blockExplorerUrl;
 
-  if (chain?.id === 1) {
-    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
-  } else if (chain?.id === 137) {
-    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
-  } else if (chain?.id === 5) {
-    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
-  }
-
   if (chain?.id === 137) {
-    blockExplorerUrl = 'api.polygonscan.com/api';
+    blockExplorerApi = 'api.polygonscan.com/api';
+    blockExplorerUrl = 'https://polygonscan.com';
+    APIKEY = process.env.REACT_APP_POLYGONSCAN_API_KEY;
   } else if (chain?.id === 1) {
-    blockExplorerUrl = 'api.etherscan.io/api';
+    blockExplorerApi = 'api.etherscan.io/api';
+    blockExplorerUrl = 'https://etherscan.io';
+    APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
   } else if (chain?.id === 5) {
-    blockExplorerUrl = 'api-goerli.etherscan.io/api';
+    blockExplorerApi = 'api-goerli.etherscan.io/api';
+    blockExplorerUrl = 'https://goerli.etherscan.io/';
+    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
   }
 
   return {
     APIKEY,
+    blockExplorerApi,
     blockExplorerUrl,
   };
 };

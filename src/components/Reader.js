@@ -63,10 +63,10 @@ export const Reader = ({ address, fetching, setFetching }) => {
   });
 
   const { chain } = useNetwork();
-  const network = chain?.name.toLowerCase();
+  const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
   const { data: signer } = useSigner();
-  const { APIKEY, blockExplorerUrl } = chainInfo({ chain });
+  const { APIKEY, blockExplorerApi } = chainInfo({ chain });
 
   const explanation = {
     contract: 'contract',
@@ -175,7 +175,15 @@ export const Reader = ({ address, fetching, setFetching }) => {
           });
       }
     },
-    [explanation.contract, inspectContract, address, signer, network, chain?.id]
+    [
+      explanation.contract,
+      inspectContract?.name,
+      address,
+      signer,
+      network,
+      contractExplanation,
+      chain?.id,
+    ]
   );
 
   function extractContracts(contractString) {
@@ -212,7 +220,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
   const fetchSourceCode = useCallback(async () => {
     try {
       const resp = await axios.get(
-        `https://${blockExplorerUrl}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
+        `https://${blockExplorerApi}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
       );
       let sourceObj;
       let contracts;
@@ -239,24 +247,26 @@ export const Reader = ({ address, fetching, setFetching }) => {
         contractsArray[0].sourceCode.content,
         explanation.contract
       );
+      console.log('name', contractsArray[0].name);
+      setFetching(false);
     } catch (err) {
       // Handle Error Here
-
+      setFetching(false);
       setSourceCode([]);
       setInspectContract(undefined);
     }
   }, [
+    blockExplorerApi,
     address,
-    explanation.contract,
     APIKEY,
-    blockExplorerUrl,
     fetchExplanation,
+    explanation.contract,
+    setFetching,
   ]);
 
   useEffect(() => {
     if (fetching) {
       fetchSourceCode();
-      setFetching(false);
     }
   }, [fetching, fetchSourceCode, setFetching]);
 
@@ -390,11 +400,11 @@ export const Reader = ({ address, fetching, setFetching }) => {
     <Flex
       direction="column"
       h="full"
-      px={3}
       pb={3}
       borderBottomRadius={8}
       overflow="hidden"
-      maxH="full"
+      maxH="calc(100% - 10px)"
+      px={2}
     >
       {!inspectContract && (
         <Flex h="full" alignItems="center" justifyContent="center">
@@ -403,37 +413,13 @@ export const Reader = ({ address, fetching, setFetching }) => {
           ) : (
             <Text>
               Search for a contract by inputting a contract address & selecting
-              the right network.
+              the network where it was deployed. 🛠️
             </Text>
           )}
         </Flex>
       )}
       {inspectContract && !fetching && (
-        <Flex direction="column">
-          <Flex>
-            <Button
-              onClick={() =>
-                fetchExplanation(
-                  inspectContract.sourceCode.content,
-                  explanation.contract
-                )
-              }
-            >
-              Explain Contract
-            </Button>
-            <Button onClick={() => setContractExplanation('')}>
-              Clear Explanation
-            </Button>
-            <Button onClick={() => setInspectFunction({ name: '', code: '' })}>
-              Clear Function
-            </Button>
-          </Flex>
-          <Storage
-            address={address}
-            network={network}
-            fileName={inspectContract?.name}
-            fileExplanation={contractExplanation}
-          />
+        <Flex direction="column" h="full">
           <Select onChange={handleContractChange} my={4}>
             {sourceCode &&
               sourceCode.length > 0 &&
@@ -448,13 +434,13 @@ export const Reader = ({ address, fetching, setFetching }) => {
               })}
           </Select>
 
-          <Flex py={3} gap={3} w="full" maxH="calc(100% - 140px)">
+          <Flex py={3} gap={4} w="full" h="full">
             {inspectContract ? (
               <Flex
-                overflow="auto"
-                maxH="calc(100vh - 180px)"
+                overflow="hidden"
                 flexGrow={1}
                 w="50%"
+                h="100%"
                 direction="column"
                 gap={3}
                 onMouseOver={(event) => handleCodeHover(event)}
@@ -464,14 +450,19 @@ export const Reader = ({ address, fetching, setFetching }) => {
                   <Image src="/images/sourcecode.png" w={6} />
                   <Text fontWeight="bold"> Source code </Text>
                 </Flex>
-                <SyntaxHighlighter
-                  language="solidity"
-                  style={dracula}
-                  onClick={() => handleCodeClick()}
-                  wrapLines={true}
-                >
-                  {inspectContract.sourceCode.content}
-                </SyntaxHighlighter>
+                <Flex overflow="auto" h="calc(100% - 84px)" borderRadius={16}>
+                  <SyntaxHighlighter
+                    language="solidity"
+                    style={{
+                      ...dracula,
+                      display: 'inline-table',
+                    }}
+                    onClick={() => handleCodeClick()}
+                    wrapLines={true}
+                  >
+                    {inspectContract.sourceCode.content}
+                  </SyntaxHighlighter>
+                </Flex>
               </Flex>
             ) : (
               'No contract selected'
@@ -502,7 +493,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
                 </Flex>
               )}
 
-              {contractExplanation && (
+              {contractExplanation && !isLoadingContract && (
                 <Flex direction="column" gap={3}>
                   <Text fontSize={18}>{contractExplanation}</Text>
                 </Flex>
@@ -511,8 +502,21 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
             <Modal isOpen={isOpen} onClose={onClose}>
               <ModalOverlay />
-              <ModalContent minW="700px">
-                <ModalHeader>{inspectFunction.name}</ModalHeader>
+              <ModalContent
+                minW="800px"
+                maxH="calc(100% - 80px)"
+                borderRadius={16}
+              >
+                <ModalHeader
+                  background="#262545"
+                  mt={2}
+                  mx={2}
+                  color="white"
+                  borderTopRadius={16}
+                  justifyItems="space-between"
+                >
+                  <code>Simulate function: {inspectFunction.name}</code>
+                </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody py={6}>
                   {inspectFunction &&
@@ -521,15 +525,33 @@ export const Reader = ({ address, fetching, setFetching }) => {
                   ) ? null : (
                     <Flex flexDirection={'column'} gap={3}>
                       <Flex gap={3}>
-                        <Box flexGrow={1} w="50%">
-                          <SyntaxHighlighter
-                            language="solidity"
-                            style={dracula}
-                            wrapLines={true}
+                        <Flex
+                          flexGrow={1}
+                          w="50%"
+                          maxH="600px"
+                          overflowY="auto"
+                          direction="column"
+                          gap={3}
+                        >
+                          <Flex gap={3}>
+                            <Image src="/images/sourcecode.png" w={6} />
+                            <Text fontWeight="bold"> Source code </Text>
+                          </Flex>
+                          <Flex
+                            p={2}
+                            bg="rgb(40, 42, 54)"
+                            overflow="hidden"
+                            borderRadius={16}
                           >
-                            {inspectFunction.code ? inspectFunction.code : ''}
-                          </SyntaxHighlighter>
-                        </Box>
+                            <SyntaxHighlighter
+                              language="solidity"
+                              style={dracula}
+                              wrapLines={true}
+                            >
+                              {inspectFunction.code ? inspectFunction.code : ''}
+                            </SyntaxHighlighter>
+                          </Flex>
+                        </Flex>
 
                         <Box flexGrow={1} w="50%">
                           {isLoadingFunction && (
@@ -548,7 +570,23 @@ export const Reader = ({ address, fetching, setFetching }) => {
                               </Text>
                             </Flex>
                           )}
-                          <Text>{functionExplanation}</Text>
+
+                          {!isLoadingFunction && (
+                            <Flex direction="column" gap={3} h="full">
+                              <Flex gap={3}>
+                                <Image src="/images/explanation.png" w={6} />
+                                <Text fontWeight="bold">Explanation</Text>
+                              </Flex>
+                              <Text
+                                boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
+                                borderRadius={16}
+                                h="full"
+                                p={4}
+                              >
+                                {functionExplanation}
+                              </Text>
+                            </Flex>
+                          )}
                         </Box>
                       </Flex>
                       {inspectFunction && address && network && contractABI && (
