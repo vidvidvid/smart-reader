@@ -1,35 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Input, Image, Text, Flex, Link, Divider } from '@chakra-ui/react';
 
 import { useState } from 'react';
 import chainInfo from '../utils/chainInfo';
 import { useNetwork } from 'wagmi';
+import { getContracts } from '../utils/queries';
 
 const SideMenu = () => {
   const [search, setSearch] = useState('');
-  const [solFiles, setSolFiles] = useState([
-    {
-      name: 'test.sol',
-      contract: 'Test',
-      address: '0x1234567890',
-      explanations: 3,
-    },
-    {
-      name: 'test2.sol',
-      contract: 'Test2',
-      address: '0x1234567890',
-      explanations: 1,
-    },
-    {
-      name: 'test3.sol',
-      contract: 'Test3',
-      address: '0x1234567890',
-      explanations: 5,
-    },
-  ]);
+  const [contracts, setContracts] = useState([]);
   const { chain } = useNetwork();
-
   const { blockExplorerUrl } = chainInfo({ chain });
+
+  const queryContracts = async () => {
+    const contracts = await getContracts();
+    setContracts(contracts);
+    console.log('contracts', contracts);
+  };
+
+  useEffect(() => {
+    queryContracts();
+  }, []);
 
   return (
     <Flex
@@ -56,23 +47,32 @@ const SideMenu = () => {
         />
       </Flex>
       <Flex direction="column" gap={1}>
-        {solFiles
-          .filter((file) => {
-            return (
-              file.name.toLowerCase().includes(search.toLowerCase()) ||
-              file.contract.toLowerCase().includes(search.toLowerCase())
-            );
-          })
-          .map((file) => (
-            <Link
-              href={`${blockExplorerUrl}/address/${file.address}`}
-              key={file.name + file.contract}
-            >
-              <Flex key={file.name} justifyContent="space-between">
-                <Text>{file.name}</Text> <Text>({file.explanations})</Text>
-              </Flex>
-            </Link>
-          ))}
+        {contracts &&
+          contracts
+            .filter((contract) => {
+              return (
+                // contract.name.toLowerCase().includes(search.toLowerCase()) ||
+                contract.mainContractAddress
+                  .toLowerCase()
+                  .includes(search.toLowerCase())
+              );
+            })
+            .map((contract) => (
+              <Link
+                href={`${blockExplorerUrl}/address/${contract.mainContractAddress}`}
+                key={contract.id}
+              >
+                <Flex justifyContent="space-between">
+                  <Text>{`${contract.mainContractAddress.slice(
+                    0,
+                    7
+                  )}...${contract.mainContractAddress.slice(
+                    contract.mainContractAddress.length - 7
+                  )}`}</Text>{' '}
+                  <Text>({contract.Annotations.length})</Text>
+                </Flex>
+              </Link>
+            ))}
       </Flex>
     </Flex>
   );
