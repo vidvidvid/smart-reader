@@ -131,7 +131,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
               },
             ],
             temperature: 0.3,
-            max_tokens: 1200,
+            max_tokens: 3000,
           }),
         };
         fetch('https://api.openai.com/v1/chat/completions', requestOptions)
@@ -489,7 +489,12 @@ export const Reader = ({ address, fetching, setFetching }) => {
               gap={3}
               // alignSelf="center"
             >
-              <Flex justifyContent="space-between" alignItems="center" pr={3}>
+              <Flex
+                justifyContent="space-between"
+                alignItems="center"
+                pr={3}
+                h={5}
+              >
                 <Flex gap={3} pl={2}>
                   <Image src="/images/explanation.png" w={6} />
                   <Text fontWeight="bold">Explanation</Text>
@@ -525,7 +530,9 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
               {contractExplanation && !isLoadingContract && (
                 <Flex direction="column" gap={3}>
-                  <Text fontSize={18}>{contractExplanation}</Text>
+                  <Text whiteSpace="pre-line" fontSize={16}>
+                    {contractExplanation.replace(/^\n\n/, '')}
+                  </Text>
                 </Flex>
               )}
             </Flex>
