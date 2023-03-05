@@ -7,8 +7,8 @@ import {
   Entity,
   Bytes,
   Address,
-  BigInt
-} from "@graphprotocol/graph-ts";
+  BigInt,
+} from '@graphprotocol/graph-ts';
 
 export class AnnotationAdded extends ethereum.Event {
   get params(): AnnotationAdded__Params {
@@ -23,12 +23,12 @@ export class AnnotationAdded__Params {
     this._event = event;
   }
 
-  get parentContract(): Address {
+  get mainContract(): Address {
     return this._event.parameters[0].value.toAddress();
   }
 
-  get functionId(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
+  get subContractName(): string {
+    return this._event.parameters[1].value.toString();
   }
 
   get annotation(): string {
@@ -49,35 +49,42 @@ export class ContractAdded__Params {
     this._event = event;
   }
 
-  get addedContract(): Address {
+  get mainContract(): Address {
     return this._event.parameters[0].value.toAddress();
   }
 
-  get explanation(): string {
+  get subContractName(): string {
     return this._event.parameters[1].value.toString();
+  }
+
+  get explanation(): string {
+    return this._event.parameters[2].value.toString();
   }
 }
 
 export class SmartReader extends ethereum.SmartContract {
   static bind(address: Address): SmartReader {
-    return new SmartReader("SmartReader", address);
+    return new SmartReader('SmartReader', address);
   }
 
-  contractStorage(param0: Address): string {
+  contractStorage(param0: Address, param1: string): string {
     let result = super.call(
-      "contractStorage",
-      "contractStorage(address):(string)",
-      [ethereum.Value.fromAddress(param0)]
+      'contractStorage',
+      'contractStorage(address,string):(string)',
+      [ethereum.Value.fromAddress(param0), ethereum.Value.fromString(param1)]
     );
 
     return result[0].toString();
   }
 
-  try_contractStorage(param0: Address): ethereum.CallResult<string> {
+  try_contractStorage(
+    param0: Address,
+    param1: string
+  ): ethereum.CallResult<string> {
     let result = super.tryCall(
-      "contractStorage",
-      "contractStorage(address):(string)",
-      [ethereum.Value.fromAddress(param0)]
+      'contractStorage',
+      'contractStorage(address,string):(string)',
+      [ethereum.Value.fromAddress(param0), ethereum.Value.fromString(param1)]
     );
     if (result.reverted) {
       return new ethereum.CallResult();
@@ -87,13 +94,13 @@ export class SmartReader extends ethereum.SmartContract {
   }
 
   owner(): Address {
-    let result = super.call("owner", "owner():(address)", []);
+    let result = super.call('owner', 'owner():(address)', []);
 
     return result[0].toAddress();
   }
 
   try_owner(): ethereum.CallResult<Address> {
-    let result = super.tryCall("owner", "owner():(address)", []);
+    let result = super.tryCall('owner', 'owner():(address)', []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -145,12 +152,12 @@ export class AddAnnotationCall__Inputs {
     this._call = call;
   }
 
-  get parentContract(): Address {
+  get mainContract(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get functionId(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
+  get subContractName(): string {
+    return this._call.inputValues[1].value.toString();
   }
 
   get annotation(): string {
@@ -183,12 +190,16 @@ export class AddContractCall__Inputs {
     this._call = call;
   }
 
-  get newContract(): Address {
+  get mainContract(): Address {
     return this._call.inputValues[0].value.toAddress();
   }
 
-  get explanation(): string {
+  get subContractName(): string {
     return this._call.inputValues[1].value.toString();
+  }
+
+  get explanation(): string {
+    return this._call.inputValues[2].value.toString();
   }
 }
 

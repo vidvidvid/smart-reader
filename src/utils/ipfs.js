@@ -18,11 +18,11 @@ const client = create({
   },
 });
 
-const contractName = (url) => {
-  const start = url?.lastIndexOf('/') + 1;
-  const end = url?.lastIndexOf('.');
-  return url?.substring(start, end);
-};
+// export const contractName = (url) => {
+//   const start = url?.lastIndexOf('/') + 1;
+//   const end = url?.lastIndexOf('.');
+//   return url?.substring(start, end);
+// };
 
 export const uploadJSON = async (
   address,
@@ -30,12 +30,14 @@ export const uploadJSON = async (
   fileName,
   fileExplanation
 ) => {
+  // console.log("FILENAME", fileName)
   const file = new File(
     [
       JSON.stringify({
         address,
         network,
-        fileName: contractName(fileName),
+        // fileName: contractName(fileName),
+        fileName: fileName,
         fileExplanation,
       }),
     ],

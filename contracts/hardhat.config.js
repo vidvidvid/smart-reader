@@ -28,6 +28,9 @@ module.exports = {
     artifacts: './build',
   },
   networks: {
+    localhost: {
+      gas: 8000000,
+    },
     xdai: {
       url: `https://rpc.ankr.com/gnosis`,
       accounts: [`0x${PRIVATE_KEY}`],

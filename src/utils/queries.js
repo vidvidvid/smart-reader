@@ -1,40 +1,38 @@
 import axios from 'axios';
 const { goerliUrl } = require('./constants');
 
-// need to put contractAddress back as a param
-export async function getExplanation(address) {
+
+export async function getExplanation(address, name) {
   const query = `
-  query SmartReader($address: ID!) {
-    contracts(where: {address: $address}) {
-      id
-      address
+  query SmartReader($address: ID!, $subContractName: String!) {
+    subContracts(where: {subContractName: $subContractName, mainContract: $address}) {
       blockNumber
       blockTimestamp
-      createdAt
-      network
-      smartReaderContract
       transactionHash
+      subContractName
+      smartReaderContract
+      network
+      mainContract
       ipfsSchema
-      Annotations {
-        annotation
-        id
-        functionId
-      }
+      id
+      createdAt
     }
   }
+ 
     `;
 
   const variables = {
     address: address.toLowerCase(),
+    subContractName: name,
   };
 
   try {
     const response = await axios.post(goerliUrl, { query, variables });
-    return response.data.data.contracts;
+    // console.log('response', response.data);
+    return response.data.data.subContracts;
   } catch (error) {
     console.error('getExplanation error', error);
   }
 }
 
-// module.exports = { getExplanation };
-// getExplanation('0xc5e7441639900f219afee5ef64c10d911a4ec89d')
+
