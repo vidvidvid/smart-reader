@@ -81,13 +81,10 @@ export const Reader = ({ address, fetching, setFetching }) => {
   const fetchExplanation = useCallback(
     async (code, type) => {
       const relay = new GelatoRelay();
-      console.log('inspectContract', inspectContract?.name);
-
       const result = await getExplanation(address, inspectContract?.name);
-      console.log('result', result);
+      console.log('getExplanation in fetchExplanation', result);
       let fileExplanationSuccess = false;
-      if (result.length > 0) {
-<<<<<<< master
+      if (result?.length > 0) {
         axios
           .get(ipfsGateway + '/' + result[0].ipfsSchema)
           .then((response) => {
@@ -102,7 +99,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
             );
             fileExplanationSuccess = false;
           });
-=======
         const fileExplanationPromise = new Promise((resolve, reject) => {
           axios
             .get(ipfsGateway + '/' + result[0].ipfsSchema)
@@ -119,13 +115,11 @@ export const Reader = ({ address, fetching, setFetching }) => {
               reject(false);
             });
         });
-      
+
         fileExplanationSuccess = await fileExplanationPromise;
->>>>>>> retrieval logic
       } else {
         fileExplanationSuccess = false;
       }
-      
 
       if (!fileExplanationSuccess) {
         if (type === explanation.contract) {
@@ -142,21 +136,24 @@ export const Reader = ({ address, fetching, setFetching }) => {
               'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
           },
           body: JSON.stringify({
-            prompt: code.concat(
-              '\nProvide the explanation of the solidity code for a beginner programmer:\n\n'
-            ),
+            model: 'gpt-3.5-turbo',
+            messages: [
+              { role: 'system', content: 'You are a great teacher.' },
+              {
+                role: 'user',
+                content: `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes.`,
+              },
+            ],
             temperature: 0.3,
-            max_tokens: 500,
+            max_tokens: 1200,
           }),
         };
-        fetch(
-          'https://api.openai.com/v1/engines/text-davinci-003/completions',
-          requestOptions
-        )
+        fetch('https://api.openai.com/v1/chat/completions', requestOptions)
           .then((response) => response.json())
           .then(async (data) => {
+            console.log('data', data);
             if (type === explanation.contract) {
-              setContractExplanation(data.choices[0].text);
+              setContractExplanation(data.choices[0].message.content);
               setIsLoadingContract(false);
               console.log('inspectContract2', inspectContract?.name);
               const uploadResult = await uploadJSON(
@@ -186,7 +183,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
               );
               console.log('Gelato relay result: ', relayResponse);
             } else {
-              setFunctionExplanation(data.choices[0].text);
+              setFunctionExplanation(data.choices[0].message.content);
               setIsLoadingFunction(false);
             }
           })

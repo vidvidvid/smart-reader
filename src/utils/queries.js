@@ -1,7 +1,6 @@
 import axios from 'axios';
 const { goerliUrl } = require('./constants');
 
-
 export async function getExplanation(address, name) {
   const query = `
   query SmartReader($address: ID!, $subContractName: String!) {
@@ -29,10 +28,8 @@ export async function getExplanation(address, name) {
   try {
     const response = await axios.post(goerliUrl, { query, variables });
     // console.log('response', response.data);
-    return response.data.data.subContracts;
+    return response?.data?.data?.subContracts;
   } catch (error) {
     console.error('getExplanation error', error);
   }
 }
-
-
