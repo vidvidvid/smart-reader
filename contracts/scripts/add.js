@@ -23,33 +23,41 @@ async function main() {
 
   const smartReader = await SmartReader.attach(deploymentData.contract);
   console.log(`SmartReader address: ${smartReader.address}`);
-  const newContract = Wallet.createRandom().address;
+  const mainContract = Wallet.createRandom().address;
+  const subContractName = 'Ownable';
   const explanation =
     'bafybeiaixojwq6jcf2blsnj2mlb7cicduvm3g5glumuhchmnsyhiipiily/rinkeby%20copy.json';
-  const tx = await smartReader.addContract(newContract, explanation);
-  console.log(`Contract ${newContract} added with explanation: ${explanation}`);
+  const tx = await smartReader.addContract(
+    mainContract,
+    subContractName,
+    explanation
+  );
+  console.log(
+    `subContract ${subContractName} added to main contract ${mainContract} added with explanation: ${explanation}`
+  );
 
-  if (network.chainId !== 31337) {
-    await tx.wait();
-  }
-  const annotations = [
-    { functionId: 1, annotation: 'Annotation 1' },
-    { functionId: 2, annotation: 'Annotation 2' },
-    { functionId: 3, annotation: 'Annotation 3' },
-  ];
+  const logged = await tx.wait();
 
-  for (const { functionId, annotation } of annotations) {
-    await smartReader.addAnnotation(newContract, functionId, annotation);
-    console.log(
-      `Annotation ${annotation} added to contract ${newContract} for functionId ${functionId}`
-    );
+  console.log('logged', logged);
+  if (logged !== undefined) {
+    const annotations = [
+      { subContractName: 'Ownable', annotation: 'Annotation 1' },
+      { subContractName: 'LendingPool', annotation: 'Annotation 2' },
+      { subContractName: 'Smart Invoice', annotation: 'Annotation 3' },
+    ];
+
+    for (const { subContractName, annotation } of annotations) {
+      console.log('adding annotation', annotation, 'to', subContractName);
+      await smartReader.addAnnotation(
+        mainContract,
+        subContractName,
+        annotation
+      );
+      console.log(
+        `Annotation ${annotation} added to contract ${mainContract} for subContract ${subContractName}`
+      );
+    }
   }
-  // const annotation = "maybe this one too!'";
-  // const functionId = 1;
-  // await smartReader.addAnnotation(newContract, functionId, annotation);
-  // console.log(
-  //   `Annotation ${annotation} added to contract ${newContract} for functionId ${functionId}`
-  // );
 }
 
 main().catch((error) => {

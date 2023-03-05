@@ -10,14 +10,14 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "parentContract",
+        "name": "mainContract",
         "type": "address"
       },
       {
         "indexed": false,
-        "internalType": "uint256",
-        "name": "functionId",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "subContractName",
+        "type": "string"
       },
       {
         "indexed": false,
@@ -35,8 +35,14 @@
       {
         "indexed": false,
         "internalType": "address",
-        "name": "addedContract",
+        "name": "mainContract",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "subContractName",
+        "type": "string"
       },
       {
         "indexed": false,
@@ -52,13 +58,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "parentContract",
+        "name": "mainContract",
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "functionId",
-        "type": "uint256"
+        "internalType": "string",
+        "name": "subContractName",
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -75,8 +81,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "newContract",
+        "name": "mainContract",
         "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "subContractName",
+        "type": "string"
       },
       {
         "internalType": "string",
@@ -95,6 +106,11 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
       }
     ],
     "name": "contractStorage",

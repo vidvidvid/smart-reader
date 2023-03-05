@@ -1,23 +1,36 @@
 type Contract @entity {
   id: ID!
   smartReaderContract: Bytes!
+  mainContractAddress: Bytes!
   network: String!
   createdAt: BigInt!
   blockNumber: BigInt!
   transactionHash: Bytes!
   blockTimestamp: BigInt!
-  address: Bytes!
-  ipfsSchema: String!
+  subContracts: [subContract!]!
   Annotations: [Annotation!]!
+}
+
+type subContract @entity {
+  id: ID!
+  smartReaderContract: Bytes!
+  mainContract: Bytes!
+  subContractName: String!
+  network: String!
+  createdAt: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  blockTimestamp: BigInt!
+  ipfsSchema: String!
 }
 
 type Annotation @entity {
   id: ID!
-  parentContract: Bytes!
+  mainContract: Bytes!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
-  functionId: BigInt!
+  subContractName: String!
   annotation: String!
   createdAt: BigInt!
 }

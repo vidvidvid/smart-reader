@@ -6,9 +6,9 @@ dataSources:
     name: SmartReader
     network: goerli
     source:
-      address: '0xf7Ff1339513e1a66550173630E8dbf871fd1c0C2'
+      address: '0xdFFfB2E3CCeB7D25B4be73Ce5e03a78Fb22342A2'
       abi: SmartReader
-      startBlock: 8597403
+      startBlock: 8598408
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -20,8 +20,8 @@ dataSources:
         - name: SmartReader
           file: ./abis/SmartReader.json
       eventHandlers:
-        - event: AnnotationAdded(address,uint256,string)
+        - event: AnnotationAdded(address,string,string)
           handler: handleAnnotationAdded
-        - event: ContractAdded(address,string)
+        - event: ContractAdded(address,string,string)
           handler: handleContractAdded
       file: ./src/smart-reader.ts
