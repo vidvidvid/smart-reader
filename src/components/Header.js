@@ -2,24 +2,30 @@ import React from 'react';
 import { Flex, Input, Tooltip, Button } from '@chakra-ui/react';
 import { Web3NetworkSwitch, Web3Button } from '@web3modal/react';
 import { ethers } from 'ethers';
+import { Link } from '@chakra-ui/react';
 
 export const Header = ({ address, setAddress, setFetching }) => {
   return (
     <Flex
       // w="calc(100% - 16px)"
-      w="full"
+      position={'fixed'}
+      top={0}
+      left={0}
+      w="100vw"
       h={16}
       alignItems="center"
       background="#262545"
       backdropFilter="blur(8px)"
       zIndex={1}
-      borderTopRadius={16}
       px={8}
       justifyContent="space-between"
-      border="5px solid #FFFFFF"
       filter="drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))"
     >
-      <Flex gap={3}>
+      <Flex
+        gap={3}
+        border="2px solid red"
+        padding="1"
+      >
         <Input
           placeholder="Smart contract address"
           defaultValue={address}
@@ -39,7 +45,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
           label="Please input a valid address"
           shouldWrapChildren
         >
-          <Button
+{/*           <Button
             onClick={() => setFetching(true)}
             isDisabled={!ethers.utils.isAddress(address)}
             background="black"
@@ -47,11 +53,24 @@ export const Header = ({ address, setAddress, setFetching }) => {
             _hover={{ background: 'black' }}
           >
             Go
-          </Button>
+          </Button> */}
         </Tooltip>
       </Flex>
 
-      <Web3Button />
+      <Flex
+        width="20vw"
+        justifyContent="space-around"
+        alignItems="center"
+      >
+        <Link
+          href=""
+          target="_blank"
+          color="white"
+        >
+          About
+        </Link>
+        <Web3Button />
+      </Flex>
     </Flex>
   );
 };
