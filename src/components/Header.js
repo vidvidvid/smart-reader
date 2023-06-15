@@ -1,75 +1,70 @@
+import { ChevronDownIcon, Search2Icon } from '@chakra-ui/icons';
+import { Box, Button, Flex, Image, Input, InputGroup, InputLeftElement, InputRightElement, Link, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
+import { useWeb3Modal } from '@web3modal/react';
 import React from 'react';
-import { Flex, Input, Tooltip, Button } from '@chakra-ui/react';
-import { Web3NetworkSwitch, Web3Button } from '@web3modal/react';
-import { ethers } from 'ethers';
-import { Link } from '@chakra-ui/react';
+import { useNetwork, useSwitchNetwork } from 'wagmi';
 
 export const Header = ({ address, setAddress, setFetching }) => {
+  const { open, setDefaultChain  } = useWeb3Modal()
+  const { chain } = useNetwork()
+  const { chains } = useSwitchNetwork()
   return (
     <Flex
-      // w="calc(100% - 16px)"
-      position={'fixed'}
-      top={0}
-      left={0}
-      w="100vw"
       h={16}
       alignItems="center"
-      background="#262545"
+      background="#FFFFFF1A"
       backdropFilter="blur(8px)"
-      zIndex={1}
-      px={8}
-      justifyContent="space-between"
-      filter="drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))"
+      px={6}
+      gap={6}
+      borderRadius='8px'
+      justifyContent='space-between'
     >
-      <Flex
-        gap={3}
-        border="2px solid red"
-        padding="1"
-      >
-        <Input
-          placeholder="Smart contract address"
-          defaultValue={address}
-          onChange={(e) => {
-            console.log(e.target.value);
-            console.log('address.current', address);
-            setAddress(e.target.value);
-          }}
-          maxW="300px"
-          background="white"
-          textColor="black"
-        />
-        <Web3NetworkSwitch />
-
-        <Tooltip
-          isDisabled={ethers.utils.isAddress(address)}
-          label="Please input a valid address"
-          shouldWrapChildren
-        >
-{/*           <Button
-            onClick={() => setFetching(true)}
-            isDisabled={!ethers.utils.isAddress(address)}
-            background="black"
-            textColor="white"
-            _hover={{ background: 'black' }}
+      <Box>
+        <Image src="images/logo.svg" w={8} h={8} />
+      </Box>
+      <Flex alignItems='center' gap={6}>
+        <Box>
+          <InputGroup size='md'>
+            <InputLeftElement>
+              <Search2Icon color='white' />
+            </InputLeftElement>
+            <Input
+              borderRadius='full'
+              variant='filled'
+              background='#00000026'
+              _placeholder={{ color: 'white' }}
+              _hover={{ background: '#00000026' }}
+              placeholder="Search contracts..."
+              defaultValue={address}
+              onChange={(e) => {
+                console.log(e.target.value);
+                console.log('address.current', address);
+                setAddress(e.target.value);
+              }}
+            />
+            <InputRightElement width='4.5rem'>
+              <Menu>
+                <MenuButton as={Button} rightIcon={<ChevronDownIcon />} h='1.75rem' size='sm' borderRadius='full' background="#FFFFFF26" _hover={{ background: '#FFFFFF26' }}>
+                  {chain}
+                </MenuButton>
+                <MenuList background="#FFFFFF26" borderColor='#FFFFFF26'>
+                  {chains.map(c =>
+                    <MenuItem key={c.id} disabled={c.id === chain?.id}
+                    onClick={() => setDefaultChain(c.id)}>{c}</MenuItem>
+                    )}
+                </MenuList>
+              </Menu>
+            </InputRightElement>
+          </InputGroup>
+        </Box>
+          <Link
+            href=""
+            target="_blank"
+            color="white"
           >
-            Go
-          </Button> */}
-        </Tooltip>
-      </Flex>
-
-      <Flex
-        width="20vw"
-        justifyContent="space-around"
-        alignItems="center"
-      >
-        <Link
-          href=""
-          target="_blank"
-          color="white"
-        >
-          About
-        </Link>
-        <Web3Button />
+            About
+          </Link>
+          <Button background='transparent' _hover={{ background: 'transparent' }} border='2px solid white' borderRadius='full' onClick={() => open()}>Connect wallet</Button>
       </Flex>
     </Flex>
   );

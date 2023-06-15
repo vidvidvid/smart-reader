@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { Flex } from '@chakra-ui/react';
+import React, { useState } from 'react';
 import { useNetwork } from 'wagmi';
-import { Reader } from './Reader';
+import { Content } from './Content';
 import { Header } from './Header';
 
 export const Main = () => {
@@ -15,16 +15,15 @@ export const Main = () => {
       h="full"
       w="full"
       direction="column"
-      bgColor="white"
-      borderRadius={16}
-      pb={2}
+      color='white'
+      gap={4}
     >
       <Header
         address={address}
         setAddress={setAddress}
         setFetching={setFetching}
       />
-      <Reader address={address} fetching={fetching} setFetching={setFetching} />
+      <Content/>
     </Flex>
   );
 };
