@@ -29,6 +29,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
               <Search2Icon color='white' />
             </InputLeftElement>
             <Input
+              w='35rem'
               borderRadius='full'
               variant='filled'
               background='#00000026'
@@ -40,17 +41,19 @@ export const Header = ({ address, setAddress, setFetching }) => {
                 console.log(e.target.value);
                 console.log('address.current', address);
                 setAddress(e.target.value);
+                setFetching(true)
+                console.log('fetching test 1')
               }}
             />
-            <InputRightElement width='4.5rem'>
+            <InputRightElement width='8rem'>
               <Menu>
                 <MenuButton as={Button} rightIcon={<ChevronDownIcon />} h='1.75rem' size='sm' borderRadius='full' background="#FFFFFF26" _hover={{ background: '#FFFFFF26' }}>
-                  {chain}
+                  {chain?.name}
                 </MenuButton>
                 <MenuList background="#FFFFFF26" borderColor='#FFFFFF26'>
                   {chains.map(c =>
                     <MenuItem key={c.id} disabled={c.id === chain?.id}
-                    onClick={() => setDefaultChain(c.id)}>{c}</MenuItem>
+                    onClick={() => setDefaultChain(c.id)}>{c.name}</MenuItem>
                     )}
                 </MenuList>
               </Menu>

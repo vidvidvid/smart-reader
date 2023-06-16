@@ -24,14 +24,24 @@ const files = [
 	}
 ]
 
-export const Files = () => {
+export const Files = ({ sourceCode }) => {
 	return (
 		<Stack>
 			<Heading as='h1' size='md' fontWeight={600} noOfLines={1}>FILES ({files.length})</Heading>
 			<List spacing={1}>
-				{files.map(file =>
-					<File key={file} file={file} />
-				)}
+				 {sourceCode &&
+              sourceCode.length > 0 &&
+              sourceCode.map((contract) => {
+                const contractName = contract.name;
+								const file = 	{
+									name: contractName,
+									selected: false,
+									dependency: true
+								}
+                return (
+									<File key={contractName} file={file} />
+                );
+              })}
 			</List>
 			</Stack>
 	)
