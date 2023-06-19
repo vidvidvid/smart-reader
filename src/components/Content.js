@@ -331,6 +331,7 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const handleCodeHover = useCallback(
     (event) => {
+      console.log('I am in here')
       const codeNode = event.target;
       const lineNode = codeNode.parentElement;
 
@@ -458,24 +459,31 @@ export const Content = ({ address, fetching, setFetching }) => {
 					<Image
 						src={'/images/document.svg'}
 					/>
+          {/* This should be the name of the contract address the user plugs in */}
 					<Heading as='h1' size='lg' fontWeight={600} noOfLines={1}>MoonToken</Heading>
 				</Flex>
 				<Flex alignItems='center'>
+          {/* This should be the contract address the user plugs in */}
 					<Link fontSize='sm' color='#A4BCFF'>0x4C0d3F7d561532427A91E671eF1657c9c3e17cAF</Link>
 					<Button variant='unstyled' size='sm'>
 						<CopyIcon color='white' />
 					</Button>
 				</Flex>
+        {/* This should be the creator contract address the user plugs in */}
 				<Heading as='h1' size='md' fontWeight={600} noOfLines={1}>CREATOR</Heading>
 				<Flex gap={1}>
+          {/* This should be the creator's address for the contract address the user plugs in */}
 					<Link fontSize='sm' color='#A4BCFF'>0xbce100...9E4fd09aat</Link> <Text fontSize='sm'>txn</Text> <Link fontSize='sm' color='#A4BCFF'>0x92c6b267070c05800d61</Link>
 				</Flex>
 			</Stack>
 			<Files sourceCode={sourceCode} />
 			<Flex alignItems='center' w='full' h="lg">
-				<Box background='#00000080' w='full' h='full' p={6} borderTopLeftRadius='lg' borderBottomLeftRadius='lg'>
+				<Box background='#00000080' w='full' h='full' p={6} borderTopLeftRadius='lg' borderBottomLeftRadius='lg'    onMouseOver={(event) => handleCodeHover(event)}>
 					<Heading as='h3' size='md' noOfLines={1} pb={8}>SOURCE CODE</Heading>
-					<Box h='sm' overflowY='auto'>
+					<Box
+            h='sm'
+            overflowY='auto'
+          >
 						<SyntaxHighlighter
 							language="solidity"
 							style={{
@@ -535,6 +543,130 @@ export const Content = ({ address, fetching, setFetching }) => {
 				</Box>
 			</Flex>
 			<Comments />
+      <Modal isOpen={isOpenAnnotation} onClose={onCloseAnnotation}>
+        <ModalOverlay />
+        <ModalContent minW="800px" maxH="calc(100% - 80px)" borderRadius={16}>
+          <ModalHeader
+            background="#262545"
+            mt={2}
+            mx={2}
+            color="white"
+            borderTopRadius={16}
+            justifyItems="space-between"
+          >
+            <code>Annotate contract: {inspectContract?.name}</code>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody py={6}>
+            <Annotate address={address} inspectContract={inspectContract} />
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isOpenSimulate} onClose={onCloseSimulate}>
+              <ModalOverlay />
+              <ModalContent
+                minW="800px"
+                maxH="calc(100% - 80px)"
+                borderRadius={16}
+              >
+                <ModalHeader
+                  background="#262545"
+                  mt={2}
+                  mx={2}
+                  color="white"
+                  borderTopRadius={16}
+                  justifyItems="space-between"
+                >
+                  <code>Simulate function: {inspectFunction.name}</code>
+                </ModalHeader>
+                <ModalCloseButton />
+                <ModalBody py={6}>
+                  {inspectFunction &&
+                  Object.values(inspectFunction).every(
+                    (value) => !value
+                  ) ? null : (
+                    <Flex flexDirection={'column'} gap={3}>
+                      <Flex gap={3}>
+                        <Flex
+                          flexGrow={1}
+                          w="50%"
+                          maxH="600px"
+                          overflowY="auto"
+                          direction="column"
+                          gap={3}
+                        >
+                          <Flex gap={3}>
+                            <Image src="/images/sourcecode.png" w={6} />
+                            <Text fontWeight="bold"> Source code </Text>
+                          </Flex>
+                          <Flex
+                            p={2}
+                            bg="rgb(40, 42, 54)"
+                            overflow="hidden"
+                            borderRadius={16}
+                          >
+                            <SyntaxHighlighter
+                              language="solidity"
+                              style={dracula}
+                              wrapLines={true}
+                            >
+                              {inspectFunction.code ? inspectFunction.code : ''}
+                            </SyntaxHighlighter>
+                          </Flex>
+                        </Flex>
+
+                        <Box flexGrow={1} w="50%">
+                          {isLoadingFunction && (
+                            <Flex
+                              w="full"
+                              justifyContent="center"
+                              alignItems="center"
+                            >
+                              <Spinner />
+                              <Text ml={2}>
+                                {
+                                  functionMessages[
+                                    Math.floor(Math.random() * 5)
+                                  ]
+                                }
+                              </Text>
+                            </Flex>
+                          )}
+
+                          {!isLoadingFunction && (
+                            <Flex direction="column" gap={3} h="full">
+                              <Flex gap={3}>
+                                <Image src="/images/explanation.png" w={6} />
+                                <Text fontWeight="bold">Explanation</Text>
+                              </Flex>
+                              <Text
+                                boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
+                                borderRadius={16}
+                                h="full"
+                                p={4}
+                              >
+                                {functionExplanation}
+                              </Text>
+                            </Flex>
+                          )}
+                        </Box>
+                      </Flex>
+                      {inspectFunction && address && network && contractABI && (
+                        <SimulateTransaction
+                          address={address}
+                          network={network}
+                          contractABI={contractABI}
+                          inspectFunction={inspectFunction}
+                          userAddress={userAddress}
+                          isConnected={isConnected}
+                        />
+                      )}
+                    </Flex>
+                  )}
+                </ModalBody>
+              </ModalContent>
+            </Modal>
 		</Stack>
 	)
 }
