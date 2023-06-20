@@ -5,7 +5,7 @@ import { Files } from './Files';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
 	TabPanel,
 	TabPanels,
@@ -25,6 +25,7 @@ import {
   ModalBody,
   ModalCloseButton,
   useDisclosure,
+  useClipboard,
   Button,
   Code,
 	Heading,
@@ -36,14 +37,15 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
 import { uploadJSON } from '../utils/ipfs';
-import { useAccount, useSigner, useNetwork } from 'wagmi';
+import { useAccount, useSigner, useNetwork, useToken } from 'wagmi';
 import { getExplanation } from '../utils/queries';
 import { ipfsGateway } from '../utils/constants';
 import { getContract } from '../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 import chainInfo from '../utils/chainInfo';
-import { ChatIcon } from '@chakra-ui/icons';
+import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
+import { shortenAddress } from '../utils/helpers';
 
 const functionMessages = [
   'Deciphering the function',
@@ -63,10 +65,13 @@ const contractMessages = [
 
 const CustomTab = React.forwardRef((props, ref) => {
 	const tabProps = useTab({ ...props, ref })
-	const isSelected = !!tabProps['aria-selected']
-
+  const isSelected = !!tabProps['aria-selected']
+  const isDisabled = !!tabProps['aria-disabled']
+  const bg = isDisabled ? 'transparent' : isSelected ? '#FFFFFF40' : 'transparent'
+  const bgHover = isDisabled ? 'transparent' : '#ffffff40'
+  const cursor = isDisabled ? 'not-allowed' : 'pointer'
 	return (
-		<Button size='sm' w='full' variant='solid' borderRadius='xl' background={isSelected ? '#FFFFFF40' : 'transparent'}  _hover={{ background: '#FFFFFF40' }} fontWeight={400} {...tabProps}>
+		<Button size='sm' w='full' variant='solid' borderRadius='xl' background={bg}  _hover={{ background: bgHover}} fontWeight={400} isDisabled={isDisabled} {...tabProps}>
 			{tabProps.children}
 		</Button>
 	)
@@ -92,7 +97,14 @@ export const Content = ({ address, fetching, setFetching }) => {
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
   const { data: signer } = useSigner();
-  const { APIKEY, blockExplorerApi } = chainInfo({ chain });
+  const { APIKEY, blockExplorerApi, blockExplorerUrl } = chainInfo({ chain });
+  const {onCopy, value, setValue, hasCopied} = useClipboard('');
+  const [isFetchingCreator, setIsFetchingCreator] = useState(false);
+  const [contractCreation, setContractCreation] = useState({
+    creator: '',
+    creationTxn: ''
+  });
+
 
   const explanation = {
     contract: 'contract',
@@ -253,6 +265,43 @@ export const Content = ({ address, fetching, setFetching }) => {
 
     return contracts;
   }
+
+  const fetchCreatorAndCreation = useCallback(
+    async (contractAddress) => {
+      const apiModule = 'contract';
+      const apiAction = 'getcontractcreation';
+
+      try {
+        setIsFetchingCreator(true);
+
+        const response = await axios.get(
+          `https://${blockExplorerApi}?module=${apiModule}&action=${apiAction}&contractaddresses=${contractAddress}&apikey=${APIKEY}`
+        );
+        console.log('response', response.data.result);
+        setContractCreation({
+          creator: response.data.result[0].contractCreator,
+          creationTxn: response.data.result[0].txHash,
+        })
+        setIsFetchingCreator(false);
+
+      } catch (error) {
+        console.log('Error fetching contract creation:', error);
+        setIsFetchingCreator(false);
+        setContractCreation({
+          creator: null,
+          creationTxn: null,
+        })
+
+      }
+
+  }, [APIKEY, blockExplorerApi]);
+
+  useEffect(() => {
+    if (address) {
+      fetchCreatorAndCreation(address)
+    }
+  }, [address, fetchCreatorAndCreation])
+
 
   const fetchSourceCode = useCallback(async () => {
     try {
@@ -452,37 +501,78 @@ export const Content = ({ address, fetching, setFetching }) => {
   ]);
 
 	console.log('in content')
+
+
 	return (
-		<Stack h='full' w='full' background="#FFFFFF1A" backdropFilter="blur(8px)" p={6} borderRadius='8px' gap={8}>
+    <Stack h='full' w='full' background="#FFFFFF1A" backdropFilter="blur(8px)" p={6} borderRadius='8px' gap={8} zIndex={0}>
+      {!userAddress ? (
+      <Box position="absolute" w="screen" h="12" top={0} right={0} zIndex={-1} >
+      <Flex alignItems='center' justifyContent='space-around' h="full" p={3} borderRadius="xl" overflow="hidden">
+        Connect your wallet to use this dApp. <ArrowUpIcon />
+        </Flex>
+        </Box>
+      ) : undefined}
 			<Stack>
 				<Flex alignItems='center' gap={2}>
 					<Image
 						src={'/images/document.svg'}
 					/>
           {/* This should be the name of the contract address the user plugs in */}
-					<Heading as='h1' size='lg' fontWeight={600} noOfLines={1}>MoonToken</Heading>
+          <Heading as='h1' size='lg' fontWeight={600} noOfLines={1}>{'token name'}</Heading>
 				</Flex>
-				<Flex alignItems='center'>
-          {/* This should be the contract address the user plugs in */}
-					<Link fontSize='sm' color='#A4BCFF'>0x4C0d3F7d561532427A91E671eF1657c9c3e17cAF</Link>
-					<Button variant='unstyled' size='sm'>
-						<CopyIcon color='white' />
-					</Button>
+        <Flex alignItems='center'>
+
+          {address && userAddress ? (
+            <>
+              <Link to={`${blockExplorerUrl}/address/${address}`} fontSize='sm' color='#A4BCFF'>{address}</Link>
+              <Button variant='unstyled' size='sm' onClick={() => {
+                setValue(address);
+                onCopy(value);
+              }}
+              position="relative"
+              >
+                <CopyIcon color='white' /><Box position="absolute" top={0} right={0} transformOrigin="center" translateY="-25px" color="green.600">{hasCopied ? 'Copied!' : undefined}</Box>
+              </Button>
+            </>
+          ) : userAddress === undefined ? (
+              <Text fontSize='sm'>Connect your wallet</Text>
+            ) : (
+            <Text fontSize='sm'>No contract selected</Text>
+          )}
 				</Flex>
-        {/* This should be the creator contract address the user plugs in */}
-				<Heading as='h1' size='md' fontWeight={600} noOfLines={1}>CREATOR</Heading>
+        <Heading as='h2' size='md' fontWeight={600} noOfLines={1}>CREATOR</Heading>
+        {isFetchingCreator && contractCreation.creator === '' && (<Flex gap={1} alignItems="center"><Spinner size="xs" /> Fetching creator...</Flex>)}
+        {contractCreation.creator ? (
 				<Flex gap={1}>
-          {/* This should be the creator's address for the contract address the user plugs in */}
-					<Link fontSize='sm' color='#A4BCFF'>0xbce100...9E4fd09aat</Link> <Text fontSize='sm'>txn</Text> <Link fontSize='sm' color='#A4BCFF'>0x92c6b267070c05800d61</Link>
-				</Flex>
+            <Link
+              href={`${blockExplorerUrl}/address/${contractCreation.creator}`}
+              fontSize='sm'
+              color='#A4BCFF'
+              isExternal
+            >
+              {shortenAddress(contractCreation.creator)}
+            </Link>
+            <Text fontSize='sm'>at txn</Text>
+            <Link
+              href={`${blockExplorerUrl}/tx/${contractCreation.creationTxn}`}
+              fontSize='sm'
+              color='#A4BCFF'
+              isExternal
+            >
+              {shortenAddress(contractCreation.creationTxn)}
+            </Link>
+          </Flex>
+        ) : (
+            <Text fontSize='sm'>No contract selected</Text>
+          )}
 			</Stack>
 			<Files sourceCode={sourceCode} />
 			<Flex alignItems='center' w='full' h="lg">
-				<Box background='#00000080' w='full' h='full' p={6} borderTopLeftRadius='lg' borderBottomLeftRadius='lg'    onMouseOver={(event) => handleCodeHover(event)}>
+				<Box background='#00000080' w='50%' h='full' p={6} borderTopLeftRadius='lg' borderBottomLeftRadius='lg'    onMouseOver={(event) => handleCodeHover(event)}>
 					<Heading as='h3' size='md' noOfLines={1} pb={8}>SOURCE CODE</Heading>
 					<Box
             h='sm'
-            overflowY='auto'
+            overflow='auto'
           >
 						<SyntaxHighlighter
 							language="solidity"
@@ -497,21 +587,22 @@ export const Content = ({ address, fetching, setFetching }) => {
 						</SyntaxHighlighter>
 					</Box>
 				</Box>
-				<Box background='#FFFFFF1A' w='full' h='full' p={6}  borderTopRightRadius='lg' borderBottomRightRadius='lg'>
+				<Box background='#FFFFFF1A' w='50%' h='full' p={6}  borderTopRightRadius='lg' borderBottomRightRadius='lg'>
 					<Stack spacing={4}>
 						<Heading as='h3' size='md' noOfLines={1}>SUMMARY</Heading>
 						<Tabs size='sm' variant='unstyled'>
 							<TabList border='2px solid #FFFFFF40' borderRadius='2xl' p={1} gap={1}>
 								<CustomTab>Beginner</CustomTab>
-								<CustomTab>Intermediate</CustomTab>
-								<CustomTab>Advanced</CustomTab>
+								<CustomTab isDisabled={true}>Intermediate</CustomTab>
+								<CustomTab isDisabled={true}>Advanced</CustomTab>
 							</TabList>
 							<TabPanels>
 								<TabPanel>
 									<Box h='sm' overflowY='auto'>
+                  {isLoadingContract && <Box display="flex" flexFlow="column wrap" height="full" maxW="full" alignItems="center" justifyContent="center" rowGap={2}><Spinner /> <span>{contractMessages[Math.floor(Math.random() * 5)]}</span></Box>}
+                    {contractExplanation && !isLoadingContract && (
 
-									{contractExplanation && !isLoadingContract && (
-											<Text ml={2}>
+											<Text ml={2} transition="ease-in-out">
 											{contractExplanation.replace(/^\n\n/, '')}
 											</Text>
 										)}

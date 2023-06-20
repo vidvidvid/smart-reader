@@ -1,13 +1,20 @@
 import { ChevronDownIcon, Search2Icon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Image, Input, InputGroup, InputLeftElement, InputRightElement, Link, Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/react';
+import { Box, Button, Flex, Image, Input, InputGroup, InputLeftElement, InputRightElement, Link, Menu, MenuButton, MenuItem, MenuList, Spinner } from '@chakra-ui/react';
 import { useWeb3Modal } from '@web3modal/react';
 import React from 'react';
-import { useNetwork, useSwitchNetwork } from 'wagmi';
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 
 export const Header = ({ address, setAddress, setFetching }) => {
-  const { open, setDefaultChain  } = useWeb3Modal()
+  const { open, setDefaultChain } = useWeb3Modal()
+  const { address: userAddress, isConnected, isConnecting } = useAccount()
+  const { disconnect } = useDisconnect()
   const { chain } = useNetwork()
   const { chains } = useSwitchNetwork()
+
+  const shortenedAddress = (address) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
   return (
     <Flex
       h={16}
@@ -18,6 +25,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
       gap={6}
       borderRadius='8px'
       justifyContent='space-between'
+      zIndex={50}
     >
       <Box>
         <Image src="images/logo.svg" w={8} h={8} />
@@ -53,7 +61,13 @@ export const Header = ({ address, setAddress, setFetching }) => {
                 <MenuList background="#FFFFFF26" borderColor='#FFFFFF26'>
                   {chains.map(c =>
                     <MenuItem key={c.id} disabled={c.id === chain?.id}
-                    onClick={() => setDefaultChain(c.id)}>{c.name}</MenuItem>
+                      onClick={() => setDefaultChain(c.id)}
+                      color={'black'}
+                      _hover={{
+                        background: 'blackAlpha.200',
+                        color: 'white'
+                      }}
+                    >{c.name}</MenuItem>
                     )}
                 </MenuList>
               </Menu>
@@ -67,7 +81,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
           >
             About
           </Link>
-          <Button background='transparent' _hover={{ background: 'transparent' }} border='2px solid white' borderRadius='full' onClick={() => open()}>Connect wallet</Button>
+        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && <Spinner size="xs" mr={2} /> } {isConnected ? shortenedAddress(userAddress) : isConnecting ? 'Connecting' : 'Connect wallet'}</Button>
       </Flex>
     </Flex>
   );

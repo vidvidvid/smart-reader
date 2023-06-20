@@ -27,7 +27,7 @@ const files = [
 export const Files = ({ sourceCode }) => {
 	return (
 		<Stack>
-			<Heading as='h1' size='md' fontWeight={600} noOfLines={1}>FILES ({files.length})</Heading>
+			<Heading as='h2' size='md' fontWeight={600} noOfLines={1}>FILES ({sourceCode.length})</Heading>
 			<List spacing={1}>
 				 {sourceCode &&
               sourceCode.length > 0 &&
