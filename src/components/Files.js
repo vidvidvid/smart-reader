@@ -24,7 +24,7 @@ const files = [
 	}
 ]
 
-export const Files = ({ sourceCode }) => {
+export const Files = ({ sourceCode, handleClick }) => {
 	return (
 		<Stack>
 			<Heading as='h2' size='md' fontWeight={600} noOfLines={1}>FILES ({sourceCode.length})</Heading>
@@ -39,7 +39,7 @@ export const Files = ({ sourceCode }) => {
 									dependency: true
 								}
                 return (
-									<File key={contractName} file={file} />
+									<File key={contractName} file={file} handleClick={handleClick} />
                 );
               })}
 			</List>

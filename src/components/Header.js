@@ -1,8 +1,10 @@
 import { ChevronDownIcon, Search2Icon } from '@chakra-ui/icons';
-import { Box, Button, Flex, Image, Input, InputGroup, InputLeftElement, InputRightElement, Link, Menu, MenuButton, MenuItem, MenuList, Spinner } from '@chakra-ui/react';
+import { Box, Button, Flex, Image, Input, InputGroup, InputLeftElement, InputRightElement, Link, Menu, MenuButton, MenuItem, MenuList, Spinner, Text } from '@chakra-ui/react';
 import { useWeb3Modal } from '@web3modal/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
+
+import { shortenAddress, isContract } from '../utils/helpers';
 
 export const Header = ({ address, setAddress, setFetching }) => {
   const { open, setDefaultChain } = useWeb3Modal()
@@ -10,10 +12,88 @@ export const Header = ({ address, setAddress, setFetching }) => {
   const { disconnect } = useDisconnect()
   const { chain } = useNetwork()
   const { chains } = useSwitchNetwork()
+  const [validationResult, setValidationResult] = React.useState({
+    result: false,
+    message: '',
+  });
 
-  const shortenedAddress = (address) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  console.log('chains', chains);
+
+  const validateInput = (input) => {
+    let message = '';
+
+    if (input.length === 42 && input.startsWith('0x')) {
+      return {
+        result: true,
+        message: '',
+      }
+    } else if (input.length < 42 && input.startsWith('0x')) {
+      message = 'Address is too short';
+
+      return {
+        result: false,
+        message,
+      }
+    } else if (input.length === 42 && !input.startsWith('0x')) {
+      message = 'Address is missing 0x prefix';
+
+      return {
+        result: false,
+        message,
+      }
+    } else if (input.length < 42 && !input.startsWith('0x')) {
+      message = 'Address is too short and missing 0x prefix';
+
+      return {
+        result: false,
+        message,
+      }
+    } else if (input.length > 42 && input.startsWith('0x')) {
+
+      message = 'Address is too long';
+
+      return {
+        result: false,
+        message,
+      }
+    } else if (input.length > 42 && !input.startsWith('0x')) {
+      message = 'Address is too long and missing 0x prefix';
+
+      return {
+        result: false,
+        message,
+      }
+    } else {
+      isContract(input, chain.provider).then((result) => {
+        if (result) {
+          message = 'Address is a contract';
+
+          return {
+            result: true,
+            message,
+          }
+        } else {
+          message = 'Address is not a contract';
+
+          return {
+            result: false,
+            message,
+          }
+        }
+      })
+    }
   }
+
+  useEffect(() => {
+    if (address) {
+      console.log('address', address);
+      validateInput(address);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address])
+
+
+  // TODO: `chains` is sometimes not populated which makes it impossible to switch networks
 
   return (
     <Flex
@@ -53,6 +133,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
                 console.log('fetching test 1')
               }}
             />
+            <Text fontSize="sm">{!validationResult.result && validationResult.message}</Text>
             <InputRightElement width='8rem'>
               <Menu>
                 <MenuButton as={Button} rightIcon={<ChevronDownIcon />} h='1.75rem' size='sm' borderRadius='full' background="#FFFFFF26" _hover={{ background: '#FFFFFF26' }}>
@@ -81,7 +162,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
           >
             About
           </Link>
-        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && <Spinner size="xs" mr={2} /> } {isConnected ? shortenedAddress(userAddress) : isConnecting ? 'Connecting' : 'Connect wallet'}</Button>
+        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && <Spinner size="xs" mr={2} /> } {isConnected ? shortenAddress(userAddress) : isConnecting ? 'Connecting' : 'Connect wallet'}</Button>
       </Flex>
     </Flex>
   );
