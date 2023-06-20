@@ -89,7 +89,7 @@ const CustomTab = React.forwardRef((props, ref) => {
 export const Content = ({ address, fetching, setFetching }) => {
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
-  const [contractName, setContractName] = useState('');
+  const [contractName, setContractName] = useState('No contract');
   const [functionExplanation, setFunctionExplanation] = useState('');
   const [dependencyExplanation, setDependencyExplanation] = useState('');
   const [explanationError, setExplanationError] = useState('');
