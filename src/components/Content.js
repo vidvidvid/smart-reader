@@ -89,6 +89,7 @@ const CustomTab = React.forwardRef((props, ref) => {
 export const Content = ({ address, fetching, setFetching }) => {
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
+  const [contractName, setContractName] = useState('');
   const [functionExplanation, setFunctionExplanation] = useState('');
   const [dependencyExplanation, setDependencyExplanation] = useState('');
   const [explanationError, setExplanationError] = useState('');
@@ -133,6 +134,10 @@ export const Content = ({ address, fetching, setFetching }) => {
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
       setInspectContract(sourceCode[0]);
+      console.log('sourceCode', sourceCode);
+      const name = sourceCode[0].name ?? 'Name not foundy';
+      const contractDisplayName = name.substring(name.lastIndexOf("/") + 1);
+      setContractName(contractDisplayName);
     }
   }, [sourceCode]);
 
@@ -214,6 +219,7 @@ export const Content = ({ address, fetching, setFetching }) => {
               setIsLoadingContract(false);
               console.log('inspectContract2', inspectContract?.name);
               // console.log('new message', data.choices[0].message.content);
+
               const uploadResult = await uploadJSON(
                 address,
                 network,
@@ -571,7 +577,7 @@ export const Content = ({ address, fetching, setFetching }) => {
             src={'/images/document.svg'}
           />
           {/* This should be the name of the contract address the user plugs in */}
-          <Heading as='h1' size='lg' fontWeight={600} noOfLines={1}>{inspectContract ? inspectContract.name : 'Name not found'}</Heading>
+          <Heading as='h1' size='lg' fontWeight={600} noOfLines={1}>{contractName}</Heading>
         </Flex>
         <Flex alignItems='center'>
 
