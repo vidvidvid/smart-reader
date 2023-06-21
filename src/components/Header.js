@@ -1,23 +1,35 @@
 import { ChevronDownIcon, Search2Icon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Image, Input, InputGroup, InputLeftElement, InputRightElement, Link, Menu, MenuButton, MenuItem, MenuList, Spinner, Text } from '@chakra-ui/react';
 import { useWeb3Modal } from '@web3modal/react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
-
+import { mainnet } from 'wagmi/chains';
 import { shortenAddress, isContract } from '../utils/helpers';
+import { getNetwork } from '@wagmi/core';
+import { CheckCircle2 } from 'lucide-react';
 
 export const Header = ({ address, setAddress, setFetching }) => {
   const { open, setDefaultChain } = useWeb3Modal()
-  const { address: userAddress, isConnected, isConnecting } = useAccount()
+  const { address: userAddress, isConnected, isConnecting, isDisconnected } = useAccount()
   const { disconnect } = useDisconnect()
-  const { chain } = useNetwork()
-  const { chains } = useSwitchNetwork()
-  const [validationResult, setValidationResult] = React.useState({
+  const { chain: networkChain, chains: networkChains } = useNetwork()
+  const { chain, chains } = getNetwork()
+  const {
+    chains: switchNetworkChains,
+    switchNetwork,
+    isLoading: isSwitchingNetwork,
+    pendingChainId,
+    error: switchNetworkError
+  } = useSwitchNetwork()
+  const [validationResult, setValidationResult] = useState({
     result: false,
     message: '',
   });
 
-  console.log('chains', chains);
+  // const isUnsupportedNetwork = networkChain && !networkChains.includes(networkChain);
+
+  console.log('chains', {chains, networkChains, switchNetworkChains});
+
 
   const validateInput = (input) => {
     let message = '';
@@ -85,6 +97,10 @@ export const Header = ({ address, setAddress, setFetching }) => {
   }
 
   useEffect(() => {
+    setDefaultChain(mainnet.chainId)
+  }, [])
+
+  useEffect(() => {
     if (address) {
       console.log('address', address);
       validateInput(address);
@@ -135,23 +151,35 @@ export const Header = ({ address, setAddress, setFetching }) => {
             />
             <Text fontSize="sm">{!validationResult.result && validationResult.message}</Text>
             <InputRightElement width='8rem'>
+            {chains.length > 0 ? (
               <Menu>
-                <MenuButton as={Button} rightIcon={<ChevronDownIcon />} h='1.75rem' size='sm' borderRadius='full' background="#FFFFFF26" _hover={{ background: '#FFFFFF26' }}>
-                  {chain?.name}
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} h='1.75rem' size='sm' borderRadius='full' background="#FFFFFF26" color="white" fontWeight="normal"
+                    _hover={{ background: '#FFFFFF70' }}
+                    _active={{ background: '#FFFFFF60', color: '#101D42' }}
+                    _focus={{ outline: '1px dashed #ffffff75' }}
+                  >
+                  {chain?.name ?? mainnet.name}
                 </MenuButton>
-                <MenuList background="#FFFFFF26" borderColor='#FFFFFF26'>
-                  {chains.map(c =>
-                    <MenuItem key={c.id} disabled={c.id === chain?.id}
-                      onClick={() => setDefaultChain(c.id)}
-                      color={'black'}
-                      _hover={{
-                        background: 'blackAlpha.200',
-                        color: 'white'
-                      }}
-                    >{c.name}</MenuItem>
+
+                  <MenuList background="#FFFFFF60" borderColor='#FFFFFF60' backdropFilter="blur(10px)">
+                    {chains.map(c =>
+                      <MenuItem key={c.id} disabled={c.id === chain?.id}
+                        onClick={() => switchNetwork(c.id)}
+                        display="flex"
+                        justifyContent="space-between"
+                        color={c.id === chain?.id ? 'white' : '#101D42'}
+                        background={c.id === chain?.id ? '#101D4299' : 'transparent'}
+                        fontWeight="normal"
+                        transition="all 0.2s ease-in-out"
+                        _hover={{
+                          background: '#101D4280',
+                          color: 'white'
+                        }}
+                      >{c.name} {c.id === chain?.id && <CheckCircle2 size={20} color="green" />}</MenuItem>
                     )}
-                </MenuList>
+                  </MenuList>
               </Menu>
+                ) : undefined}
             </InputRightElement>
           </InputGroup>
         </Box>
@@ -162,7 +190,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
           >
             About
           </Link>
-        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && <Spinner size="xs" mr={2} /> } {isConnected ? shortenAddress(userAddress) : isConnecting ? 'Connecting' : 'Connect wallet'}</Button>
+        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && !isDisconnected && <Spinner size="xs" mr={2} /> } {isConnected ? shortenAddress(userAddress) : isConnecting && !isDisconnected ? 'Connecting' : 'Connect wallet'}</Button>
       </Flex>
     </Flex>
   );

@@ -21,12 +21,6 @@ export const Context = React.createContext();
 function App() {
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [
-    // arbitrum,
-    // avalanche,
-    // bsc,
-    // fantom,
-    // gnosis,
-    // optimism,
     mainnet,
     polygon,
     goerli,
@@ -57,15 +51,7 @@ function App() {
         bgGradient='radial(43.95% 43.95% at 30.69% 0%, #172F74 0.18%, #101D42 100%)'
         backgroundRepeat="no-repeat"
       >
-        {/* <Flex h="full" gap={6}> */}
-          {/* <Flex w="20%" h="full" zIndex={2}>
-            <SideMenu />
-          </Flex> */}
-          {/* <Flex w="80%" h="full"> */}
-            <Main />
-          {/* </Flex> */}
-        {/* </Flex> */}
-
+        <Main />
         <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
       </Flex>
     </WagmiConfig>

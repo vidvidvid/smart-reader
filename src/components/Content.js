@@ -415,10 +415,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   const handleContractChange = useCallback(
     (e) => {
       setContractExplanation('');
-      console.log('e.target', e.target);
       const selectedContract = e.target.querySelector('.dependency-name').innerText || e.target.innerText;
-
-      console.log('selectedContract', selectedContract);
       const contract = sourceCode.find(
         (contract) => contract.name === selectedContract
       );
@@ -428,7 +425,6 @@ export const Content = ({ address, fetching, setFetching }) => {
       }
 
       setInspectContract(contract);
-      // onOpenDependency();
       fetchExplanation(contract.sourceCode.content, explanation.contract);
     },
     [explanation.contract, fetchExplanation, sourceCode]
