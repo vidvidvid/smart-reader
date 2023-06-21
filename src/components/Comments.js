@@ -1,4 +1,5 @@
 import { Avatar, Button, Flex, Heading, Input, List, Stack } from '@chakra-ui/react'
+import { v4 as uuidv4 } from 'uuid';
 import { Comment } from './Comment'
 
 const comments = [
@@ -43,7 +44,7 @@ export const Comments = () => {
 				</Flex>
 				<List spacing={4}>
 					{comments.map(comment =>
-					<Comment comment={comment} />
+					<Comment key={uuidv4()} comment={comment} />
 					)}
 				</List>
 			</Stack>
