@@ -4,7 +4,7 @@ import { useWeb3Modal } from '@web3modal/react';
 import React, { useEffect, useState } from 'react';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { shortenAddress, isContract } from '../utils/helpers';
+import { shortenAddress, isContract, validateInput } from '../utils/helpers';
 import { getNetwork } from '@wagmi/core';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -26,75 +26,110 @@ export const Header = ({ address, setAddress, setFetching }) => {
     message: '',
   });
 
-  // const isUnsupportedNetwork = networkChain && !networkChains.includes(networkChain);
+  const isUnsupportedNetwork = !!(networkChain.unsupported || chain.unsupported)
 
-  console.log('chains', {chains, networkChains, switchNetworkChains});
+  console.log('chains', {networkChain, chain, chains, networkChains, switchNetworkChains});
 
 
-  const validateInput = (input) => {
-    let message = '';
+  // const validateInput = (input) => {
+  //   let message = '';
+  //   if (!address) setValidationResult({ result: true, message: '' });
 
-    if (input.length === 42 && input.startsWith('0x')) {
-      return {
-        result: true,
-        message: '',
-      }
-    } else if (input.length < 42 && input.startsWith('0x')) {
-      message = 'Address is too short';
+  //   if (input.length === 42 && input.startsWith('0x')) {
 
-      return {
-        result: false,
-        message,
-      }
-    } else if (input.length === 42 && !input.startsWith('0x')) {
-      message = 'Address is missing 0x prefix';
+  //     isContract(input).then((result) => {
+  //       if (result) {
+  //         message = 'Address is a contract';
 
-      return {
-        result: false,
-        message,
-      }
-    } else if (input.length < 42 && !input.startsWith('0x')) {
-      message = 'Address is too short and missing 0x prefix';
+  //         setValidationResult({
+  //           result: true,
+  //           message,
+  //         });
+  //         return {
+  //           result: true,
+  //           message,
+  //         }
+  //       } else {
+  //         message = 'Address is not a contract';
 
-      return {
-        result: false,
-        message,
-      }
-    } else if (input.length > 42 && input.startsWith('0x')) {
+  //         setValidationResult({
+  //           result: false,
+  //           message,
+  //         });
+  //         return {
+  //           result: false,
+  //           message,
+  //         }
+  //       }
+  //     })
+  //     message = 'Address is valid';
 
-      message = 'Address is too long';
+  //   } else if (input.length < 42 && input.startsWith('0x')) {
+  //     message = 'Address is too short';
 
-      return {
-        result: false,
-        message,
-      }
-    } else if (input.length > 42 && !input.startsWith('0x')) {
-      message = 'Address is too long and missing 0x prefix';
+  //     setValidationResult({
+  //       result: false,
+  //       message,
+  //     });
 
-      return {
-        result: false,
-        message,
-      }
-    } else {
-      isContract(input, chain.provider).then((result) => {
-        if (result) {
-          message = 'Address is a contract';
+  //     return {
+  //       result: false,
+  //       message,
+  //     }
+  //   } else if (input.length === 42 && !input.startsWith('0x')) {
+  //     message = 'Address is missing 0x prefix';
 
-          return {
-            result: true,
-            message,
-          }
-        } else {
-          message = 'Address is not a contract';
+  //     setValidationResult({
+  //       result: false,
+  //       message,
+  //     });
 
-          return {
-            result: false,
-            message,
-          }
-        }
-      })
-    }
-  }
+  //     return {
+  //       result: false,
+  //       message,
+  //     }
+  //   } else if (input.length < 42 && !input.startsWith('0x')) {
+  //     message = 'Address is too short and missing 0x prefix';
+
+  //     setValidationResult({
+  //       result: false,
+  //       message,
+  //     });
+
+  //     return {
+  //       result: false,
+  //       message,
+  //     }
+  //   } else if (input.length > 42 && input.startsWith('0x')) {
+
+  //     message = 'Address is too long';
+
+  //     setValidationResult({
+  //       result: false,
+  //       message,
+  //     });
+
+  //     return {
+  //       result: false,
+  //       message,
+  //     }
+  //   } else if (input.length > 42 && !input.startsWith('0x')) {
+  //     message = 'Address is too long and missing 0x prefix';
+
+  //     setValidationResult({
+  //       result: false,
+  //       message,
+  //     });
+
+  //     return {
+  //       result: false,
+  //       message,
+  //     }
+  //   } else {
+
+  //   }
+
+  // }
 
   useEffect(() => {
     setDefaultChain(mainnet.chainId)
@@ -103,7 +138,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
   useEffect(() => {
     if (address) {
       console.log('address', address);
-      validateInput(address);
+      validateInput(address, validationResult, setValidationResult);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address])
@@ -128,6 +163,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
       </Box>
       <Flex alignItems='center' gap={6}>
         <Box>
+
           <InputGroup size='md'>
             <InputLeftElement>
               <Search2Icon color='white' />
@@ -141,16 +177,17 @@ export const Header = ({ address, setAddress, setFetching }) => {
               _hover={{ background: '#00000026' }}
               placeholder="Search contracts..."
               defaultValue={address}
+              outline={validationResult.message !== '' && validationResult.result ? '1px solid green' : validationResult.message ? '1px solid red' : 'none'}
               onChange={(e) => {
-                console.log(e.target.value);
-                console.log('address.current', address);
                 setAddress(e.target.value);
+                validateInput(address, validationResult, setValidationResult);
                 setFetching(true)
+                e.target.value.length === 0 && setValidationResult({ result: false, message: '' })
                 console.log('fetching test 1')
               }}
             />
-            <Text fontSize="sm">{!validationResult.result && validationResult.message}</Text>
-            <InputRightElement width='8rem'>
+
+            <InputRightElement width='8rem' justifyContent="flex-end" mr={2}>
             {chains.length > 0 ? (
               <Menu>
                   <MenuButton as={Button} rightIcon={<ChevronDownIcon />} h='1.75rem' size='sm' borderRadius='full' background="#FFFFFF26" color="white" fontWeight="normal"
@@ -182,6 +219,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
                 ) : undefined}
             </InputRightElement>
           </InputGroup>
+          {!validationResult.result && validationResult.message && <Text px={10} fontSize="xs" color="red.400">{validationResult.message}</Text>}
         </Box>
           <Link
             href=""
@@ -190,7 +228,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
           >
             About
           </Link>
-        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && !isDisconnected && <Spinner size="xs" mr={2} /> } {isConnected ? shortenAddress(userAddress) : isConnecting && !isDisconnected ? 'Connecting' : 'Connect wallet'}</Button>
+        <Button background='transparent' color="whiteAlpha.700" _hover={{ background: 'transparent', color: 'white' }} border='2px solid white' borderRadius='full' onClick={() => isConnected ? disconnect() : open()}>{isConnecting && <Spinner size="xs" mr={2} /> } {isConnected ? shortenAddress(userAddress) : isConnecting ? 'Connecting' : 'Connect wallet'}</Button>
       </Flex>
     </Flex>
   );

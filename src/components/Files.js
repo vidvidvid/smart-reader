@@ -5,7 +5,7 @@ export const Files = ({ sourceCode, handleClick }) => {
 	return (
 		<Stack>
 			<Heading as='h2' size='md' fontWeight={600} noOfLines={1}>FILES ({sourceCode.length})</Heading>
-			<Box position="relative" maxH='280px' overflowY='auto' overflowX='hidden' mt={2} mb={4} p={2} borderRadius="xl" scrollBehavior="smooth">
+			<Box position="relative" maxH='280px' overflowY='auto' overflowX='hidden' mt={2} mb={4} pb={2} pr={2} borderRadius="xl" scrollBehavior="smooth">
 			<List spacing={1}>
 				 {sourceCode &&
               sourceCode.length > 0 &&

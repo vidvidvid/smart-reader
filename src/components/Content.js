@@ -46,7 +46,7 @@ import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 import chainInfo from '../utils/chainInfo';
 import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
-import { shortenAddress } from '../utils/helpers';
+import { shortenAddress, validateInput } from '../utils/helpers';
 
 const functionMessages = [
   'Deciphering the function',
@@ -123,6 +123,17 @@ export const Content = ({ address, fetching, setFetching }) => {
     creator: '',
     creationTxn: ''
   });
+  const [validationResult, setValidationResult] = useState({
+    isValid: false,
+    message: ''
+  });
+
+  useEffect(() => {
+    if (address && address.length > 0) {
+      validateInput(address, validationResult, setValidationResult);
+    }
+  }, [address]);
+
   const mainContentRef = useRef(null);
 
 
@@ -136,7 +147,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     if (sourceCode && sourceCode.length > 0) {
       setInspectContract(sourceCode[0]);
       console.log('sourceCode', sourceCode);
-      const name = sourceCode[0].name ?? 'Name not foundy';
+      const name = sourceCode[0].name ?? 'Name not found';
       const contractDisplayName = name.substring(name.lastIndexOf("/") + 1);
       setContractName(contractDisplayName);
     }
@@ -581,7 +592,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         </Flex>
         <Flex alignItems='center'>
 
-          {address && userAddress ? (
+          {address && userAddress && validationResult.result ? (
             <>
               <Link href={`${blockExplorerUrl}/address/${address}`} fontSize='sm' color='#A4BCFF' isExternal>{address}</Link>
               <Button variant='unstyled' size='sm' onClick={() => {
@@ -594,12 +605,13 @@ export const Content = ({ address, fetching, setFetching }) => {
               </Button>
             </>
           ) : (
-            <Text fontSize='sm'>{!userAddress ? 'Connect your wallet' : 'No contract selected'}</Text>
+            <Text fontSize='sm'>{!userAddress ? 'Connect your wallet' : !validationResult.result ? 'No valid address' : 'No contract selected'}</Text>
           )}
+
         </Flex>
         <Heading as='h2' size='md' fontWeight={600} noOfLines={1}>CREATOR</Heading>
         {isFetchingCreator && contractCreation.creator === '' && (<Flex gap={1} alignItems="center"><Spinner size="xs" /> Fetching creator...</Flex>)}
-        {!isFetchingCreator && contractCreation.creator ? (
+        {!isFetchingCreator && contractCreation.creator && validationResult.result ? (
           <Flex gap={1}>
             <Link
               href={`${blockExplorerUrl}/address/${contractCreation.creator}`}
@@ -620,7 +632,7 @@ export const Content = ({ address, fetching, setFetching }) => {
             </Link>
           </Flex>
         ) : (
-          <Text fontSize='sm'>{!userAddress ? 'Connect your wallet' : 'No contract selected'}</Text>
+          <Text fontSize='sm'>{!userAddress ? 'Connect your wallet' : !validationResult.result ? 'No valid address' :  'No contract selected'}</Text>
         )}
       </Stack>
       <Files sourceCode={sourceCode} handleClick={handleContractChange} />
@@ -747,14 +759,15 @@ export const Content = ({ address, fetching, setFetching }) => {
                 (value) => !value
               ) ? null : (
               <Flex flexDirection={'column'} gap={3}>
-                <Flex gap={3}>
+                <Flex gap={3} border="1px solid red">
                   <Flex
                     flexGrow={1}
                     w="50%"
                     maxH="600px"
                     overflowY="auto"
                     direction="column"
-                    gap={3}
+                        gap={3}
+                        border="1px solid red"
                   >
                     <Flex gap={3}>
                       <Image src="/images/sourcecode.png" w={6} />
@@ -776,7 +789,13 @@ export const Content = ({ address, fetching, setFetching }) => {
                     </Flex>
                   </Flex>
 
-                  <Box flexGrow={1} w="50%">
+                      <Box
+                        w="50%"
+                        maxH="600px"
+                        overflowY="auto"
+                        direction="column"
+                        gap={3}
+                      >
                     {isLoadingFunction && (
                       <Flex
                           w="full"
@@ -805,7 +824,8 @@ export const Content = ({ address, fetching, setFetching }) => {
                         </Flex>
                         <Text
                           boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
-                          borderRadius={16}
+                              borderRadius={16}
+                              flex={1}
                           h="full"
                           p={4}
                         >
