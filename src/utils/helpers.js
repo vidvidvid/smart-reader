@@ -18,10 +18,15 @@ const isContract = async (address) => {
   return code && code !== '0x'
 }
 
-const validateContractAddress = (input, validationResult, setValidationResult) => {
+const validateContractAddress = (input, user, validationResult, setValidationResult) => {
   let message = '';
   console.log('validateInput', { input, validationResult, setValidationResult });
   if (!input) setValidationResult({ result: true, message: '' });
+
+  if (!user) {
+    setValidationResult({ result: false, message: 'Please connect your wallet to use the dApp' });
+    return
+  }
 
   if (input.length === 42 && input.startsWith('0x')) {
 

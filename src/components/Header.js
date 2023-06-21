@@ -34,7 +34,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
   useEffect(() => {
     if (address) {
       console.log('address', address);
-      validateContractAddress(address, validationResult, setValidationResult);
+      validateContractAddress(address, userAddress, validationResult, setValidationResult);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address])
@@ -75,7 +75,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
               outline={validationResult.message !== '' && validationResult.result ? '1px solid green' : validationResult.message ? '1px solid red' : 'none'}
               onChange={(e) => {
                 setAddress(e.target.value);
-                validateContractAddress(address, validationResult, setValidationResult);
+                validateContractAddress(address, userAddress, validationResult, setValidationResult);
                 setFetching(true)
                 e.target.value.length === 0 && setValidationResult({ result: false, message: '' })
                 console.log('fetching test 1')

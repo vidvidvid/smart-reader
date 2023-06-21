@@ -130,7 +130,7 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   useEffect(() => {
     if (address && address.length > 0) {
-      validateContractAddress(address, validationResult, setValidationResult);
+      validateContractAddress(address, userAddress, validationResult, setValidationResult);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
