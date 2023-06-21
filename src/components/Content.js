@@ -76,11 +76,12 @@ const CustomTab = React.forwardRef((props, ref) => {
   const tabProps = useTab({ ...props, ref })
   const isSelected = !!tabProps['aria-selected']
   const isDisabled = !!tabProps['aria-disabled']
-  const bg = isDisabled ? 'transparent' : isSelected ? '#FFFFFF40' : 'transparent'
+  console.log('tabProps', isDisabled, tabProps['aria-disabled']);
+  const bg = isDisabled ? 'red' : isSelected ? '#FFFFFF40' : 'transparent'
   const bgHover = isDisabled ? 'transparent' : '#ffffff40'
   const cursor = isDisabled ? 'not-allowed' : 'pointer'
   return (
-    <Button size='sm' w='full' variant='solid' borderRadius='xl' background={bg} _hover={{ background: bgHover }} fontWeight={400} isDisabled={isDisabled} {...tabProps}>
+    <Button size='sm' w='full' variant='solid' borderRadius='xl' background={bg} cursor={cursor} _hover={{ background: bgHover }} fontWeight={400} isDisabled={isDisabled} {...tabProps}>
       {tabProps.children}
     </Button>
   )
@@ -127,15 +128,15 @@ export const Content = ({ address, fetching, setFetching }) => {
     isValid: false,
     message: ''
   });
+  const mainContentRef = useRef(null);
 
   useEffect(() => {
     if (address && address.length > 0) {
       validateContractAddress(address, userAddress, validationResult, setValidationResult);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address]);
+  }, [address, chain?.id]);
 
-  const mainContentRef = useRef(null);
 
 
   const explanation = {
@@ -147,12 +148,12 @@ export const Content = ({ address, fetching, setFetching }) => {
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
       setInspectContract(sourceCode[0]);
-      console.log('sourceCode', sourceCode);
+      // console.log('sourceCode', sourceCode);
       const name = sourceCode[0].name ?? 'Name not found';
       const contractDisplayName = name.substring(name.lastIndexOf("/") + 1);
       setContractName(contractDisplayName);
     }
-  }, [sourceCode]);
+  }, [sourceCode, chain?.id]);
 
   const fetchExplanation = useCallback(
     async (code, type) => {
@@ -295,6 +296,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   );
 
   function extractContracts(contractString) {
+    try {
     const contractsArray = [];
 
     let contractStart = contractString?.indexOf('contract ');
@@ -322,7 +324,11 @@ export const Content = ({ address, fetching, setFetching }) => {
       contracts[name] = { content: sourceCode };
     });
 
-    return contracts;
+      return contracts;
+
+    } catch (error) {
+      console.log('Error extracting contracts:', error);
+    }
   }
 
   const fetchCreatorAndCreation = useCallback(
@@ -357,9 +363,11 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   useEffect(() => {
     if (address) {
+      setFetching(true);
       fetchCreatorAndCreation(address)
     }
   }, [address, fetchCreatorAndCreation])
+
 
 
   const fetchSourceCode = useCallback(async () => {
@@ -370,6 +378,15 @@ export const Content = ({ address, fetching, setFetching }) => {
       let sourceObj;
       let contracts;
       let contractsArray;
+      if (!resp.data.result[0].SourceCode) {
+        const message = `No source code found for ${address}. Are you on the correct network?`;
+        setValidationResult({
+          isValid: false,
+          message: message,
+        });
+        throw new Error(message);
+      }
+
       try {
         sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
 
@@ -395,13 +412,15 @@ export const Content = ({ address, fetching, setFetching }) => {
         contractsArray[0].sourceCode.content,
         explanation.contract
       );
-      console.log('name', contractsArray[0].name);
+      // console.log('name', contractsArray[0].name);
       setFetching(false);
     } catch (err) {
       // Handle Error Here
       console.log('fetch source code error', err);
       setFetching(false);
       setSourceCode([]);
+      setContractName('Contract name');
+      setContractExplanation('');
       setInspectContract(undefined);
     }
   }, [
@@ -419,10 +438,9 @@ export const Content = ({ address, fetching, setFetching }) => {
     setExplanationError('')
     setContractExplanation('');
     if (fetching) {
-
       fetchSourceCode();
     }
-  }, [fetching, fetchSourceCode, setFetching, address]);
+  }, [fetching, fetchSourceCode, setFetching, address, chain?.id]);
 
   const handleContractChange = useCallback(
     (e) => {
@@ -663,8 +681,8 @@ export const Content = ({ address, fetching, setFetching }) => {
             <Tabs size='sm' variant='unstyled'>
               <TabList border='2px solid #FFFFFF40' borderRadius='2xl' p={1} gap={1}>
                 <CustomTab>Beginner</CustomTab>
-                <CustomTab isDisabled={true}>Intermediate</CustomTab>
-                <CustomTab isDisabled={true}>Advanced</CustomTab>
+                <CustomTab isDisabled={true} aria-disabled="true">Intermediate</CustomTab>
+                <CustomTab isDisabled={true} aria-disabled="true">Advanced</CustomTab>
               </TabList>
               <TabPanels>
                 <TabPanel>

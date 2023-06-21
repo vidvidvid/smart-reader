@@ -18,12 +18,20 @@ const isContract = async (address) => {
   return code && code !== '0x'
 }
 
+/**
+ * Validates the input address as a contract address and returns a result and message. Also checks if the user is connected to a wallet.
+ *
+ * @param {*} input
+ * @param {*} user
+ * @param {*} validationResult
+ * @param {*} setValidationResult
+ * @returns
+ */
 const validateContractAddress = (input, user, validationResult, setValidationResult) => {
   let message = '';
-  console.log('validateInput', { input, validationResult, setValidationResult });
   if (!input) setValidationResult({ result: true, message: '' });
 
-  if (!user) {
+  if (!user || user === '') {
     setValidationResult({ result: false, message: 'Please connect your wallet to use the dApp' });
     return
   }
@@ -43,7 +51,7 @@ const validateContractAddress = (input, user, validationResult, setValidationRes
           message,
         }
       } else {
-        message = 'Address is not a contract';
+        message = 'Address is not a contract or exists on a different network. Please check and try again.';
 
         setValidationResult({
           result: false,

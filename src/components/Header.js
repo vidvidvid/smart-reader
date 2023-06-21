@@ -37,7 +37,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
       validateContractAddress(address, userAddress, validationResult, setValidationResult);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address])
+  }, [address, chain?.id])
 
 
 
