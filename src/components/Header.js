@@ -75,7 +75,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
               outline={validationResult.message !== '' && validationResult.result ? '1px solid green' : validationResult.message ? '1px solid red' : 'none'}
               onChange={(e) => {
                 setAddress(e.target.value);
-                validateInput(address, validationResult, setValidationResult);
+                validateContractAddress(address, validationResult, setValidationResult);
                 setFetching(true)
                 e.target.value.length === 0 && setValidationResult({ result: false, message: '' })
                 console.log('fetching test 1')
