@@ -5,7 +5,7 @@ import { Files } from './Files';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 
 import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   TabPanel,
   TabPanels,
@@ -123,6 +123,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     creator: '',
     creationTxn: ''
   });
+  const mainContentRef = useRef(null);
 
 
   const explanation = {
@@ -178,7 +179,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       let content;
       if (!fileExplanationSuccess) {
         if (type === explanation.contract) {
-          content = `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes.`;
+          content = `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes. Please use markdown formatting in all responses`;
           setIsLoadingContract(true);
         } else if (type === explanation.dependency) {
           content = `Give me a simple explanation of the following solidity file or dependency: ${code}`;
@@ -214,6 +215,17 @@ export const Content = ({ address, fetching, setFetching }) => {
           .then((response) => response.json())
           .then(async (data) => {
             console.log('data', data);
+            if (data.error) {
+              let errorMessage = ''
+              if (data.error.type === 'context_length_exceeded') {
+                errorMessage = 'The contract code is too long.'
+                throw new Error(errorMessage);
+              } else {
+                errorMessage = `Something went wrong. Please try again or check another contract. ${data.error.type}: ${data.error.message}`
+                throw new Error(errorMessage);
+              }
+            }
+
             if (type === explanation.contract) {
               setContractExplanation(data.choices[0].message.content);
               setIsLoadingContract(false);
@@ -262,7 +274,8 @@ export const Content = ({ address, fetching, setFetching }) => {
             setIsLoadingContract(false);
             setIsLoadingFunction(false);
             setIsLoadingDependency(false);
-            console.log('open ai fetch err', err);
+            setExplanationError(err.message)
+            console.log('open ai fetch error', err);
           });
       }
     },
@@ -391,6 +404,8 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   useEffect(() => {
     console.log('made it in fetching', fetching)
+    setExplanationError('')
+    setContractExplanation('');
     if (fetching) {
 
       fetchSourceCode();
@@ -400,13 +415,20 @@ export const Content = ({ address, fetching, setFetching }) => {
   const handleContractChange = useCallback(
     (e) => {
       setContractExplanation('');
-      const selectedContract = e.target.value;
+      console.log('e.target', e.target);
+      const selectedContract = e.target.querySelector('.dependency-name').innerText || e.target.innerText;
+
+      console.log('selectedContract', selectedContract);
       const contract = sourceCode.find(
         (contract) => contract.name === selectedContract
       );
 
-      setInspectContract(contract);
+      if (mainContentRef.current) {
+        mainContentRef.current.scrollTop = 50;
+      }
 
+      setInspectContract(contract);
+      // onOpenDependency();
       fetchExplanation(contract.sourceCode.content, explanation.contract);
     },
     [explanation.contract, fetchExplanation, sourceCode]
@@ -506,11 +528,11 @@ export const Content = ({ address, fetching, setFetching }) => {
     onClose: onCloseAnnotation,
   } = useDisclosure();
 
-  const {
-    isOpen: isOpenDependency,
-    onOpen: onOpenDependency,
-    onClose: onCloseDependency,
-  } = useDisclosure();
+  // const {
+  //   isOpen: isOpenDependency,
+  //   onOpen: onOpenDependency,
+  //   onClose: onCloseDependency,
+  // } = useDisclosure();
 
   const handleCodeClick = useCallback(() => {
     if (!selectedFunctionName || !selectedFunctionCode) {
@@ -541,24 +563,6 @@ export const Content = ({ address, fetching, setFetching }) => {
     explanation.function,
   ]);
 
-  const handleDependencyClick = useCallback(
-    (e) => {
-      setDependencyExplanation('');
-
-      const dependency = e.target.innerText;
-      console.log('dependency text', dependency);
-      setInspectDependency(dependency);
-      // get the dependency name from the last part of the path
-      const dependencyName = dependency.substring(dependency.lastIndexOf("/") + 1);
-      setSelectedDependencyName(dependencyName);
-
-      onOpenDependency();
-
-      fetchExplanation(dependency, explanation.dependency);
-
-    },
-    [explanation.contract, fetchExplanation, sourceCode]
-  );
 
   console.log('in content')
 
@@ -623,7 +627,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           <Text fontSize='sm'>{!userAddress ? 'Connect your wallet' : 'No contract selected'}</Text>
         )}
       </Stack>
-      <Files sourceCode={sourceCode} handleClick={handleDependencyClick} />
+      <Files sourceCode={sourceCode} handleClick={handleContractChange} />
       <Flex alignItems='center' w='full' h="lg">
         <Box background='#00000080' w='50%' h='full' p={6} borderTopLeftRadius='lg' borderBottomLeftRadius='lg' onMouseOver={(event) => handleCodeHover(event)}>
           <Heading as='h3' size='md' noOfLines={1} pb={8}>SOURCE CODE</Heading>
@@ -644,7 +648,7 @@ export const Content = ({ address, fetching, setFetching }) => {
             </SyntaxHighlighter>
           </Box>
         </Box>
-        <Box background='#FFFFFF1A' w='50%' h='full' p={6} borderTopRightRadius='lg' borderBottomRightRadius='lg'>
+        <Box ref={mainContentRef} background='#FFFFFF1A' w='50%' h='full' p={6} borderTopRightRadius='lg' borderBottomRightRadius='lg'>
           <Stack spacing={4}>
             <Heading as='h3' size='md' noOfLines={1}>SUMMARY</Heading>
             <Tabs size='sm' variant='unstyled'>
@@ -655,14 +659,19 @@ export const Content = ({ address, fetching, setFetching }) => {
               </TabList>
               <TabPanels>
                 <TabPanel>
-                  <Box h='sm' overflowY='auto'>
+                  <Box h='sm' overflowY='auto' pb={10}>
                     {isLoadingContract && <Box display="flex" flexFlow="column wrap" height="full" maxW="full" alignItems="center" justifyContent="center" rowGap={2}>
                       <Spinner /> <span>{contractMessages[Math.floor(Math.random() * 5)]}</span>
                     </Box>}
                     {contractExplanation && !isLoadingContract && (
 
                       <Text ml={2} transition="ease-in-out">
-                        {contractExplanation.replace(/^\n\n/, '')}
+                        {contractExplanation}
+                      </Text>
+                    )}
+                    {explanationError !== '' && (
+                      <Text ml={2} transition="ease-in-out" color="red.400">
+                        {explanationError}
                       </Text>
                     )}
                   </Box>
@@ -692,7 +701,9 @@ export const Content = ({ address, fetching, setFetching }) => {
           </Stack>
         </Box>
       </Flex>
+
       <Comments />
+
       <Modal isOpen={isOpenAnnotation} onClose={onCloseAnnotation}>
         <ModalOverlay />
         <ModalContent minW="800px" maxH="calc(100% - 80px)" borderRadius={16}>
@@ -713,7 +724,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         </ModalContent>
       </Modal>
 
-      <Modal isOpen={isOpenDependency} onClose={onCloseDependency}>
+      {/* <Modal isOpen={isOpenDependency} onClose={onCloseDependency}>
         <ModalOverlay />
         <ModalContent minW="800px" maxH="calc(100% - 80px)" borderRadius={16}>
           <ModalHeader
@@ -779,7 +790,7 @@ export const Content = ({ address, fetching, setFetching }) => {
             </Box>
           </ModalBody>
         </ModalContent>
-      </Modal>
+      </Modal> */}
 
       <Modal isOpen={isOpenSimulate} onClose={onCloseSimulate}>
         <ModalOverlay />
@@ -787,6 +798,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           minW="800px"
           maxH="calc(100% - 80px)"
           borderRadius={16}
+          overflow={'hidden'}
         >
           <ModalHeader
             background="#262545"
@@ -800,6 +812,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           </ModalHeader>
           <ModalCloseButton color="white" />
           <ModalBody py={6}>
+            <Box flexGrow={0} w="100%" h="100%" overflowY="auto" pb={8} borderRadius="xl">
             {inspectFunction &&
               Object.values(inspectFunction).every(
                 (value) => !value
@@ -884,7 +897,8 @@ export const Content = ({ address, fetching, setFetching }) => {
                   />
                 )}
               </Flex>
-            )}
+              )}
+            </Box>
           </ModalBody>
         </ModalContent>
       </Modal>

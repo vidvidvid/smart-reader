@@ -1,4 +1,4 @@
-import { Heading, List, Stack } from '@chakra-ui/react'
+import { Box, Heading, List, Stack } from '@chakra-ui/react'
 import { File } from './File'
 
 const files = [
@@ -28,6 +28,7 @@ export const Files = ({ sourceCode, handleClick }) => {
 	return (
 		<Stack>
 			<Heading as='h2' size='md' fontWeight={600} noOfLines={1}>FILES ({sourceCode.length})</Heading>
+			<Box maxH='300px' overflowY='auto' overflowX='hidden' mt={2} mb={4} p={2}>
 			<List spacing={1}>
 				 {sourceCode &&
               sourceCode.length > 0 &&
@@ -42,7 +43,8 @@ export const Files = ({ sourceCode, handleClick }) => {
 									<File key={contractName} file={file} handleClick={handleClick} />
                 );
               })}
-			</List>
+				</List>
+				</Box>
 			</Stack>
 	)
 }

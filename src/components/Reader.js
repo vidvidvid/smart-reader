@@ -455,7 +455,7 @@ export const Reader = ({ address, fetching, setFetching }) => {
 
                 return (
                   <option key={contractName} value={contractName}>
-                    {contractName}
+                    {contractName} fffff
                   </option>
                 );
               })}
