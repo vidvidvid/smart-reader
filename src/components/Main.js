@@ -23,7 +23,11 @@ export const Main = () => {
         setAddress={setAddress}
         setFetching={setFetching}
       />
-      <Content/>
+      <Content
+        address={address}
+        fetching={fetching}
+        setFetching={setFetching}
+      />
     </Flex>
   );
 };
