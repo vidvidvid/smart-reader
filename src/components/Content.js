@@ -420,6 +420,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       setFetching(false);
       setSourceCode([]);
       setContractName('Contract name');
+      setExplanationError('')
       setContractExplanation('');
       setInspectContract(undefined);
     }
