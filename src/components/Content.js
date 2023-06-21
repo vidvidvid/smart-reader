@@ -724,74 +724,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         </ModalContent>
       </Modal>
 
-      {/* <Modal isOpen={isOpenDependency} onClose={onCloseDependency}>
-        <ModalOverlay />
-        <ModalContent minW="800px" maxH="calc(100% - 80px)" borderRadius={16}>
-          <ModalHeader
-            background="#262545"
-            mt={2}
-            mx={2}
-            color="white"
-            borderTopRadius={16}
-            justifyItems="space-between"
-          >
-            <code>Dependency name: {selectedDependencyName}</code>
-          </ModalHeader>
-          <ModalCloseButton color="white" />
-          <ModalBody py={6}>
-            <Box flexGrow={1} w="100%">
-                <Flex direction="column" gap={3} h="full">
-                  <Flex gap={3}>
-                    <Image src="/images/explanation.png" w={6} />
-                    <Text fontWeight="bold">Explanation</Text>
-                </Flex>
-                </Flex>
-
-                {isLoadingDependency && dependencyExplanation === '' ? (
-                <Flex
-                  w="full"
-                  minH={200}
-                  justifyContent="center"
-                  alignItems="center"
-                  flexDirection={'column'}
-                  rowGap={3}
-                  boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
-                  borderRadius={16}
-                >
-                  <Spinner />
-                  <Text>
-                    {
-                      dependencyMessages[
-                      Math.floor(Math.random() * 5)
-                      ]
-                    }
-                  </Text>
-                </Flex>
-                ) : (
-                  <Flex
-                  w="full"
-                  justifyContent="center"
-                    alignItems="center"
-                    flexDirection={'column'}
-                    rowGap={3}
-                  boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
-                  borderRadius={16}
-                  p={4}
-                >
-                  <Text
-                    h="full"
-                  >
-                    {dependencyExplanation}
-                  </Text>
-
-                  <Button onClick={onCloseDependency}>Close</Button>
-                </Flex>
-              )}
-            </Box>
-          </ModalBody>
-        </ModalContent>
-      </Modal> */}
-
       <Modal isOpen={isOpenSimulate} onClose={onCloseSimulate}>
         <ModalOverlay />
         <ModalContent
@@ -802,6 +734,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         >
           <ModalHeader
             background="#262545"
+            position="relative"
             mt={2}
             mx={2}
             color="white"
@@ -809,8 +742,8 @@ export const Content = ({ address, fetching, setFetching }) => {
             justifyItems="space-between"
           >
             <code>Simulate function: {inspectFunction.name}</code>
+          <ModalCloseButton color="white" top="25%" />
           </ModalHeader>
-          <ModalCloseButton color="white" />
           <ModalBody py={6}>
             <Box flexGrow={0} w="100%" h="100%" overflowY="auto" pb={8} borderRadius="xl">
             {inspectFunction &&

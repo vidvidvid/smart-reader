@@ -1,34 +1,11 @@
 import { Box, Heading, List, Stack } from '@chakra-ui/react'
 import { File } from './File'
 
-const files = [
-	{
-		name: '@openzeppelin/contracts/access/Ownable.sol',
-		selected: true,
-		dependency: false
-	},
-	{
-		name: '@openzeppelin/contracts/token/ERC20/ERC20.sol',
-		selected: false,
-		dependency: true
-	},
-	{
-		name: '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol',
-		selected: false,
-		dependency: true
-	},
-	{
-		name: '@openzeppelin/contracts/token/ERC20/IERC20.sol',
-		selected: false,
-		dependency: true
-	}
-]
-
 export const Files = ({ sourceCode, handleClick }) => {
 	return (
 		<Stack>
 			<Heading as='h2' size='md' fontWeight={600} noOfLines={1}>FILES ({sourceCode.length})</Heading>
-			<Box maxH='300px' overflowY='auto' overflowX='hidden' mt={2} mb={4} p={2}>
+			<Box position="relative" maxH='280px' overflowY='auto' overflowX='hidden' mt={2} mb={4} p={2} borderRadius="xl" scrollBehavior="smooth">
 			<List spacing={1}>
 				 {sourceCode &&
               sourceCode.length > 0 &&
