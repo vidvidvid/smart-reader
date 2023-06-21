@@ -24,7 +24,6 @@ const SideMenu = () => {
 
   return (
     <Flex
-      zIndex={2}
       textColor="white"
       direction="column"
       w="full"

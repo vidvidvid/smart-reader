@@ -1,9 +1,11 @@
+import { ChakraProvider, useColorMode } from '@chakra-ui/react';
+import '@fontsource-variable/figtree';
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import App from './App';
+import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { ChakraProvider, useColorMode } from '@chakra-ui/react';
+import theme from './theme';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
@@ -20,7 +22,7 @@ function ForceDarkMode(props) {
 }
 
 root.render(
-  <ChakraProvider>
+  <ChakraProvider theme={theme}>
     <ForceDarkMode>
       <React.StrictMode>
         <App />
