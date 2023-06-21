@@ -54,7 +54,7 @@ function App() {
         direction="column"
         h="full"
         p={6}
-        bgGradient='radial(#172F74, #101D42)'
+        bgGradient='radial(43.95% 43.95% at 30.69% 0%, #172F74 0.18%, #101D42 100%)'
         backgroundRepeat="no-repeat"
       >
         {/* <Flex h="full" gap={6}> */}
