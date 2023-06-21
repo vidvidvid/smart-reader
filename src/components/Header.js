@@ -4,7 +4,7 @@ import { useWeb3Modal } from '@web3modal/react';
 import React, { useEffect, useState } from 'react';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import { shortenAddress, isContract, validateInput } from '../utils/helpers';
+import { shortenAddress, validateContractAddress } from '../utils/helpers';
 import { getNetwork } from '@wagmi/core';
 import { CheckCircle2 } from 'lucide-react';
 
@@ -26,125 +26,20 @@ export const Header = ({ address, setAddress, setFetching }) => {
     message: '',
   });
 
-  const isUnsupportedNetwork = !!(networkChain.unsupported || chain.unsupported)
-
-  console.log('chains', {networkChain, chain, chains, networkChains, switchNetworkChains});
-
-
-  // const validateInput = (input) => {
-  //   let message = '';
-  //   if (!address) setValidationResult({ result: true, message: '' });
-
-  //   if (input.length === 42 && input.startsWith('0x')) {
-
-  //     isContract(input).then((result) => {
-  //       if (result) {
-  //         message = 'Address is a contract';
-
-  //         setValidationResult({
-  //           result: true,
-  //           message,
-  //         });
-  //         return {
-  //           result: true,
-  //           message,
-  //         }
-  //       } else {
-  //         message = 'Address is not a contract';
-
-  //         setValidationResult({
-  //           result: false,
-  //           message,
-  //         });
-  //         return {
-  //           result: false,
-  //           message,
-  //         }
-  //       }
-  //     })
-  //     message = 'Address is valid';
-
-  //   } else if (input.length < 42 && input.startsWith('0x')) {
-  //     message = 'Address is too short';
-
-  //     setValidationResult({
-  //       result: false,
-  //       message,
-  //     });
-
-  //     return {
-  //       result: false,
-  //       message,
-  //     }
-  //   } else if (input.length === 42 && !input.startsWith('0x')) {
-  //     message = 'Address is missing 0x prefix';
-
-  //     setValidationResult({
-  //       result: false,
-  //       message,
-  //     });
-
-  //     return {
-  //       result: false,
-  //       message,
-  //     }
-  //   } else if (input.length < 42 && !input.startsWith('0x')) {
-  //     message = 'Address is too short and missing 0x prefix';
-
-  //     setValidationResult({
-  //       result: false,
-  //       message,
-  //     });
-
-  //     return {
-  //       result: false,
-  //       message,
-  //     }
-  //   } else if (input.length > 42 && input.startsWith('0x')) {
-
-  //     message = 'Address is too long';
-
-  //     setValidationResult({
-  //       result: false,
-  //       message,
-  //     });
-
-  //     return {
-  //       result: false,
-  //       message,
-  //     }
-  //   } else if (input.length > 42 && !input.startsWith('0x')) {
-  //     message = 'Address is too long and missing 0x prefix';
-
-  //     setValidationResult({
-  //       result: false,
-  //       message,
-  //     });
-
-  //     return {
-  //       result: false,
-  //       message,
-  //     }
-  //   } else {
-
-  //   }
-
-  // }
-
   useEffect(() => {
     setDefaultChain(mainnet.chainId)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (address) {
       console.log('address', address);
-      validateInput(address, validationResult, setValidationResult);
+      validateContractAddress(address, validationResult, setValidationResult);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address])
 
 
-  // TODO: `chains` is sometimes not populated which makes it impossible to switch networks
 
   return (
     <Flex

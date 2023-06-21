@@ -46,7 +46,7 @@ import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 import chainInfo from '../utils/chainInfo';
 import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
-import { shortenAddress, validateInput } from '../utils/helpers';
+import { shortenAddress, validateContractAddress } from '../utils/helpers';
 
 const functionMessages = [
   'Deciphering the function',
@@ -130,8 +130,9 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   useEffect(() => {
     if (address && address.length > 0) {
-      validateInput(address, validationResult, setValidationResult);
+      validateContractAddress(address, validationResult, setValidationResult);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address]);
 
   const mainContentRef = useRef(null);

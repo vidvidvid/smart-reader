@@ -18,7 +18,7 @@ const isContract = async (address) => {
   return code && code !== '0x'
 }
 
-const validateInput = (input, validationResult, setValidationResult) => {
+const validateContractAddress = (input, validationResult, setValidationResult) => {
   let message = '';
   console.log('validateInput', { input, validationResult, setValidationResult });
   if (!input) setValidationResult({ result: true, message: '' });
@@ -122,5 +122,5 @@ const validateInput = (input, validationResult, setValidationResult) => {
 export {
   shortenAddress,
   isContract,
-  validateInput,
+  validateContractAddress,
 }
