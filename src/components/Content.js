@@ -190,7 +190,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       let content;
       if (!fileExplanationSuccess) {
         if (type === explanation.contract) {
-          content = `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes. Please use markdown formatting in all responses`;
+          content = `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes.`;
           setIsLoadingContract(true);
         } else if (type === explanation.dependency) {
           content = `Give me a simple explanation of the following solidity file or dependency: ${code}`;
@@ -221,11 +221,9 @@ export const Content = ({ address, fetching, setFetching }) => {
           }),
         };
 
-        console.log('fetchhh');
         fetch('https://api.openai.com/v1/chat/completions', requestOptions)
           .then((response) => response.json())
           .then(async (data) => {
-            console.log('data', data);
             if (data.error) {
               let errorMessage = ''
               if (data.error.type === 'context_length_exceeded') {
