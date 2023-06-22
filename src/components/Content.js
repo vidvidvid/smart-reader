@@ -46,7 +46,6 @@ import chainInfo from '../utils/chainInfo';
 import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
-import { Network, Alchemy } from 'alchemy-sdk';
 
 
 const functionMessages = [
@@ -112,7 +111,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     name: '',
     code: '',
   });
-  console.log('inspectContract', inspectContract);
+
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
@@ -475,7 +474,8 @@ export const Content = ({ address, fetching, setFetching }) => {
       fetchTokenData(address);
       fetchSourceCode();
     }
-  }, [fetching, fetchSourceCode, setFetching, address, chain.id, fetchTokenData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetching, fetchSourceCode, setFetching, address, chain?.id]);
 
   const handleContractChange = useCallback(
     (e) => {
