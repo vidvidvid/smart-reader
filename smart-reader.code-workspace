@@ -1,17 +1,19 @@
 {
-  "folders": [
-    {
-      "name": "project-root",
-      "path": "./"
-    },
-    {
-      "name": "supabase-functions",
-      "path": "supabase/functions"
+    "folders": [
+        {
+            "name": "project-root",
+            "path": "./"
+        },
+        {
+            "name": "supabase-functions",
+            "path": "supabase/functions"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "supabase/functions/": true,
+            "app/": true,
+            "node_modules/": true
+        }
     }
-  ],
-  "settings": {
-    "files.exclude": {
-      "supabase/functions/": true
-    }
-  }
 }
