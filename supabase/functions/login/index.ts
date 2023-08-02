@@ -101,7 +101,7 @@ serve(async (req) => {
         { address: address },
         Deno.env.get("JWT_SECRET") as string
     );
-    const cookie = `mytoken=${token}; Path=/;`;
+    const cookie = `supabasetoken=${token}; Path=/;`;
     return new Response(null, {
         headers: { "Set-Cookie": cookie },
     });
