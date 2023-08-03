@@ -20,6 +20,30 @@ function createErrorResponse(errorMessage: string, statusCode = 400) {
 }
 
 serve(async (req) => {
+    const { method, headers: reqHeaders } = req;
+    const origin = reqHeaders.get("Origin") || "";
+
+    // List of trusted origins
+    const allowedOrigins = [
+        "http://localhost:3000", // TODO delete this once deployed
+        // "https://your-production-site.com",  // TODO add the actual url of the production site
+    ];
+
+    const headers = new Headers();
+    if (allowedOrigins.includes(origin)) {
+        headers.set("Access-Control-Allow-Origin", origin);
+    }
+    headers.set(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    );
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    headers.set("Access-Control-Allow-Credentials", "true");
+
+    if (method === "OPTIONS") {
+        // Respond to CORS preflight requests
+        return new Response(null, { headers });
+    }
     const { address, signedMessage, nonce } = await req.json();
 
     //1. verify the signed message matches the requested address

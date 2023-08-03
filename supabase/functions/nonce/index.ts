@@ -9,6 +9,30 @@ import { Database } from "../../lib/database.types.ts";
 const SUPABASE_TABLE_USER = "users";
 serve(async (req) => {
     // /api/nonce
+    const { method, headers: reqHeaders } = req;
+    const origin = reqHeaders.get("Origin") || "";
+
+    // List of trusted origins
+    const allowedOrigins = [
+        "http://localhost:3000", // TODO delete this once deployed
+        // "https://your-production-site.com",  // TODO add the actual url of the production site
+    ];
+
+    const headers = new Headers();
+    if (allowedOrigins.includes(origin)) {
+        headers.set("Access-Control-Allow-Origin", origin);
+    }
+    headers.set(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    );
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    headers.set("Access-Control-Allow-Credentials", "true");
+
+    if (method === "OPTIONS") {
+        // Respond to CORS preflight requests
+        return new Response(null, { headers });
+    }
 
     const { address } = await req.json();
     const nonce = Math.floor(Math.random() * 1000000);
@@ -32,9 +56,22 @@ serve(async (req) => {
             onConflict: "address",
         }
     );
+    // const headers = new Headers();
+
+    // headers.append("Access-Control-Allow-Origin", "*");
+    // headers.append(
+    //     "Access-Control-Allow-Headers",
+    //     "Content-Type, Authorization"
+    // );
+    // headers.append(
+    //     "Access-Control-Allow-Methods",
+    //     "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+    // );
+    headers.append("Content-Type", "application/json");
+
     console.log(reponse);
     const data = { nonce: nonce };
     return new Response(JSON.stringify(data), {
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
     });
 });

@@ -29,26 +29,49 @@ export const Login = () => {
       const user = supabase.auth.user();
       if (user) {
         setIsLoggedIn(true);
-      } else {
-        // User is not logged in or there was an error.
-        // You should handle this appropriately in your application.
       }
     }
   }, []);
-  async function login() {}
+  async function login() {
+    setIsLoggingIn(true);
+    console.log(process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL);
+    const nonce = await postData(
+      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
+      {
+        address: userAddress,
+      }
+    );
+    console.log('nonce', nonce);
+    //     const msg = await state.activeProvider
+    //     .send("personal_sign", [
+    //       ethers.utils.hexlify(ethers.utils.toUtf8Bytes(message)),
+    //     ]);
+
+    //   // post sign message to api/verify with nonce and address
+    //   const verifyRequest = await postData(
+    //     `${state.config.API_URL}/api/login`,
+    //     { signed: msg,
+    //       nonce: nonceRequest.nonce,
+    //       address: state.address
+    //     }
+  }
 
   async function logout() {}
   return (
-    <Button
-      background="transparent"
-      color="whiteAlpha.700"
-      _hover={{ background: 'transparent', color: 'white' }}
-      border="2px solid white"
-      borderRadius="full"
-      onClick={() => (isLoggedIn ? logout() : login())}
-    >
-      {isConnecting && <Spinner size="xs" mr={2} />}{' '}
-      {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
-    </Button>
+    <>
+      {!isConnected && (
+        <Button
+          background="transparent"
+          color="whiteAlpha.700"
+          _hover={{ background: 'transparent', color: 'white' }}
+          border="2px solid white"
+          borderRadius="full"
+          onClick={() => (isLoggedIn ? logout() : login())}
+        >
+          {isLoggingIn && <Spinner size="xs" mr={2} />}{' '}
+          {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
+        </Button>
+      )}
+    </>
   );
 };
