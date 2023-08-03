@@ -1,19 +1,25 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import ethers from "ethers";
+// import ethers from "ethers";
+import { ethers } from "https://esm.sh/ethers@6.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Database } from "../../lib/database.types.ts";
-import jwt from "jsonwebtoken";
+import jwt from "https://esm.sh/jsonwebtoken@9.0.1";
 
 const SUPABASE_TABLE_USERS = "users";
 
-function createErrorResponse(errorMessage: string, statusCode = 400) {
+function createErrorResponse(
+    errorMessage: string,
+    headers: Headers,
+    statusCode = 400
+) {
     console.log(errorMessage);
+    headers.append("Content-Type", "application/json");
     return new Response(
         JSON.stringify({
             error: errorMessage,
         }),
         {
-            headers: { "Content-Type": "application/json" },
+            headers: headers,
             status: statusCode,
         }
     );
@@ -37,26 +43,30 @@ serve(async (req) => {
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     );
-    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    headers.set(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, Set-Cookie"
+    );
     headers.set("Access-Control-Allow-Credentials", "true");
 
     if (method === "OPTIONS") {
         // Respond to CORS preflight requests
         return new Response(null, { headers });
     }
-    const { address, signedMessage, nonce } = await req.json();
+    const { address, signed, nonce } = await req.json();
 
     //1. verify the signed message matches the requested address
-    const message = `I am signing this message to authenticate my address with my account on Smart Reader. Nonce: ${nonce}`;
+    const message = `I am signing this message to authenticate my address with my account on Smart Reader.`;
 
-    const signerAddress = ethers.verifyMessage(message, signedMessage);
+    const signerAddress = ethers.verifyMessage(message, signed);
 
     // now you can compare the signer's address to the expected address
     if (signerAddress === address) {
         console.log("The message was signed by the expected address.");
     } else {
         return createErrorResponse(
-            "The message was NOT signed by the expected address."
+            "The message was NOT signed by the expected address.",
+            headers
         );
     }
     //2. select * from public.user table where address matches
@@ -69,22 +79,28 @@ serve(async (req) => {
         .select()
         .eq("address", address)
         .single();
+
     if (data == null) {
-        return createErrorResponse("The public user does not exist.");
+        return createErrorResponse("The public user does not exist.", headers);
     }
     //3. verify the nonce included in the request matches what's already in public.users table for that address
     if (data?.auth.genNonce !== nonce) {
-        return createErrorResponse("The nonce does not match.");
+        return createErrorResponse(
+            `The nonce does not match. ${nonce} ${data?.auth.genNonce} ${
+                data?.auth.genNonce === nonce
+            }`,
+            headers
+        );
     }
     // 4. if there's no public.users.id for that address, then you need to create a user in the auth.users table
     let authUser;
     if (!data?.id) {
         const { data: userData, error } = await supabase.auth.admin.createUser({
-            // email: `user@email.com`,
+            email: `${address}@email.com`, // we have to have this.. or a phone
             user_metadata: { address: address },
         });
         if (error) {
-            return createErrorResponse(error.message);
+            return createErrorResponse(error.message, headers);
         }
         if (data.user != null) {
             authUser = userData.user;
@@ -95,7 +111,7 @@ serve(async (req) => {
         );
 
         if (error) {
-            return createErrorResponse(error.message);
+            return createErrorResponse(error.message, headers);
         } else {
             authUser = userData.user;
         }
@@ -123,10 +139,19 @@ serve(async (req) => {
     // 6. lastly, we sign the token, then return it to client
     const token = jwt.sign(
         { address: address },
-        Deno.env.get("JWT_SECRET") as string
+        `${Deno.env.get("JWT_SECRET")}`
+        // { expiresIn: "1h" } // options, like token expiry
     );
-    const cookie = `supabasetoken=${token}; Path=/;`;
-    return new Response(null, {
-        headers: { "Set-Cookie": cookie },
+
+    headers.append("Content-Type", "application/json");
+
+    const returnData = { token: token };
+    return new Response(JSON.stringify(returnData), {
+        headers: headers,
     });
+    // const cookie = `supabasetoken=${token}; Path=/;`;
+    // headers.append("Set-Cookie", cookie);
+    // return new Response(null, {
+    //     headers: headers,
+    // });
 });

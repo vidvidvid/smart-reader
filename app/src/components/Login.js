@@ -1,12 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import { SupabaseClient, User } from '@supabase/supabase-js';
 import postData from '../utils/api.js';
 import { useSupabase } from '../utils/supabaseContext';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { Button, Spinner } from '@chakra-ui/react';
+import { ethers } from 'ethers';
+import { useSignMessage } from 'wagmi';
 
 export const Login = () => {
+  const [message, setMessage] = React.useState(
+    `I am signing this message to authenticate my address with my account on Smart Reader.` // TODO could add nonce for extra security
+  );
+  const { signMessageAsync } = useSignMessage({
+    message,
+    // onSuccess(data) {
+    //   console.log('Success', data);
+    //   const verifyRequest = await postData(
+    //   process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
+    //   { signed: msg, nonce: nonce, address: userAddress }
+    // );
+    //   console.log(data.message);
+    // },
+    // onError(error) {
+    //   setIsLoggingIn(false);
+    //   console.log('Error', error);
+    // },
+    // onMutate(args) {
+    //   console.log('Mutate', args);
+    // },
+  });
   const supabase = useSupabase();
   const {
     address: userAddress,
@@ -34,32 +56,26 @@ export const Login = () => {
   }, []);
   async function login() {
     setIsLoggingIn(true);
-    console.log(process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL);
     const nonce = await postData(
       process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
       {
         address: userAddress,
       }
     );
-    console.log('nonce', nonce);
-    //     const msg = await state.activeProvider
-    //     .send("personal_sign", [
-    //       ethers.utils.hexlify(ethers.utils.toUtf8Bytes(message)),
-    //     ]);
+    const msg = await signMessageAsync();
 
-    //   // post sign message to api/verify with nonce and address
-    //   const verifyRequest = await postData(
-    //     `${state.config.API_URL}/api/login`,
-    //     { signed: msg,
-    //       nonce: nonceRequest.nonce,
-    //       address: state.address
-    //     }
+    // post sign message to api/verify with nonce and address
+    const verifyRequest = await postData(
+      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
+      { signed: msg, nonce: nonce.nonce, address: userAddress }
+    );
+    console.log(verifyRequest);
   }
 
   async function logout() {}
   return (
     <>
-      {!isConnected && (
+      {isConnected && (
         <Button
           background="transparent"
           color="whiteAlpha.700"

@@ -56,17 +56,6 @@ serve(async (req) => {
             onConflict: "address",
         }
     );
-    // const headers = new Headers();
-
-    // headers.append("Access-Control-Allow-Origin", "*");
-    // headers.append(
-    //     "Access-Control-Allow-Headers",
-    //     "Content-Type, Authorization"
-    // );
-    // headers.append(
-    //     "Access-Control-Allow-Methods",
-    //     "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    // );
     headers.append("Content-Type", "application/json");
 
     console.log(reponse);

@@ -1,10 +1,10 @@
 async function postData(url = '', data = {}) {
   // Default options are marked with *
-  console.log(process.env.REACT_APP_SUPABASE_ANON_KEY);
   const response = await fetch(url, {
     method: 'POST',
     // mode: 'no-cors',
     cache: 'no-cache',
+    // credentials: 'include',
     // credentials: 'same-origin',
     headers: {
       'Content-Type': 'application/json',
