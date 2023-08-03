@@ -119,7 +119,6 @@ serve(async (req) => {
         }
     }
 
-    // const
     // 5. insert response into public.users table with id
     let newNonce = Math.floor(Math.random() * 1000000);
     while (newNonce === nonce) {
@@ -152,7 +151,7 @@ serve(async (req) => {
     console.log("creating key");
     const key = await crypto.subtle.importKey(
         "raw", // raw format; the secret is a string
-        jwtSecretUint8Array, // your JWT secret
+        jwtSecretUint8Array, //  JWT secret
         { name: "HMAC", hash: "SHA-512" }, // algorithm details
         false, // whether the key is extractable
         ["sign", "verify"] // key usages
@@ -161,7 +160,7 @@ serve(async (req) => {
         // iss: "joe",
         address: address,
         sub: authUser?.id,
-        exp: getNumericDate(60),
+        exp: getNumericDate(3600),
     };
     const header: Header = {
         alg: "HS512",
@@ -170,14 +169,6 @@ serve(async (req) => {
     console.log("creating token");
     const token = await create(header, payload, key);
 
-    // headers.append("Content-Type", "application/json");
-
-    // const returnData = { token: token };
-    // return new Response(JSON.stringify(returnData), {
-    //     headers: headers,
-    // });
-    // const cookie = `supabasetoken=${token}; Path=/; SameSite=None; Secure;`;
-    // headers.append("Set-Cookie", cookie);
     return new Response(JSON.stringify({ token: token }), {
         headers: headers,
     });

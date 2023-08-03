@@ -1,6 +1,5 @@
 {
     "imports": {
-        "ethers": "https://esm.sh/ethers@v6",
-        "jsonwebtoken": "https://esm.sh/jsonwebtoken"
+        "ethers": "https://esm.sh/ethers@v6"
     }
 }
