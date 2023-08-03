@@ -65,11 +65,12 @@ export const Login = () => {
     const msg = await signMessageAsync();
 
     // post sign message to api/verify with nonce and address
-    const verifyRequest = await postData(
-      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
-      { signed: msg, nonce: nonce.nonce, address: userAddress }
-    );
-    console.log(verifyRequest);
+    await postData(process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login', {
+      signed: msg,
+      nonce: nonce.nonce,
+      address: userAddress,
+    });
+    // console.log(verifyRequest);
   }
 
   async function logout() {}

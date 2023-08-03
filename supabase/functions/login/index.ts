@@ -1,9 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// import ethers from "ethers";
 import { ethers } from "https://esm.sh/ethers@6.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Database } from "../../lib/database.types.ts";
-import jwt from "https://esm.sh/jsonwebtoken@9.0.1";
+import {
+    Header,
+    Payload,
+    create,
+    getNumericDate,
+} from "https://deno.land/x/djwt@v2.9.1/mod.ts";
 
 const SUPABASE_TABLE_USERS = "users";
 
@@ -136,22 +140,47 @@ serve(async (req) => {
         })
         .eq("address", address); // primary key
 
-    // 6. lastly, we sign the token, then return it to client
-    const token = jwt.sign(
-        { address: address },
-        `${Deno.env.get("JWT_SECRET")}`
-        // { expiresIn: "1h" } // options, like token expiry
+    // 6. lastly, we sign the token, then return it to clienta
+    const jwtSecret = Deno.env.get("JWT_SECRET");
+
+    if (!jwtSecret) {
+        throw new Error("Please set the JWT_SECRET environment variable.");
+    }
+
+    const encoder = new TextEncoder();
+    const jwtSecretUint8Array = encoder.encode(jwtSecret);
+
+    // Generate the crypto key
+    console.log("creating key");
+    const key = await crypto.subtle.importKey(
+        "raw", // raw format; the secret is a string
+        jwtSecretUint8Array, // your JWT secret
+        { name: "HMAC", hash: "SHA-512" }, // algorithm details
+        false, // whether the key is extractable
+        ["sign", "verify"] // key usages
     );
+    const payload: Payload = {
+        // iss: "joe",
+        address: address,
+        sub: authUser?.id,
+        exp: getNumericDate(60),
+    };
+    const header: Header = {
+        alg: "HS512",
+        typ: "JWT",
+    };
+    console.log("creating token");
+    const token = await create(header, payload, key);
 
     headers.append("Content-Type", "application/json");
 
-    const returnData = { token: token };
-    return new Response(JSON.stringify(returnData), {
-        headers: headers,
-    });
-    // const cookie = `supabasetoken=${token}; Path=/;`;
-    // headers.append("Set-Cookie", cookie);
-    // return new Response(null, {
+    // const returnData = { token: token };
+    // return new Response(JSON.stringify(returnData), {
     //     headers: headers,
     // });
+    const cookie = `supabasetoken=${token}; Path=/;`;
+    headers.append("Set-Cookie", cookie);
+    return new Response(JSON.stringify({ token: token }), {
+        headers: headers,
+    });
 });
