@@ -15,6 +15,7 @@ serve(async (req) => {
     // List of trusted origins
     const allowedOrigins = [
         "http://localhost:3000", // TODO delete this once deployed
+        "https://localhost:3000", // TODO delete this once deployed
         // "https://your-production-site.com",  // TODO add the actual url of the production site
     ];
 

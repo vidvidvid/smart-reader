@@ -35,7 +35,8 @@ serve(async (req) => {
 
     // List of trusted origins
     const allowedOrigins = [
-        "http://localhost:3000", // TODO delete this once deployed
+        "http://localhost:3000",
+        "https://localhost:3000", // TODO delete this once deployed
         // "https://your-production-site.com",  // TODO add the actual url of the production site
     ];
 
@@ -47,10 +48,7 @@ serve(async (req) => {
         "Access-Control-Allow-Methods",
         "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     );
-    headers.set(
-        "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, Set-Cookie"
-    );
+    headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
     headers.set("Access-Control-Allow-Credentials", "true");
 
     if (method === "OPTIONS") {
@@ -172,14 +170,14 @@ serve(async (req) => {
     console.log("creating token");
     const token = await create(header, payload, key);
 
-    headers.append("Content-Type", "application/json");
+    // headers.append("Content-Type", "application/json");
 
     // const returnData = { token: token };
     // return new Response(JSON.stringify(returnData), {
     //     headers: headers,
     // });
-    const cookie = `supabasetoken=${token}; Path=/;`;
-    headers.append("Set-Cookie", cookie);
+    // const cookie = `supabasetoken=${token}; Path=/; SameSite=None; Secure;`;
+    // headers.append("Set-Cookie", cookie);
     return new Response(JSON.stringify({ token: token }), {
         headers: headers,
     });

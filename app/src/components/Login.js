@@ -6,6 +6,7 @@ import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { Button, Spinner } from '@chakra-ui/react';
 import { ethers } from 'ethers';
 import { useSignMessage } from 'wagmi';
+import { setCookie } from 'typescript-cookie';
 
 export const Login = () => {
   const [message, setMessage] = React.useState(
@@ -65,12 +66,17 @@ export const Login = () => {
     const msg = await signMessageAsync();
 
     // post sign message to api/verify with nonce and address
-    await postData(process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login', {
-      signed: msg,
-      nonce: nonce.nonce,
-      address: userAddress,
-    });
-    // console.log(verifyRequest);
+    const loginResponse = await postData(
+      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
+      {
+        signed: msg,
+        nonce: nonce.nonce,
+        address: userAddress,
+      }
+    );
+    setCookie('supabasetoken', loginResponse.token);
+    setIsLoggingIn(false);
+    setIsLoggedIn(true);
   }
 
   async function logout() {}
