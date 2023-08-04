@@ -180,7 +180,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
         <Link href="" target="_blank" color="white">
           About
         </Link>
-        <Login />
+        {/* <Login /> */}
         <Button
           background="transparent"
           color="whiteAlpha.700"

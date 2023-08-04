@@ -58,6 +58,7 @@ export const Login = () => {
       } else {
         console.log('Token is not expired');
         setToken(token);
+
         setIsLoggedIn(true);
       }
     }
@@ -88,7 +89,17 @@ export const Login = () => {
     setToken(token);
   }
 
-  async function logout() {}
+  async function logout() {
+    // const { data } = await supabase
+    //   .from('users')
+    //   .select()
+    //   .eq('address', userAddress)
+    //   .single();
+    // console.log(data);
+    // if (data == null) {
+    //   console.log('no data');
+    // }
+  }
   return (
     <>
       {isConnected && (
