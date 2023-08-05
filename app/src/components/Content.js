@@ -46,13 +46,14 @@ import axios from 'axios';
 import { uploadJSON } from '../utils/ipfs';
 import { useAccount, useSigner, useNetwork, useToken } from 'wagmi';
 import { getExplanation } from '../utils/queries';
-import { ipfsGateway } from '../utils/constants';
+import { ipfsGateway, contractsDatabase } from '../utils/constants';
 import { getContract } from '../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 import chainInfo from '../utils/chainInfo';
 import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
+import { useSupabase } from '../utils/supabaseContext';
 
 const functionMessages = [
   'Deciphering the function',
@@ -146,6 +147,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     message: '',
   });
   const mainContentRef = useRef(null);
+  const { supabase } = useSupabase();
 
   useEffect(() => {
     if (address && address.length > 0) {
@@ -357,6 +359,98 @@ export const Content = ({ address, fetching, setFetching }) => {
     }
   }
 
+  async function createItemIfNotExists(
+    database,
+    id,
+    idName,
+    requiredFields,
+    createFunction
+  ) {
+    // Check if item exists
+    const { data, error } = await supabase
+      .from(database)
+      .select('*')
+      .eq(idName, id);
+
+    // Handle error during lookup
+    if (error && !data) {
+      console.log('Error: ', error);
+      return;
+    }
+
+    // If the item exists, update it
+    if (data.length > 0) {
+      console.log('Item exists!', data);
+      // TODO add logic for checking last update and only updating if it's been more than a set period of time
+      let allFieldsExist = true; // Initialize flag
+      // data[0]; // Get first item in array
+      for (let i = 0; i < requiredFields.length; i++) {
+        if (!data[0].hasOwnProperty(requiredFields[i])) {
+          allFieldsExist = false;
+          break;
+        }
+      }
+
+      if (allFieldsExist) {
+        console.log('All fields exist');
+        return data[0];
+      } else {
+        console.log('Not all fields exist');
+      }
+      const item = await createFunction();
+      const { data: updatedData, error: updateError } = await supabase
+        .from(database)
+        .update(item)
+        .eq(idName, id);
+      // Handle error during update
+
+      if (updateError && !updatedData) {
+        console.log('Update Error: ', updateError);
+        return;
+      }
+
+      console.log('Item updated!', updatedData);
+    }
+    // If the item does not exist, insert it
+    else {
+      console.log('Item does not exist');
+      const item = await createFunction();
+      const { data: insertedData, error: insertError } = await supabase
+        .from(database)
+        .insert([item]);
+      // Handle error during insert
+      if (insertError && !insertedData) {
+        console.log('Insert Error: ', insertError);
+        return;
+      }
+
+      console.log('Item inserted!', insertedData);
+    }
+  }
+
+  // const fetchAllContractData = useCallback(async (contractAddress) => {
+  //   const apiModule = 'contract';
+  //   const apiAction = 'getsourcecode';
+
+  //   try {
+  //     // setIsFetchingContract(true);
+
+  //     const contract = {
+  //       id: network.address + contractAddress,
+  //       name: 'contract',
+  //       content: 'contract ' + contractAddress + ' {}',
+  //     };
+  //   } catch (error) {
+  //     console.log('Error fetching contract:', error);
+  //     // setIsFetchingContract(false);
+  //     // setContract({
+  //     //   id: null,
+  //     //   name: null,
+  //     //   content: null,
+  //     // });
+  //   }
+  // });
+
   const fetchCreatorAndCreation = useCallback(
     async (contractAddress) => {
       const apiModule = 'contract';
@@ -368,7 +462,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         const response = await axios.get(
           `https://${blockExplorerApi}?module=${apiModule}&action=${apiAction}&contractaddresses=${contractAddress}&apikey=${APIKEY}`
         );
-        console.log('response', response.data.result);
+        supabase.console.log('response', response.data.result);
         setContractCreation({
           creator: response.data.result[0].contractCreator,
           creationTxn: response.data.result[0].txHash,
@@ -394,59 +488,78 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address, fetchCreatorAndCreation]);
 
   const fetchSourceCode = useCallback(async () => {
-    try {
-      const resp = await axios.get(
-        `https://${blockExplorerApi}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
-      );
-      let sourceObj;
-      let contracts;
-      let contractsArray;
-      if (!resp.data.result[0].SourceCode) {
-        const message = `No source code found for ${address}. Are you on the correct network?`;
-        setValidationResult({
-          isValid: false,
-          message: message,
-        });
-        throw new Error(message);
+    console.log('HERE IT IS', network.id);
+    createItemIfNotExists(
+      contractsDatabase,
+      chain.id + '-' + address,
+      'contract_id',
+      ['source_code', 'abi'],
+      async () => {
+        try {
+          const resp = await axios.get(
+            `https://${blockExplorerApi}?module=contract&action=getsourcecode&address=${address}&apikey=${APIKEY}`
+          );
+          let sourceObj;
+          let contracts;
+          let contractsArray;
+          if (!resp.data.result[0].SourceCode) {
+            const message = `No source code found for ${address}. Are you on the correct network?`;
+            setValidationResult({
+              isValid: false,
+              message: message,
+            });
+            throw new Error(message);
+          }
+
+          try {
+            sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
+
+            contracts = sourceObj.sources;
+          } catch {
+            sourceObj = resp.data.result[0].SourceCode;
+            contracts = extractContracts(sourceObj);
+          }
+
+          contractsArray = Object.entries(contracts).map(
+            ([name, sourceCode]) => {
+              return { name, sourceCode };
+            }
+          );
+
+          const addressABI = JSON.parse(resp.data.result[0].ABI);
+
+          setContractABI(addressABI);
+          setSourceCode(contractsArray);
+
+          const contract = {
+            contract_id: chain.id + '-' + address,
+            source_code: contractsArray[0],
+            abi: addressABI,
+          };
+
+          while (!inspectContract) {
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+
+          fetchExplanation(
+            contractsArray[0].sourceCode.content,
+            explanation.contract
+          );
+          // console.log('name', contractsArray[0].name);
+          setFetching(false);
+          return contract;
+        } catch (err) {
+          // Handle Error Here
+          console.log('fetch source code error', err);
+          setFetching(false);
+          setSourceCode([]);
+          setContractName('Contract name');
+          setExplanationError('');
+          setContractExplanation('');
+          setInspectContract(undefined);
+        }
       }
-
-      try {
-        sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
-
-        contracts = sourceObj.sources;
-      } catch {
-        sourceObj = resp.data.result[0].SourceCode;
-        contracts = extractContracts(sourceObj);
-      }
-
-      contractsArray = Object.entries(contracts).map(([name, sourceCode]) => {
-        return { name, sourceCode };
-      });
-
-      const addressABI = JSON.parse(resp.data.result[0].ABI);
-
-      setContractABI(addressABI);
-      setSourceCode(contractsArray);
-      while (!inspectContract) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-
-      fetchExplanation(
-        contractsArray[0].sourceCode.content,
-        explanation.contract
-      );
-      // console.log('name', contractsArray[0].name);
-      setFetching(false);
-    } catch (err) {
-      // Handle Error Here
-      console.log('fetch source code error', err);
-      setFetching(false);
-      setSourceCode([]);
-      setContractName('Contract name');
-      setExplanationError('');
-      setContractExplanation('');
-      setInspectContract(undefined);
-    }
+    );
   }, [
     blockExplorerApi,
     inspectContract,
@@ -894,7 +1007,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         </Box>
       </Flex>
 
-      <Comments />
+      <Comments contractId={'some-contract-id'} />
 
       <Modal isOpen={isOpenAnnotation} onClose={onCloseAnnotation}>
         <ModalOverlay />

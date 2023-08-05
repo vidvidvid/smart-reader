@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Avatar,
   Button,
@@ -20,8 +20,10 @@ import { ethers } from 'ethers';
 import { useSignMessage } from 'wagmi';
 import { setCookie } from 'typescript-cookie';
 import jwtDecode from 'jwt-decode';
+import { formatDistanceToNow } from 'date-fns';
 
-const comments = [
+// const contractId = 'some-contract-id';
+const examplecomments = [
   {
     name: 'amyrobson',
     timeAgo: '1 month ago',
@@ -56,7 +58,10 @@ const comments = [
   },
 ];
 
-export const Comments = () => {
+export const Comments = ({ contractId }) => {
+  const [comment, setComment] = useState(''); // Initial state
+  const [comments, setComments] = useState([]); // Initial state
+
   const [message, setMessage] = React.useState(
     `I am signing this message to authenticate my address with my account on Smart Reader.` // TODO could add nonce for extra security
   );
@@ -88,7 +93,7 @@ export const Comments = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  useEffect(() => {
+  const checkLoggedIn = useCallback(() => {
     const token = Cookies.get('supabasetoken');
     if (!token) {
       // Prompt the user to log in or sign up.
@@ -109,7 +114,43 @@ export const Comments = () => {
         setIsLoggedIn(true);
       }
     }
+  }, [setToken]);
+
+  const getComments = useCallback(async () => {
+    //   async function getComments() {
+    let { data: commentData, error } = await supabase
+      .from('comments') // replace with your table name
+      .select('*')
+      .eq('contract_id', contractId);
+    console.log(commentData);
+    if (error) console.log('Error: ', error);
+
+    // Map the data into the desired format
+    const commentsNew = [];
+    for (const comment of commentData) {
+      const timeAgo = formatDistanceToNow(new Date(comment.timestamp), {
+        addSuffix: true,
+      });
+      const upvotes = await getUpvotes(comment.comment_id);
+      commentsNew.push({
+        name: comment.user_address,
+        upvotes: upvotes,
+        message: comment.comment,
+        ref: comment.ref,
+        timeAgo: timeAgo,
+      });
+    }
+    setComments(commentsNew);
+  }, [contractId, supabase]);
+
+  useEffect(() => {
+    getComments();
+    checkLoggedIn();
   }, []);
+
+  async function getUpvotes() {
+    return 0;
+  }
   async function login() {
     setIsLoggingIn(true);
     const nonce = await postData(
@@ -140,6 +181,39 @@ export const Comments = () => {
     setCookie('supabasetoken', '');
     setIsLoggedIn(false);
   }
+  async function addComment() {
+    const token = Cookies.get('supabasetoken');
+    if (!comment || comment.length === 0) {
+      return;
+    }
+    const decodedToken = jwtDecode(token);
+    console.log('decodedToken', decodedToken);
+    // Check if it's expired
+    const currentTime = Date.now() / 1000; // in seconds
+    console.log(Date.now());
+    if (decodedToken.exp < currentTime) {
+      console.log('Token is expired');
+      setIsLoggedIn(false);
+      return;
+    }
+
+    const reponse = await supabase.from('comments').upsert([
+      {
+        contract_id: contractId,
+        user_address: decodedToken.address,
+        comment: comment,
+      },
+    ]);
+    // const comment = {
+    //   id: uuidv4(),
+    //   name: 'amyrobson',
+    //   timeAgo: '1 month ago',
+    //   upvotes: 12,
+    //   message: 'Impressive! Though it seems the drag feature could be improved.',
+    //   ref: false,
+    // };
+  }
+
   return (
     <>
       {isConnected && (
@@ -177,6 +251,8 @@ export const Comments = () => {
           >
             <Avatar name="Dan Abramov" />
             <Input
+              value={comment} // Bind the value of the input field to the comment state
+              onChange={(e) => setComment(e.target.value)}
               variant="filled"
               placeholder="Add a comment"
               background="#00000026"
@@ -189,6 +265,7 @@ export const Comments = () => {
               background="white"
               color="#101D42"
               fontWeight={400}
+              onClick={addComment}
             >
               Send
             </Button>

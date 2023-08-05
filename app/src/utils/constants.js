@@ -3,4 +3,6 @@ const goerliUrl =
 
 const ipfsGateway = 'https://smart-reader.infura-ipfs.io/ipfs';
 
-module.exports = { goerliUrl, ipfsGateway };
+const contractsDatabase = 'contract-data';
+
+module.exports = { goerliUrl, ipfsGateway, contractsDatabase };
