@@ -114,7 +114,6 @@ export const Header = ({ address, setAddress, setFetching }) => {
                 setFetching(true);
                 e.target.value.length === 0 &&
                   setValidationResult({ result: false, message: '' });
-                console.log('fetching test 1');
               }}
             />
 

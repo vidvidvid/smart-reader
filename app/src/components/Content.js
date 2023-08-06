@@ -371,6 +371,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     createFunction
   ) {
     // Check if item exists
+    console.log('Checking if item exists in database ', id);
     const { data, error } = await supabase
       .from(database)
       .select('*')
@@ -389,14 +390,32 @@ export const Content = ({ address, fetching, setFetching }) => {
       let allFieldsExist = true; // Initialize flag
       // data[0]; // Get first item in array
       for (let i = 0; i < requiredFields.length; i++) {
-        if (!data[0].hasOwnProperty(requiredFields[i])) {
+        if (
+          data &&
+          data[0] &&
+          data[0].hasOwnProperty(requiredFields[i]) &&
+          (data[0][requiredFields[i]] === null ||
+            Object.keys(data[0][requiredFields[i]]).length === 0)
+        ) {
           allFieldsExist = false;
+          console.log('Object is empty');
           break;
         }
+        // if (!data[0].hasOwnProperty(requiredFields[i])) {
+        //   allFieldsExist = false;
+        //   break;
+        // }
+        // if (Object.keys(data[0][requiredFields[i]]).length === 0) {
+        //   allFieldsExist = false;
+        //   console.log('Object is empty');
+        //   break;
+        // }
       }
+      // console.log('All fields exist');
 
       if (allFieldsExist) {
         for (let i = 0; i < setFunctions.length; i++) {
+          console.log(requiredFields[i]);
           setFunctions[i](data[0][requiredFields[i]]);
         }
         return data[0];
@@ -404,6 +423,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         console.log('Not all fields exist');
       }
       const item = await createFunction();
+      console.log('item from creation function', item);
       const { data: updatedData, error: updateError } = await supabase
         .from(database)
         .update(item)
@@ -434,57 +454,69 @@ export const Content = ({ address, fetching, setFetching }) => {
     }
   }
 
-  // const fetchAllContractData = useCallback(async (contractAddress) => {
-  //   const apiModule = 'contract';
-  //   const apiAction = 'getsourcecode';
+  const fetchCreatorAndCreation = useCallback(async () => {
+    if (!address) return;
+    console.log('fetching creator and creation');
+    await createItemIfNotExists(
+      contractsDatabase,
+      chain.id + '-' + address,
+      'contract_id',
+      ['creation_info'],
+      [setContractCreation],
+      async () => {
+        const apiModule = 'contract';
+        const apiAction = 'getcontractcreation';
+        let creationInfo = {
+          creator: '',
+          creationTxn: '',
+        };
+        console.log("here's the address", address);
+        try {
+          console.log('getting contract info');
+          setIsFetchingCreator(true);
+          const response = await axios.get(
+            `https://${blockExplorerApi}?module=${apiModule}&action=${apiAction}&contractaddresses=${address}&apikey=${APIKEY}`
+          );
+          // setContractCreation({
+          //   creator: response.data.result[0].contractCreator,
+          //   creationTxn: response.data.result[0].txHash,
+          // });
+          console.log('response from contract creation', response);
 
-  //   try {
-  //     // setIsFetchingContract(true);
+          creationInfo = {
+            creator: response.data.result[0].contractCreator,
+            creationTxn: response.data.result[0].txHash,
+          };
+          console.log('new creation info ', creationInfo);
+          // setIsFetchingCreator(false);
+          // return creationInfo;
+          // setIsFetchingCreator(false);
+        } catch (error) {
+          console.log('Error fetching contract creation:', error);
 
-  //     const contract = {
-  //       id: network.address + contractAddress,
-  //       name: 'contract',
-  //       content: 'contract ' + contractAddress + ' {}',
-  //     };
-  //   } catch (error) {
-  //     console.log('Error fetching contract:', error);
-  //     // setIsFetchingContract(false);
-  //     // setContract({
-  //     //   id: null,
-  //     //   name: null,
-  //     //   content: null,
-  //     // });
-  //   }
-  // });
+          // const creationInfo = {
+          //   creator: null,
+          //   creationTxn: null,
+          // };
+          // const contract = {
+          //   contract_id: chain.id + '-' + address,
+          //   creation_info: creationInfo,
+          // };
+          // setIsFetchingCreator(false);
+          // return contract;
+          // setContractCreation();
+        }
 
-  const fetchCreatorAndCreation = useCallback(
-    async (contractAddress) => {
-      const apiModule = 'contract';
-      const apiAction = 'getcontractcreation';
-
-      try {
-        setIsFetchingCreator(true);
-
-        const response = await axios.get(
-          `https://${blockExplorerApi}?module=${apiModule}&action=${apiAction}&contractaddresses=${contractAddress}&apikey=${APIKEY}`
-        );
-        setContractCreation({
-          creator: response.data.result[0].contractCreator,
-          creationTxn: response.data.result[0].txHash,
-        });
+        const contract = {
+          contract_id: chain.id + '-' + address,
+          creation_info: creationInfo,
+        };
 
         setIsFetchingCreator(false);
-      } catch (error) {
-        console.log('Error fetching contract creation:', error);
-        setIsFetchingCreator(false);
-        setContractCreation({
-          creator: null,
-          creationTxn: null,
-        });
+        return contract;
       }
-    },
-    [APIKEY, blockExplorerApi]
-  );
+    );
+  }, [address, blockExplorerApi, chain.id, APIKEY]);
 
   useEffect(() => {
     if (address) {
@@ -494,7 +526,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address, fetchCreatorAndCreation]);
 
   const fetchSourceCode = useCallback(async () => {
-    createItemIfNotExists(
+    await createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,
       'contract_id',
@@ -817,13 +849,32 @@ export const Content = ({ address, fetching, setFetching }) => {
         <Heading as="h2" size="md" fontWeight={600} noOfLines={1}>
           CREATOR
         </Heading>
-        {isFetchingCreator && contractCreation.creator === '' && (
+        {/* {isFetchingCreator ||
+          !contractCreation ||
+          (contractCreation.creator === '' && (
+            <Flex gap={1} alignItems="center">
+              <Spinner size="xs" /> Fetching creator...
+            </Flex>
+          ))} */}
+        {/* {contractCreation && contractCreation.creator !== '' && (
+          <Text fontSize="sm">
+            {!userAddress
+              ? 'Connect your wallet'
+              : !validationResult.result
+              ? 'No valid address'
+              : 'No contract selected'}
+          </Text>
+        )} */}
+
+        {isFetchingCreator && (
           <Flex gap={1} alignItems="center">
             <Spinner size="xs" /> Fetching creator...
           </Flex>
         )}
+
         {!isFetchingCreator &&
-        contractCreation.creator &&
+        contractCreation &&
+        contractCreation.creator !== '' &&
         validationResult.result ? (
           <Flex gap={1}>
             <Link
