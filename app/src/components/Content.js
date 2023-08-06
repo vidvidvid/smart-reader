@@ -169,16 +169,19 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
+      console.log('sourceCode', sourceCode);
       setInspectContract(sourceCode[0]);
       // console.log('sourceCode', sourceCode);
       const name = sourceCode[0].name ?? 'Name not found';
       const contractDisplayName = name.substring(name.lastIndexOf('/') + 1);
+      console.log('contractDisplayName', contractDisplayName);
       setContractName(contractDisplayName);
     }
   }, [sourceCode, chain?.id]);
 
   const fetchExplanation = useCallback(
     async (code, type) => {
+      console.log("here'in fetchExplanation");
       const relay = new GelatoRelay();
 
       const result = await getExplanation(address, inspectContract.name);
@@ -364,6 +367,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     id,
     idName,
     requiredFields,
+    setFunctions,
     createFunction
   ) {
     // Check if item exists
@@ -392,7 +396,9 @@ export const Content = ({ address, fetching, setFetching }) => {
       }
 
       if (allFieldsExist) {
-        console.log('All fields exist');
+        for (let i = 0; i < setFunctions.length; i++) {
+          setFunctions[i](data[0][requiredFields[i]]);
+        }
         return data[0];
       } else {
         console.log('Not all fields exist');
@@ -462,11 +468,11 @@ export const Content = ({ address, fetching, setFetching }) => {
         const response = await axios.get(
           `https://${blockExplorerApi}?module=${apiModule}&action=${apiAction}&contractaddresses=${contractAddress}&apikey=${APIKEY}`
         );
-        supabase.console.log('response', response.data.result);
         setContractCreation({
           creator: response.data.result[0].contractCreator,
           creationTxn: response.data.result[0].txHash,
         });
+
         setIsFetchingCreator(false);
       } catch (error) {
         console.log('Error fetching contract creation:', error);
@@ -488,12 +494,12 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address, fetchCreatorAndCreation]);
 
   const fetchSourceCode = useCallback(async () => {
-    console.log('HERE IT IS', network.id);
     createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,
       'contract_id',
       ['source_code', 'abi'],
+      [setSourceCode, setContractABI],
       async () => {
         try {
           const resp = await axios.get(
@@ -510,7 +516,7 @@ export const Content = ({ address, fetching, setFetching }) => {
             });
             throw new Error(message);
           }
-
+          console.log('contracts array', resp.data.result[0]);
           try {
             sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
 
@@ -528,23 +534,23 @@ export const Content = ({ address, fetching, setFetching }) => {
 
           const addressABI = JSON.parse(resp.data.result[0].ABI);
 
-          setContractABI(addressABI);
-          setSourceCode(contractsArray);
+          // setContractABI(addressABI);
+          // setSourceCode(contractsArray);
 
           const contract = {
             contract_id: chain.id + '-' + address,
-            source_code: contractsArray[0],
+            source_code: contractsArray,
             abi: addressABI,
           };
+          // while (!inspectContract) {
+          //   // console.log('In here');
+          //   await new Promise((resolve) => setTimeout(resolve, 100));
+          // }
 
-          while (!inspectContract) {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-          }
-
-          fetchExplanation(
-            contractsArray[0].sourceCode.content,
-            explanation.contract
-          );
+          // fetchExplanation(
+          //   contractsArray[0].sourceCode.content,
+          //   explanation.contract
+          // );
           // console.log('name', contractsArray[0].name);
           setFetching(false);
           return contract;
@@ -560,15 +566,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         }
       }
     );
-  }, [
-    blockExplorerApi,
-    inspectContract,
-    address,
-    APIKEY,
-    fetchExplanation,
-    explanation.contract,
-    setFetching,
-  ]);
+  }, [address]);
 
   useEffect(() => {
     console.log('made it in fetching', fetching);
