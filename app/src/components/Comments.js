@@ -109,7 +109,6 @@ export const Comments = ({ chainId, contractAddress }) => {
         console.log('Token is expired');
       } else {
         console.log('Token is not expired');
-        console.log(token);
         setToken(token);
 
         setIsLoggedIn(true);
@@ -120,7 +119,6 @@ export const Comments = ({ chainId, contractAddress }) => {
   const getComments = useCallback(async () => {
     //   async function getComments() {
     if (!contractAddress || !chainId || contractAddress.length === 0) return;
-    console.log('supabase token', supabase.realtime.accessToken);
     let { data: commentData, error } = await supabase
       .from('comments') // replace with your table name
       .select('*')
@@ -142,7 +140,6 @@ export const Comments = ({ chainId, contractAddress }) => {
         timeAgo: timeAgo,
       });
     }
-    console.log('setting new comments', commentsNew);
     setComments(commentsNew);
   }, [contractAddress, chainId, supabase]);
 
@@ -197,7 +194,11 @@ export const Comments = ({ chainId, contractAddress }) => {
     const options = {
       headers,
     };
-    const newSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+    const newSupabase = await createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY,
+      options
+    );
     newSupabase.headers['Authorization'] = `Bearer ${token}`; // for some reason this is what worked, needs cleaning
     const decodedToken = jwtDecode(token);
 
@@ -208,7 +209,6 @@ export const Comments = ({ chainId, contractAddress }) => {
       setIsLoggedIn(false);
       return;
     }
-    console.log('inserting comment');
     const commentToUpload = {
       contract_id: chainId + '-' + contractAddress,
       user_address: decodedToken.address,
@@ -219,8 +219,16 @@ export const Comments = ({ chainId, contractAddress }) => {
       .insert([commentToUpload]);
     if (insertError && !insertedData) {
       console.log('Insert Error: ', insertError);
+      // tried this, it doesn't fix
+      // console.log('trying again');
+      // const { data: insertedData2ndAttempt, error: insertError2ndAttempt } =
+      //   await newSupabase.from('comments').insert([commentToUpload]);
+      // if (insertError2ndAttempt && !insertedData2ndAttempt) {
+      //   console.log('Insert Error: ', insertError2ndAttempt);
+      // }
       return;
     }
+    getComments();
 
     // const comment = {
     //   id: uuidv4(),

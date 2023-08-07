@@ -310,7 +310,6 @@ export const Content = ({ address, fetching, setFetching }) => {
           setIsLoadingFunction(true);
         }
       }
-      console.log('before creating new if needed');
       if (!fileExplanationSuccess) {
         let content;
         let requiredField;
@@ -348,7 +347,6 @@ export const Content = ({ address, fetching, setFetching }) => {
           }),
         };
 
-        console.log('fetchhh');
         fetch('https://api.openai.com/v1/chat/completions', requestOptions)
           .then((response) => response.json())
           .then(async (data) => {
@@ -369,7 +367,6 @@ export const Content = ({ address, fetching, setFetching }) => {
             if (type === explanation.contract) {
               setContractExplanation(data.choices[0].message.content);
               setIsLoadingContract(false);
-              // console.log('new message', data.choices[0].message.content);
               // insert the new explanation into the database
               console.log('updating database');
 
@@ -611,15 +608,9 @@ export const Content = ({ address, fetching, setFetching }) => {
   }
 
   const fetchCreatorAndCreation = useCallback(async () => {
+    if (!userAddress || userAddress === '') return;
     if (!address) return;
     if (!(await isContract(address))) return;
-    const valResp = await validateContractAddress(
-      address,
-      userAddress,
-      validationResult,
-      setValidationResult
-    );
-    if (!valResp.result) return;
 
     await createItemIfNotExists(
       contractsDatabase,
@@ -686,14 +677,8 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address, fetchCreatorAndCreation]);
 
   const fetchSourceCode = useCallback(async () => {
+    if (!userAddress || userAddress === '') return;
     if (!(await isContract(address))) return;
-    const valResp = await validateContractAddress(
-      address,
-      userAddress,
-      validationResult,
-      setValidationResult
-    );
-    if (!valResp.result) return;
 
     await createItemIfNotExists(
       contractsDatabase,
