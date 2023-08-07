@@ -613,6 +613,14 @@ export const Content = ({ address, fetching, setFetching }) => {
   const fetchCreatorAndCreation = useCallback(async () => {
     if (!address) return;
     if (!(await isContract(address))) return;
+    const valResp = await validateContractAddress(
+      address,
+      userAddress,
+      validationResult,
+      setValidationResult
+    );
+    if (!valResp.result) return;
+
     await createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,
@@ -679,6 +687,14 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const fetchSourceCode = useCallback(async () => {
     if (!(await isContract(address))) return;
+    const valResp = await validateContractAddress(
+      address,
+      userAddress,
+      validationResult,
+      setValidationResult
+    );
+    if (!valResp.result) return;
+
     await createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,
