@@ -49,10 +49,8 @@ export const Login = () => {
       // Use Supabase client to set the session:
 
       const decodedToken = jwtDecode(token);
-      console.log('decodedToken', decodedToken);
       // Check if it's expired
       const currentTime = Date.now() / 1000; // in seconds
-      console.log(Date.now());
       if (decodedToken.exp < currentTime) {
         console.log('Token is expired');
       } else {
