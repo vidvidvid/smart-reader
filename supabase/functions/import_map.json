@@ -1,0 +1,5 @@
+{
+    "imports": {
+        "ethers": "https://esm.sh/ethers@v6"
+    }
+}
