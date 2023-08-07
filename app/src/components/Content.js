@@ -130,7 +130,6 @@ export const Content = ({ address, fetching, setFetching }) => {
     name: '',
     code: '',
   });
-  console.log('inspectContract', inspectContract);
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
@@ -173,59 +172,169 @@ export const Content = ({ address, fetching, setFetching }) => {
       setInspectContract(sourceCode[0]);
       // console.log('sourceCode', sourceCode);
       const name = sourceCode[0].name ?? 'Name not found';
+
+      fetchExplanation(
+        sourceCode[0].sourceCode,
+        // contractsArray[0].sourceCode.content,
+        explanation.contract
+      );
       const contractDisplayName = name.substring(name.lastIndexOf('/') + 1);
       console.log('contractDisplayName', contractDisplayName);
       setContractName(contractDisplayName);
     }
   }, [sourceCode, chain?.id]);
 
+  // useEffect(() => {
+  //   if (sourceCode && sourceCode.length > 0) {
+  //     fetchExplanation(
+  //       sourceCode[0].sourceCode.content,
+  //       // contractsArray[0].sourceCode.content,
+  //       explanation.contract
+  //     );
+  //   }
+  // }, [sourceCode]);
+
   const fetchExplanation = useCallback(
     async (code, type) => {
-      console.log("here'in fetchExplanation");
+      console.log('here n fetchExplanation');
       const relay = new GelatoRelay();
 
-      const result = await getExplanation(address, inspectContract.name);
+      // const result = await getExplanation(address, inspectContract.name);
 
-      console.log('getExplanation in fetchExplanation', result);
+      // console.log('getExplanation in fetchExplanation', result);
 
       let fileExplanationSuccess = false;
-      // if (result?.length > 0) {
-      //   const fileExplanationPromise = new Promise((resolve, reject) => {
-      //     axios
-      //       .get(ipfsGateway + '/' + result[0].ipfsSchema)
-      //       .then((response) => {
-      //         console.log('DID IT WORK? ', response.data);
-      //         setContractExplanation(response.data.fileExplanation);
-      //         resolve(true);
-      //       })
-      //       .catch((error) => {
-      //         console.log(
-      //           'Error fetching IPFS content:',
-      //           error.response.data.error
-      //         );
-      //         reject(false);
-      //       });
-      //   });
 
-      //   fileExplanationSuccess = await fileExplanationPromise;
-      // } else {
-      //   fileExplanationSuccess = false;
-      // }
+      // check if the explanation exists in the db
+      const id = chain.id + '-' + address;
+      console.log('Checking if item exists in database ', id);
+      const { data, error } = await supabase
+        .from(contractsDatabase)
+        .select('*')
+        .eq('contract_id', id);
 
-      console.log('lol');
+      // Handle error during lookup
+      if (error && !data) {
+        console.log('Error: ', error);
+        return;
+      }
+      if (data.length > 0) {
+        console.log('Item exists!', data);
+        // required_field = 'contract_explanation';
 
-      let content;
-      if (!fileExplanationSuccess) {
+        // if (
+        //   data &&
+        //   data[0] &&
+        //   data[0].hasOwnProperty(requiredFields[i]) &&
+        //   (data[0][requiredFields[i]] === null ||
+        //     Object.keys(data[0][requiredFields[i]]).length === 0)
+        // ) {
+        //   allFieldsExist = false;
+        //   console.log('Object is empty');
+        //   break;
+        // }
+        // if (type === explanation.contract) {
+        //   requiredField = 'contract_explanation'
+        // } else if (type === explanation.dependency) {
+        //   content = `Give me a simple explanation of the following solidity file or dependency: ${code}`;
+        //   setIsLoadingDependency(true);
+        // } else {
+        //   content = `Give me a simple explanation of the following solidity code: ${code}`;
+        //   setIsLoadingFunction(true);
+        // }
+        // TODO add logic for checking last update and only updating if it's been more than a set period of time
+
+        // if (!data[0].hasOwnProperty(requiredFields[i])) {
+        //   allFieldsExist = false;
+        //   break;
+        // }
+        // if (Object.keys(data[0][requiredFields[i]]).length === 0) {
+        //   allFieldsExist = false;
+        //   console.log('Object is empty');
+        //   break;
+
+        // if (result?.length > 0) {
+        //   const fileExplanationPromise = new Promise((resolve, reject) => {
+        //     axios
+        //       .get(ipfsGateway + '/' + result[0].ipfsSchema)
+        //       .then((response) => {
+        //         console.log('DID IT WORK? ', response.data);
+        //         setContractExplanation(response.data.fileExplanation);
+        //         resolve(true);
+        //       })
+        //       .catch((error) => {
+        //         console.log(
+        //           'Error fetching IPFS content:',
+        //           error.response.data.error
+        //         );
+        //         reject(false);
+        //       });
+        //   });
+
+        //   fileExplanationSuccess = await fileExplanationPromise;
+        // } else {
+        //   fileExplanationSuccess = false;
+        // }
+        let requiredField;
+        let content;
         if (type === explanation.contract) {
+          requiredField = 'contract_explanation';
+          setIsLoadingContract(true);
+          if (data[0][requiredField] !== null) {
+            console.log('Contract explanation exists');
+            setContractExplanation(data[0][requiredField]);
+            setIsLoadingContract(false);
+            fileExplanationSuccess = true;
+          }
+        } else if (type === explanation.dependency) {
+          requiredField = 'dependency_explanations';
+          setIsLoadingDependency(true);
+          if (
+            data[0][requiredField] !== null &&
+            data[0][requiredField][code] !== null
+          ) {
+            console.log('Contract explanation exists');
+            setContractExplanation(data[0][requiredField][code]);
+            setIsLoadingContract(false);
+            fileExplanationSuccess = true;
+          }
+        } else {
+          requiredField = 'function_explanations';
+          if (
+            data[0][requiredField] !== null &&
+            data[0][requiredField][code] !== null
+          ) {
+            console.log('Contract explanation exists');
+            setContractExplanation(data[0][requiredField][code]);
+            setIsLoadingContract(false);
+            fileExplanationSuccess = true;
+          }
+          setIsLoadingFunction(true);
+        }
+      }
+      console.log('before creating new if needed');
+      if (!fileExplanationSuccess) {
+        let content;
+        let requiredField;
+        if (type === explanation.contract) {
+          requiredField = 'contract_explanation';
           content = `Give me an advanced level summary of ${code} and analyse if the code has any potential vulnerabilities that could be used for malicious purposes. Please use markdown formatting in all responses`;
           setIsLoadingContract(true);
         } else if (type === explanation.dependency) {
+          requiredField = 'dependency_explanations';
           content = `Give me a simple explanation of the following solidity file or dependency: ${code}`;
           setIsLoadingDependency(true);
         } else {
+          requiredField = 'function_explanations';
           content = `Give me a simple explanation of the following solidity code: ${code}`;
           setIsLoadingFunction(true);
         }
+        console.log(
+          'Checking if explanation item exists in database ',
+          id,
+          ' ',
+          requiredField
+        );
 
         const requestOptions = {
           method: 'POST',
@@ -263,40 +372,54 @@ export const Content = ({ address, fetching, setFetching }) => {
                 throw new Error(errorMessage);
               }
             }
-
+            const contract = {
+              contract_id: chain.id + '-' + address,
+            };
             if (type === explanation.contract) {
               setContractExplanation(data.choices[0].message.content);
               setIsLoadingContract(false);
-              console.log('inspectContract2', inspectContract?.name);
               // console.log('new message', data.choices[0].message.content);
+              // insert the new explanation into the database
+              console.log('updating database');
+              contract[requiredField] = data.choices[0].message.content;
+              const { data: updatedData, error: updateError } = await supabase
+                .from(contractsDatabase)
+                .update(contract)
+                .eq('contract_id', id);
+              // Handle error during update
 
-              const uploadResult = await uploadJSON(
-                address,
-                network,
-                inspectContract?.name,
-                data.choices[0].message.content
-              );
-              console.log('uploadResult', uploadResult);
-              const smartReader = getContract(network, signer);
-              console.log('inspectContract3', inspectContract?.name);
-              const { data: sponsoredData } =
-                await smartReader.populateTransaction.addContract(
-                  address,
-                  inspectContract.name,
-                  uploadResult
-                );
+              if (updateError && !updatedData) {
+                console.log('Update Error: ', updateError);
+                return;
+              }
 
-              const sponsoredCallRequest = {
-                chainId: chain?.id,
-                target: smartReader.address,
-                data: sponsoredData,
-              };
+              console.log('Item updated!', updatedData);
+              // const uploadResult = await uploadJSON(
+              //   address,
+              //   network,
+              //   inspectContract?.name,
+              //   data.choices[0].message.content
+              // );
+              // console.log('uploadResult', uploadResult);
+              // const smartReader = getContract(network, signer);
+              // const { data: sponsoredData } =
+              //   await smartReader.populateTransaction.addContract(
+              //     address,
+              //     inspectContract.name,
+              //     uploadResult
+              //   );
 
-              const relayResponse = await relay.sponsoredCall(
-                sponsoredCallRequest,
-                process.env.REACT_APP_GELATO_API_KEY
-              );
-              console.log('Gelato relay result: ', relayResponse);
+              // const sponsoredCallRequest = {
+              //   chainId: chain?.id,
+              //   target: smartReader.address,
+              //   data: sponsoredData,
+              // };
+
+              // const relayResponse = await relay.sponsoredCall(
+              //   sponsoredCallRequest,
+              //   process.env.REACT_APP_GELATO_API_KEY
+              // );
+              // console.log('Gelato relay result: ', relayResponse);
             } else if (type === explanation.dependency) {
               console.log('data.choices[0]', data.choices[0]);
               setDependencyExplanation(data.choices[0].message.content);
@@ -579,10 +702,10 @@ export const Content = ({ address, fetching, setFetching }) => {
           //   await new Promise((resolve) => setTimeout(resolve, 100));
           // }
 
-          // fetchExplanation(
-          //   contractsArray[0].sourceCode.content,
-          //   explanation.contract
-          // );
+          fetchExplanation(
+            contractsArray[0].sourceCode.content,
+            explanation.contract
+          );
           // console.log('name', contractsArray[0].name);
           setFetching(false);
           return contract;
