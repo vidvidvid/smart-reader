@@ -83,7 +83,7 @@ const CustomTab = React.forwardRef((props, ref) => {
   const tabProps = useTab({ ...props, ref });
   const isSelected = !!tabProps['aria-selected'];
   const isDisabled = !!tabProps['aria-disabled'];
-  console.log('tabProps', isDisabled, tabProps['aria-disabled']);
+  // console.log('tabProps', isDisabled, tabProps['aria-disabled']);
   const bg = isDisabled ? 'red' : isSelected ? '#FFFFFF40' : 'transparent';
   const bgHover = isDisabled ? 'transparent' : '#ffffff40';
   const cursor = isDisabled ? 'not-allowed' : 'pointer';
@@ -174,7 +174,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       const name = sourceCode[0].name ?? 'Name not found';
 
       fetchExplanation(
-        sourceCode[0].sourceCode,
+        sourceCode[0].sourceCode.content,
         // contractsArray[0].sourceCode.content,
         explanation.contract
       );
@@ -195,7 +195,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   // }, [sourceCode]);
 
   const fetchExplanation = useCallback(
-    async (code, type) => {
+    async (code, type, arrayId = '') => {
       console.log('here n fetchExplanation');
       const relay = new GelatoRelay();
 
@@ -207,19 +207,20 @@ export const Content = ({ address, fetching, setFetching }) => {
 
       // check if the explanation exists in the db
       const id = chain.id + '-' + address;
-      console.log('Checking if item exists in database ', id);
-      const { data, error } = await supabase
+      console.log('Checking if item exists in database fetch explanation', id);
+      const { data: supabaseResponse, error } = await supabase
         .from(contractsDatabase)
         .select('*')
         .eq('contract_id', id);
 
+      console.log(error);
       // Handle error during lookup
-      if (error && !data) {
+      if (error && !supabaseResponse) {
         console.log('Error: ', error);
         return;
       }
-      if (data.length > 0) {
-        console.log('Item exists!', data);
+      if (supabaseResponse.length > 0) {
+        console.log('Item exists!', supabaseResponse);
         // required_field = 'contract_explanation';
 
         // if (
@@ -280,9 +281,9 @@ export const Content = ({ address, fetching, setFetching }) => {
         if (type === explanation.contract) {
           requiredField = 'contract_explanation';
           setIsLoadingContract(true);
-          if (data[0][requiredField] !== null) {
+          if (supabaseResponse[0][requiredField] !== null) {
             console.log('Contract explanation exists');
-            setContractExplanation(data[0][requiredField]);
+            setContractExplanation(supabaseResponse[0][requiredField]);
             setIsLoadingContract(false);
             fileExplanationSuccess = true;
           }
@@ -290,22 +291,22 @@ export const Content = ({ address, fetching, setFetching }) => {
           requiredField = 'dependency_explanations';
           setIsLoadingDependency(true);
           if (
-            data[0][requiredField] !== null &&
-            data[0][requiredField][code] !== null
+            supabaseResponse[0][requiredField] !== null &&
+            supabaseResponse[0][requiredField][arrayId] != null
           ) {
             console.log('Contract explanation exists');
-            setContractExplanation(data[0][requiredField][code]);
+            setContractExplanation(supabaseResponse[0][requiredField][code]);
             setIsLoadingContract(false);
             fileExplanationSuccess = true;
           }
         } else {
           requiredField = 'function_explanations';
           if (
-            data[0][requiredField] !== null &&
-            data[0][requiredField][code] !== null
+            supabaseResponse[0][requiredField] !== null &&
+            supabaseResponse[0][requiredField][arrayId] !== null
           ) {
             console.log('Contract explanation exists');
-            setContractExplanation(data[0][requiredField][code]);
+            setContractExplanation(supabaseResponse[0][requiredField][code]);
             setIsLoadingContract(false);
             fileExplanationSuccess = true;
           }
@@ -381,7 +382,7 @@ export const Content = ({ address, fetching, setFetching }) => {
               // console.log('new message', data.choices[0].message.content);
               // insert the new explanation into the database
               console.log('updating database');
-              contract[requiredField] = data.choices[0].message.content;
+
               const { data: updatedData, error: updateError } = await supabase
                 .from(contractsDatabase)
                 .update(contract)
@@ -423,10 +424,54 @@ export const Content = ({ address, fetching, setFetching }) => {
             } else if (type === explanation.dependency) {
               console.log('data.choices[0]', data.choices[0]);
               setDependencyExplanation(data.choices[0].message.content);
+              contract[requiredField] = supabaseResponse[0][requiredField];
+              if (contract.requiredField === null) {
+                contract[requiredField] = {};
+              }
+              contract[requiredField][arrayId] =
+                data.choices[0].message.content;
+              const { data: updatedData, error: updateError } = await supabase
+                .from(contractsDatabase)
+                .update(contract)
+                .eq('contract_id', id);
+              // Handle error during update
+
+              if (updateError && !updatedData) {
+                console.log('Update Error: ', updateError);
+                return;
+              }
+
+              console.log('Item updated!', updatedData);
               setIsLoadingDependency(false);
             } else {
+              console.log('storing function type', requiredField);
               console.log('data.choices[0]', data.choices[0]);
+              console.log(contract[requiredField]);
+
               setFunctionExplanation(data.choices[0].message.content);
+              // contract[requiredField] = supabaseResponse[0][requiredField];
+              if (
+                !contract[requiredField] ||
+                contract[requiredField] === null
+              ) {
+                contract[requiredField] = {};
+                console.log('making new one');
+              }
+              contract[requiredField][arrayId] =
+                data.choices[0].message.content;
+              console.log(contract);
+              const { data: updatedData, error: updateError } = await supabase
+                .from(contractsDatabase)
+                .update(contract)
+                .eq('contract_id', id);
+              // Handle error during update
+
+              if (updateError && !updatedData) {
+                console.log('Update Error: ', updateError);
+                return;
+              }
+
+              console.log('Item updated!', updatedData);
               setIsLoadingFunction(false);
             }
           })
@@ -538,7 +583,6 @@ export const Content = ({ address, fetching, setFetching }) => {
 
       if (allFieldsExist) {
         for (let i = 0; i < setFunctions.length; i++) {
-          console.log(requiredFields[i]);
           setFunctions[i](data[0][requiredFields[i]]);
         }
         return data[0];
@@ -546,7 +590,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         console.log('Not all fields exist');
       }
       const item = await createFunction();
-      console.log('item from creation function', item);
       const { data: updatedData, error: updateError } = await supabase
         .from(database)
         .update(item)
@@ -579,7 +622,6 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const fetchCreatorAndCreation = useCallback(async () => {
     if (!address) return;
-    console.log('fetching creator and creation');
     await createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,
@@ -593,9 +635,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           creator: '',
           creationTxn: '',
         };
-        console.log("here's the address", address);
         try {
-          console.log('getting contract info');
           setIsFetchingCreator(true);
           const response = await axios.get(
             `https://${blockExplorerApi}?module=${apiModule}&action=${apiAction}&contractaddresses=${address}&apikey=${APIKEY}`
@@ -604,13 +644,11 @@ export const Content = ({ address, fetching, setFetching }) => {
           //   creator: response.data.result[0].contractCreator,
           //   creationTxn: response.data.result[0].txHash,
           // });
-          console.log('response from contract creation', response);
 
           creationInfo = {
             creator: response.data.result[0].contractCreator,
             creationTxn: response.data.result[0].txHash,
           };
-          console.log('new creation info ', creationInfo);
           // setIsFetchingCreator(false);
           // return creationInfo;
           // setIsFetchingCreator(false);
@@ -671,7 +709,6 @@ export const Content = ({ address, fetching, setFetching }) => {
             });
             throw new Error(message);
           }
-          console.log('contracts array', resp.data.result[0]);
           try {
             sourceObj = JSON.parse(resp.data.result[0].SourceCode.slice(1, -1));
 
@@ -686,7 +723,6 @@ export const Content = ({ address, fetching, setFetching }) => {
               return { name, sourceCode };
             }
           );
-
           const addressABI = JSON.parse(resp.data.result[0].ABI);
 
           // setContractABI(addressABI);
@@ -724,7 +760,6 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address]);
 
   useEffect(() => {
-    console.log('made it in fetching', fetching);
     setExplanationError('');
     setContractExplanation('');
     if (fetching) {
@@ -747,14 +782,17 @@ export const Content = ({ address, fetching, setFetching }) => {
       }
 
       setInspectContract(contract);
-      fetchExplanation(contract.sourceCode.content, explanation.contract);
+      fetchExplanation(
+        contract.sourceCode.content,
+        explanation.contract,
+        contract.name
+      );
     },
     [explanation.contract, fetchExplanation, sourceCode]
   );
 
   const handleCodeHover = useCallback(
     (event) => {
-      console.log('I am in here');
       const codeNode = event.target;
       const lineNode = codeNode.parentElement;
 
@@ -864,7 +902,11 @@ export const Content = ({ address, fetching, setFetching }) => {
       name: selectedFunctionName,
       code: selectedFunctionCode,
     });
-    fetchExplanation(selectedFunctionCode, explanation.function);
+    fetchExplanation(
+      selectedFunctionCode,
+      explanation.function,
+      selectedFunctionName
+    );
     // let formattedCode = '';
     // if (inspectFunction && inspectFunction.code) {
     //   const formattedCode = prettier.format(inspectContract.code, {
@@ -880,8 +922,6 @@ export const Content = ({ address, fetching, setFetching }) => {
     fetchExplanation,
     explanation.function,
   ]);
-
-  console.log('in content');
 
   return (
     <Stack
