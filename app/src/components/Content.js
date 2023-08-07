@@ -168,7 +168,6 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
-      console.log('sourceCode', sourceCode);
       setInspectContract(sourceCode[0]);
       // console.log('sourceCode', sourceCode);
       const name = sourceCode[0].name ?? 'Name not found';
@@ -196,8 +195,7 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const fetchExplanation = useCallback(
     async (code, type, arrayId = '') => {
-      console.log('here n fetchExplanation');
-      const relay = new GelatoRelay();
+      // const relay = new GelatoRelay();
 
       // const result = await getExplanation(address, inspectContract.name);
 
@@ -213,7 +211,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         .select('*')
         .eq('contract_id', id);
 
-      console.log(error);
       // Handle error during lookup
       if (error && !supabaseResponse) {
         console.log('Error: ', error);
@@ -277,7 +274,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         //   fileExplanationSuccess = false;
         // }
         let requiredField;
-        let content;
         if (type === explanation.contract) {
           requiredField = 'contract_explanation';
           setIsLoadingContract(true);
@@ -330,13 +326,6 @@ export const Content = ({ address, fetching, setFetching }) => {
           content = `Give me a simple explanation of the following solidity code: ${code}`;
           setIsLoadingFunction(true);
         }
-        console.log(
-          'Checking if explanation item exists in database ',
-          id,
-          ' ',
-          requiredField
-        );
-
         const requestOptions = {
           method: 'POST',
           headers: {
@@ -677,7 +666,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         return contract;
       }
     );
-  }, [address, blockExplorerApi, chain.id, APIKEY]);
+  }, [address, blockExplorerApi, chain, APIKEY]);
 
   useEffect(() => {
     if (address) {
@@ -1219,7 +1208,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         </Box>
       </Flex>
 
-      <Comments contractId={'some-contract-id'} />
+      <Comments chainId={chain?.id} contractAddress={address} />
 
       <Modal isOpen={isOpenAnnotation} onClose={onCloseAnnotation}>
         <ModalOverlay />

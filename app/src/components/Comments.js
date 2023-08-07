@@ -9,6 +9,7 @@ import {
   Stack,
   Spinner,
 } from '@chakra-ui/react';
+import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { Comment } from './Comment';
 import Cookies from 'js-cookie';
@@ -21,8 +22,9 @@ import { useSignMessage } from 'wagmi';
 import { setCookie } from 'typescript-cookie';
 import jwtDecode from 'jwt-decode';
 import { formatDistanceToNow } from 'date-fns';
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-// const contractId = 'some-contract-id';
 const examplecomments = [
   {
     name: 'amyrobson',
@@ -58,7 +60,7 @@ const examplecomments = [
   },
 ];
 
-export const Comments = ({ contractId }) => {
+export const Comments = ({ chainId, contractAddress }) => {
   const [comment, setComment] = useState(''); // Initial state
   const [comments, setComments] = useState([]); // Initial state
 
@@ -101,28 +103,28 @@ export const Comments = ({ contractId }) => {
       // Use Supabase client to set the session:
 
       const decodedToken = jwtDecode(token);
-      console.log('decodedToken', decodedToken);
       // Check if it's expired
       const currentTime = Date.now() / 1000; // in seconds
-      console.log(Date.now());
       if (decodedToken.exp < currentTime) {
         console.log('Token is expired');
       } else {
         console.log('Token is not expired');
+        console.log(token);
         setToken(token);
 
         setIsLoggedIn(true);
       }
     }
-  }, [setToken]);
+  }, []);
 
   const getComments = useCallback(async () => {
     //   async function getComments() {
+    if (!contractAddress || !chainId || contractAddress.length === 0) return;
+    console.log('supabase token', supabase.realtime.accessToken);
     let { data: commentData, error } = await supabase
       .from('comments') // replace with your table name
       .select('*')
-      .eq('contract_id', contractId);
-    console.log(commentData);
+      .eq('contract_id', chainId + '-' + contractAddress);
     if (error) console.log('Error: ', error);
 
     // Map the data into the desired format
@@ -140,13 +142,14 @@ export const Comments = ({ contractId }) => {
         timeAgo: timeAgo,
       });
     }
+    console.log('setting new comments', commentsNew);
     setComments(commentsNew);
-  }, [contractId, supabase]);
+  }, [contractAddress, chainId, supabase]);
 
   useEffect(() => {
     getComments();
     checkLoggedIn();
-  }, []);
+  }, [chainId, contractAddress, getComments, checkLoggedIn]);
 
   async function getUpvotes() {
     return 0;
@@ -186,24 +189,39 @@ export const Comments = ({ contractId }) => {
     if (!comment || comment.length === 0) {
       return;
     }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    const options = {
+      headers,
+    };
+    const newSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, options);
+    newSupabase.headers['Authorization'] = `Bearer ${token}`; // for some reason this is what worked, needs cleaning
     const decodedToken = jwtDecode(token);
-    console.log('decodedToken', decodedToken);
+
     // Check if it's expired
     const currentTime = Date.now() / 1000; // in seconds
-    console.log(Date.now());
     if (decodedToken.exp < currentTime) {
       console.log('Token is expired');
       setIsLoggedIn(false);
       return;
     }
+    console.log('inserting comment');
+    const commentToUpload = {
+      contract_id: chainId + '-' + contractAddress,
+      user_address: decodedToken.address,
+      comment: comment,
+    };
+    const { data: insertedData, error: insertError } = await newSupabase
+      .from('comments')
+      .insert([commentToUpload]);
+    if (insertError && !insertedData) {
+      console.log('Insert Error: ', insertError);
+      return;
+    }
 
-    const reponse = await supabase.from('comments').upsert([
-      {
-        contract_id: contractId,
-        user_address: decodedToken.address,
-        comment: comment,
-      },
-    ]);
     // const comment = {
     //   id: uuidv4(),
     //   name: 'amyrobson',
