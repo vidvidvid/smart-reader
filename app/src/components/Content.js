@@ -292,22 +292,24 @@ export const Content = ({ address, fetching, setFetching }) => {
             supabaseResponse[0][requiredField][arrayId] != null
           ) {
             console.log('Contract explanation exists');
-            setContractExplanation(supabaseResponse[0][requiredField][code]);
-            setIsLoadingContract(false);
+            setDependencyExplanation(supabaseResponse[0][requiredField][code]);
+            setIsLoadingDependency(false);
             fileExplanationSuccess = true;
           }
         } else {
           requiredField = 'function_explanations';
+          setIsLoadingFunction(true);
           if (
             supabaseResponse[0][requiredField] !== null &&
             supabaseResponse[0][requiredField][arrayId] !== null
           ) {
-            console.log('Contract explanation exists');
-            setContractExplanation(supabaseResponse[0][requiredField][code]);
-            setIsLoadingContract(false);
+            console.log('Function explanation exists');
+            console.log('array id', arrayId);
+            console.log(supabaseResponse[0][requiredField][arrayId]);
+            setFunctionExplanation(supabaseResponse[0][requiredField][arrayId]);
+            setIsLoadingFunction(false);
             fileExplanationSuccess = true;
           }
-          setIsLoadingFunction(true);
         }
       }
       if (!fileExplanationSuccess) {
@@ -369,7 +371,8 @@ export const Content = ({ address, fetching, setFetching }) => {
               setIsLoadingContract(false);
               // insert the new explanation into the database
               console.log('updating database');
-
+              contract['contract_explanation'] =
+                data.choices[0].message.content;
               const { data: updatedData, error: updateError } = await supabase
                 .from(contractsDatabase)
                 .update(contract)
@@ -895,6 +898,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       name: selectedFunctionName,
       code: selectedFunctionCode,
     });
+    console.log('fetching function explanation');
     fetchExplanation(
       selectedFunctionCode,
       explanation.function,
