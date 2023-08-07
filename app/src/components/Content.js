@@ -54,6 +54,7 @@ import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
 import { useSupabase } from '../utils/supabaseContext';
+import { isContract } from '../utils/helpers.js';
 
 const functionMessages = [
   'Deciphering the function',
@@ -611,6 +612,7 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const fetchCreatorAndCreation = useCallback(async () => {
     if (!address) return;
+    if (!(await isContract(address))) return;
     await createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,
@@ -676,6 +678,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address, fetchCreatorAndCreation]);
 
   const fetchSourceCode = useCallback(async () => {
+    if (!(await isContract(address))) return;
     await createItemIfNotExists(
       contractsDatabase,
       chain.id + '-' + address,

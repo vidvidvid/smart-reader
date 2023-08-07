@@ -12,7 +12,8 @@ const shortenAddress = (address) => {
  * @returns {boolean} true if the address is a contract
  */
 const isContract = async (address) => {
-  if (!address) return false;
+  if (!address || address.length !== 42 || !address.startsWith('0x'))
+    return false;
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const code = await provider.getCode(address);
   return code && code !== '0x';
