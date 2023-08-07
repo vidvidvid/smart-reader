@@ -15,7 +15,7 @@ import { Main } from './components/Main';
 import { SupabaseProvider } from './utils/supabaseContext';
 
 export const Context = React.createContext();
-
+//newentery
 function App() {
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [mainnet, polygon, goerli];
