@@ -3,52 +3,44 @@ import './App.css';
 
 import {
   EthereumClient,
-  modalConnectors,
-  walletConnectProvider,
+  w3mConnectors,
+  w3mProvider,
 } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
 import React from 'react';
-import { WagmiConfig, configureChains, createClient } from 'wagmi';
-import {
-  goerli,
-  mainnet,
-  polygon
-} from 'wagmi/chains';
+import { WagmiConfig, configureChains, createConfig } from 'wagmi';
+import { goerli, mainnet, polygon } from 'wagmi/chains';
 import { Main } from './components/Main';
 
 export const Context = React.createContext();
 
 function App() {
-  const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
-  const chains = [
-    mainnet,
-    polygon,
-    goerli,
-  ];
+  const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID || '';
+  const chains = [mainnet, polygon, goerli];
 
-  const { provider } = configureChains(chains, [
-    walletConnectProvider({ projectId }),
+  const { publicClient } = configureChains(chains, [
+    w3mProvider({ projectId }),
   ]);
 
-  const wagmiClient = createClient({
+  const wagmiClient = createConfig({
     autoConnect: true,
-    connectors: modalConnectors({
+    connectors: w3mConnectors({
       version: '1',
       appName: 'smartreader',
       chains,
       projectId,
     }),
-    provider,
+    publicClient,
   });
 
   const ethereumClient = new EthereumClient(wagmiClient, chains);
   return (
-    <WagmiConfig client={wagmiClient}>
+    <WagmiConfig config={wagmiClient}>
       <Flex
         direction="column"
         h="full"
         p={6}
-        bgGradient='radial(43.95% 43.95% at 30.69% 0%, #172F74 0.18%, #101D42 100%)'
+        bgGradient="radial(43.95% 43.95% at 30.69% 0%, #172F74 0.18%, #101D42 100%)"
         backgroundRepeat="no-repeat"
       >
         <Main />
