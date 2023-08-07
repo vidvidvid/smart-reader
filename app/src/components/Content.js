@@ -303,9 +303,6 @@ export const Content = ({ address, fetching, setFetching }) => {
             supabaseResponse[0][requiredField] !== null &&
             supabaseResponse[0][requiredField][arrayId] !== null
           ) {
-            console.log('Function explanation exists');
-            console.log('array id', arrayId);
-            console.log(supabaseResponse[0][requiredField][arrayId]);
             setFunctionExplanation(supabaseResponse[0][requiredField][arrayId]);
             setIsLoadingFunction(false);
             fileExplanationSuccess = true;
@@ -434,10 +431,6 @@ export const Content = ({ address, fetching, setFetching }) => {
               console.log('Item updated!', updatedData);
               setIsLoadingDependency(false);
             } else {
-              console.log('storing function type', requiredField);
-              console.log('data.choices[0]', data.choices[0]);
-              console.log(contract[requiredField]);
-
               setFunctionExplanation(data.choices[0].message.content);
               // contract[requiredField] = supabaseResponse[0][requiredField];
               if (
@@ -445,11 +438,9 @@ export const Content = ({ address, fetching, setFetching }) => {
                 contract[requiredField] === null
               ) {
                 contract[requiredField] = {};
-                console.log('making new one');
               }
               contract[requiredField][arrayId] =
                 data.choices[0].message.content;
-              console.log(contract);
               const { data: updatedData, error: updateError } = await supabase
                 .from(contractsDatabase)
                 .update(contract)
@@ -898,7 +889,6 @@ export const Content = ({ address, fetching, setFetching }) => {
       name: selectedFunctionName,
       code: selectedFunctionCode,
     });
-    console.log('fetching function explanation');
     fetchExplanation(
       selectedFunctionCode,
       explanation.function,
