@@ -3,8 +3,8 @@ import './App.css';
 
 import {
   EthereumClient,
-  modalConnectors,
-  walletConnectProvider,
+  w3mConnectors,
+  w3mProvider,
 } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
 import React from 'react';
@@ -20,25 +20,25 @@ function App() {
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [mainnet, polygon, goerli];
 
-  const { provider } = configureChains(chains, [
-    walletConnectProvider({ projectId }),
+  const { publicClient } = configureChains(chains, [
+    w3mProvider({ projectId }),
   ]);
 
   const wagmiClient = createClient({
     autoConnect: true,
-    connectors: modalConnectors({
+    connectors: w3mConnectors({
       version: '1',
       appName: 'smartreader',
       chains,
       projectId,
     }),
-    provider,
+    publicClient,
   });
 
   const ethereumClient = new EthereumClient(wagmiClient, chains);
   return (
     <SupabaseProvider>
-      <WagmiConfig client={wagmiClient}>
+      <WagmiConfig config={wagmiClient}>
         <Flex
           direction="column"
           h="full"

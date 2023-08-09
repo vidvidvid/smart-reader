@@ -1,6 +1,6 @@
 import { Textarea, Flex, Button } from '@chakra-ui/react';
 import React, { useState } from 'react';
-import { useSigner, useNetwork } from 'wagmi';
+import { useNetwork, useWalletClient } from 'wagmi';
 import { getContract } from '../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
 

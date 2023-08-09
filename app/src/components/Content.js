@@ -1,10 +1,6 @@
 import { CopyIcon } from '@chakra-ui/icons';
 import { Comments } from './Comments';
-import { Details } from './Details';
 import { Files } from './Files';
-import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
-
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import React, {
   useState,
   useEffect,
@@ -43,13 +39,12 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { SimulateTransaction } from './SimulateTransaction';
 import axios from 'axios';
-import { uploadJSON } from '../utils/ipfs';
-import { useAccount, useSigner, useNetwork, useToken } from 'wagmi';
-import { getExplanation } from '../utils/queries';
-import { ipfsGateway, contractsDatabase } from '../utils/constants';
-import { getContract } from '../utils/contract';
-import { GelatoRelay } from '@gelatonetwork/relay-sdk';
+import {
+  useAccount,
+  useNetwork,
+} from 'wagmi';
 import chainInfo from '../utils/chainInfo';
+import { ipfsGateway, contractsDatabase } from '../utils/constants';
 import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
 import { Annotate } from './Annotate';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
@@ -134,7 +129,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
-  const { data: signer } = useSigner();
+  const { data: signer } = useWalletClient();
   const { APIKEY, blockExplorerApi, blockExplorerUrl } = chainInfo({ chain });
   const { onCopy, value, setValue, hasCopied } = useClipboard('');
   const [isFetchingCreator, setIsFetchingCreator] = useState(false);
