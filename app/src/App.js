@@ -8,7 +8,7 @@ import {
 } from '@web3modal/ethereum';
 import { Web3Modal } from '@web3modal/react';
 import React from 'react';
-import { WagmiConfig, configureChains, createClient } from 'wagmi';
+import { WagmiConfig, configureChains, createConfig } from 'wagmi';
 import { goerli, mainnet, polygon } from 'wagmi/chains';
 import { Main } from './components/Main';
 
@@ -24,7 +24,7 @@ function App() {
     w3mProvider({ projectId }),
   ]);
 
-  const wagmiClient = createClient({
+  const wagmiClient = createConfig({
     autoConnect: true,
     connectors: w3mConnectors({
       version: '1',
