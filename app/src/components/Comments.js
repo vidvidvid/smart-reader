@@ -131,13 +131,15 @@ export const Comments = ({ chainId, contractAddress }) => {
       const timeAgo = formatDistanceToNow(new Date(comment.timestamp), {
         addSuffix: true,
       });
-      const upvotes = await getUpvotes(comment.comment_id);
+      // const upvotes = await getUpvotes(comment.comment_id);
       commentsNew.push({
+        id: comment.comment_id,
         name: comment.user_address,
-        upvotes: upvotes,
+        // upvotes: upvotes,
         message: comment.comment,
         ref: comment.ref,
         timeAgo: timeAgo,
+        isLoggedIn: isLoggedIn,
       });
     }
     setComments(commentsNew);
@@ -148,9 +150,6 @@ export const Comments = ({ chainId, contractAddress }) => {
     checkLoggedIn();
   }, [chainId, contractAddress, getComments, checkLoggedIn]);
 
-  async function getUpvotes() {
-    return 0;
-  }
   async function login() {
     setIsLoggingIn(true);
     const nonce = await postData(
