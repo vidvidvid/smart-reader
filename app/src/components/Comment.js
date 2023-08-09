@@ -116,7 +116,6 @@ export const Comment = ({
 
   async function downvote() {
     if (!isLoggedIn || !isConnected) return;
-    console.log('downvoting');
     try {
       const { data, error } = await supabase
         .from('votes')
@@ -126,7 +125,7 @@ export const Comment = ({
 
       if (error && error.statusCode === 'PGRST116') {
         // Handle 406 error, i.e., create object if it doesn't exist
-        console.log('creating new one');
+
         await supabase
           .from('votes')
           .insert([{ id: id, upvotes: [], downvotes: [userAddress] }]);

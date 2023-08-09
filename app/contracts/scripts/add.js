@@ -12,8 +12,7 @@ const networkName = {
 
 async function main() {
   const network = await hre.ethers.provider.getNetwork();
-  console.log('networkId', network.chainId);
-  console.log('adding contract on:', networkName[network.chainId]);
+
   const deploymentPath = path.join(
     __dirname,
     `../deployments/${networkName[network.chainId]}.json`
@@ -22,7 +21,7 @@ async function main() {
   const SmartReader = await hre.ethers.getContractFactory('SmartReader');
 
   const smartReader = await SmartReader.attach(deploymentData.contract);
-  console.log(`SmartReader address: ${smartReader.address}`);
+
   const mainContract = Wallet.createRandom().address;
   const subContractName = 'Ownable';
   const explanation =
@@ -32,13 +31,10 @@ async function main() {
     subContractName,
     explanation
   );
-  console.log(
-    `subContract ${subContractName} added to main contract ${mainContract} added with explanation: ${explanation}`
-  );
+
 
   const logged = await tx.wait();
 
-  console.log('logged', logged);
   if (logged !== undefined) {
     const annotations = [
       { subContractName: 'Ownable', annotation: 'Annotation 1' },
@@ -47,15 +43,12 @@ async function main() {
     ];
 
     for (const { subContractName, annotation } of annotations) {
-      console.log('adding annotation', annotation, 'to', subContractName);
       await smartReader.addAnnotation(
         mainContract,
         subContractName,
         annotation
       );
-      console.log(
-        `Annotation ${annotation} added to contract ${mainContract} for subContract ${subContractName}`
-      );
+
     }
   }
 }

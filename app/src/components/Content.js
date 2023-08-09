@@ -42,6 +42,7 @@ import axios from 'axios';
 import {
   useAccount,
   useNetwork,
+  useWalletClient,
 } from 'wagmi';
 import chainInfo from '../utils/chainInfo';
 import { ipfsGateway, contractsDatabase } from '../utils/constants';
@@ -79,7 +80,6 @@ const CustomTab = React.forwardRef((props, ref) => {
   const tabProps = useTab({ ...props, ref });
   const isSelected = !!tabProps['aria-selected'];
   const isDisabled = !!tabProps['aria-disabled'];
-  // console.log('tabProps', isDisabled, tabProps['aria-disabled']);
   const bg = isDisabled ? 'red' : isSelected ? '#FFFFFF40' : 'transparent';
   const bgHover = isDisabled ? 'transparent' : '#ffffff40';
   const cursor = isDisabled ? 'not-allowed' : 'pointer';
@@ -174,7 +174,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         explanation.contract
       );
       const contractDisplayName = name.substring(name.lastIndexOf('/') + 1);
-      console.log('contractDisplayName', contractDisplayName);
       setContractName(contractDisplayName);
     }
   }, [sourceCode, chain?.id]);
@@ -201,7 +200,6 @@ export const Content = ({ address, fetching, setFetching }) => {
 
       // check if the explanation exists in the db
       const id = chain.id + '-' + address;
-      console.log('Checking if item exists in database fetch explanation', id);
       const { data: supabaseResponse, error } = await supabase
         .from(contractsDatabase)
         .select('*')
@@ -213,62 +211,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         return;
       }
       if (supabaseResponse.length > 0) {
-        console.log('Item exists!', supabaseResponse);
-        // required_field = 'contract_explanation';
-
-        // if (
-        //   data &&
-        //   data[0] &&
-        //   data[0].hasOwnProperty(requiredFields[i]) &&
-        //   (data[0][requiredFields[i]] === null ||
-        //     Object.keys(data[0][requiredFields[i]]).length === 0)
-        // ) {
-        //   allFieldsExist = false;
-        //   console.log('Object is empty');
-        //   break;
-        // }
-        // if (type === explanation.contract) {
-        //   requiredField = 'contract_explanation'
-        // } else if (type === explanation.dependency) {
-        //   content = `Give me a simple explanation of the following solidity file or dependency: ${code}`;
-        //   setIsLoadingDependency(true);
-        // } else {
-        //   content = `Give me a simple explanation of the following solidity code: ${code}`;
-        //   setIsLoadingFunction(true);
-        // }
-        // TODO add logic for checking last update and only updating if it's been more than a set period of time
-
-        // if (!data[0].hasOwnProperty(requiredFields[i])) {
-        //   allFieldsExist = false;
-        //   break;
-        // }
-        // if (Object.keys(data[0][requiredFields[i]]).length === 0) {
-        //   allFieldsExist = false;
-        //   console.log('Object is empty');
-        //   break;
-
-        // if (result?.length > 0) {
-        //   const fileExplanationPromise = new Promise((resolve, reject) => {
-        //     axios
-        //       .get(ipfsGateway + '/' + result[0].ipfsSchema)
-        //       .then((response) => {
-        //         console.log('DID IT WORK? ', response.data);
-        //         setContractExplanation(response.data.fileExplanation);
-        //         resolve(true);
-        //       })
-        //       .catch((error) => {
-        //         console.log(
-        //           'Error fetching IPFS content:',
-        //           error.response.data.error
-        //         );
-        //         reject(false);
-        //       });
-        //   });
-
-        //   fileExplanationSuccess = await fileExplanationPromise;
-        // } else {
-        //   fileExplanationSuccess = false;
-        // }
         let requiredField;
         if (type === explanation.contract) {
           requiredField = 'contract_explanation';

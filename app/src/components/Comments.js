@@ -69,21 +69,6 @@ export const Comments = ({ chainId, contractAddress }) => {
   );
   const { signMessageAsync } = useSignMessage({
     message,
-    // onSuccess(data) {
-    //   console.log('Success', data);
-    //   const verifyRequest = await postData(
-    //   process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
-    //   { signed: msg, nonce: nonce, address: userAddress }
-    // );
-    //   console.log(data.message);
-    // },
-    // onError(error) {
-    //   setIsLoggingIn(false);
-    //   console.log('Error', error);
-    // },
-    // onMutate(args) {
-    //   console.log('Mutate', args);
-    // },
   });
   const { supabase, setToken } = useSupabase();
   const {
@@ -108,7 +93,6 @@ export const Comments = ({ chainId, contractAddress }) => {
       if (decodedToken.exp < currentTime) {
         console.log('Token is expired');
       } else {
-        console.log('Token is not expired');
         setToken(token);
 
         setIsLoggedIn(true);
