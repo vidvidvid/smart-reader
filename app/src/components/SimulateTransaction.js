@@ -36,7 +36,6 @@ export const SimulateTransaction = ({
   userAddress,
   isConnected,
 }) => {
-  console.log('network', network);
   const [simulationValid, setSimulationValid] = useState(false);
   const [simulationReady, setSimulationReady] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -120,7 +119,8 @@ export const SimulateTransaction = ({
 
   useEffect(() => {
     if (name && contractABI) {
-      contractABI.forEach((abi) => {
+      const abiArray = JSON.parse(contractABI);
+      abiArray.forEach((abi) => {
         if (
           abi.name &&
           abi.name.toLowerCase().trim() === name.toLowerCase().trim()

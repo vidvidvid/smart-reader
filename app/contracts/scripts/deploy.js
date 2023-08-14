@@ -13,18 +13,13 @@ async function main() {
   const network = await ethers.provider.getNetwork();
   const address = await deployer.getAddress();
   const { chainId } = await deployer.provider.getNetwork();
-  console.log('Deploying SmartReader on network:', networkName[chainId]);
-  console.log('Deploying account:', address);
   const SmartReader = await ethers.getContractFactory('SmartReader');
   const smartReader = await SmartReader.deploy();
 
   await smartReader.deployed();
 
-  console.log(`SmartReader deployed to: ${smartReader.address}`);
 
   const txHash = smartReader.deployTransaction.hash;
-
-  console.log('Transaction Hash:', txHash);
 
   const receipt = await deployer.provider.getTransactionReceipt(txHash);
 
