@@ -55,10 +55,9 @@ export const Header = ({ address, setAddress, setFetching }) => {
   }, []);
 
   useEffect(() => {
-    console.log('here');
     if (isConnected) login();
-    else logout();
-  }, [isConnected]);
+    if (isDisconnected) logout();
+  }, [isConnected, isDisconnected]);
 
   useEffect(() => {
     if (address) {
