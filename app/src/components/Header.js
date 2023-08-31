@@ -16,14 +16,14 @@ import {
   Spinner,
   Text,
 } from '@chakra-ui/react';
+import { getNetwork } from '@wagmi/core';
 import { useWeb3Modal } from '@web3modal/react';
+import { CheckCircle2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
+import useLogin from '../hooks/useLogin';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
-import { getNetwork } from '@wagmi/core';
-import { CheckCircle2 } from 'lucide-react';
-import { Login } from './Login';
 
 export const Header = ({ address, setAddress, setFetching }) => {
   const { open, setDefaultChain } = useWeb3Modal();
@@ -33,6 +33,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
     isConnecting,
     isDisconnected,
   } = useAccount();
+  const { login, logout } = useLogin();
   const { disconnect } = useDisconnect();
   const { chain: networkChain, chains: networkChains } = useNetwork();
   const { chain, chains } = getNetwork();
@@ -52,6 +53,11 @@ export const Header = ({ address, setAddress, setFetching }) => {
     setDefaultChain(mainnet.chainId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (isConnected) login();
+    if (isDisconnected) logout();
+  }, [isConnected, isDisconnected]);
 
   useEffect(() => {
     if (address) {
