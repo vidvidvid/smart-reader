@@ -1,56 +1,43 @@
-import { CopyIcon } from '@chakra-ui/icons';
-import { Comments } from './Comments';
-import { Files } from './Files';
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  useRef,
-} from 'react';
+import { ArrowUpIcon, CopyIcon } from '@chakra-ui/icons';
 import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Image,
+  Link,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  Spinner,
+  Stack,
+  TabList,
   TabPanel,
   TabPanels,
   Tabs,
   Text,
-  useTab,
-  TabList,
-  Flex,
-  Badge,
-  Box,
-  Select,
-  Spinner,
-  Image,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure,
   useClipboard,
-  Button,
-  Code,
-  Heading,
-  Link,
-  Stack,
+  useDisclosure,
+  useTab,
 } from '@chakra-ui/react';
+import axios from 'axios';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { SimulateTransaction } from './SimulateTransaction';
-import axios from 'axios';
-import {
-  useAccount,
-  useNetwork,
-  useWalletClient,
-} from 'wagmi';
+import { useAccount, useNetwork, useWalletClient } from 'wagmi';
 import chainInfo from '../utils/chainInfo';
-import { ipfsGateway, contractsDatabase } from '../utils/constants';
-import { ArrowUpIcon, ChatIcon } from '@chakra-ui/icons';
-import { Annotate } from './Annotate';
+import { contractsDatabase } from '../utils/constants';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
-import { useSupabase } from '../utils/supabaseContext';
 import { isContract } from '../utils/helpers.js';
+import { useSupabase } from '../utils/supabaseContext';
+import { Annotate } from './Annotate';
+import { Comments } from './Comments';
+import { Files } from './Files';
+import { SimulateTransaction } from './SimulateTransaction';
 
 const functionMessages = [
   'Deciphering the function',
@@ -700,7 +687,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       const contract = sourceCode.find(
         (contract) => contract.name === selectedContract
       );
-
+      setContractName(selectedContract);
       if (mainContentRef.current) {
         mainContentRef.current.scrollTop = 50;
       }
@@ -992,7 +979,11 @@ export const Content = ({ address, fetching, setFetching }) => {
           </Text>
         )}
       </Stack>
-      <Files sourceCode={sourceCode} handleClick={handleContractChange} />
+      <Files
+        sourceCode={sourceCode}
+        selectedContract={contractName}
+        handleClick={handleContractChange}
+      />
       <Flex alignItems="center" w="full" h="lg">
         <Box
           background="#00000080"
