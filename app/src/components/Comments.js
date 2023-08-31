@@ -1,27 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Avatar,
-  Button,
-  Flex,
-  Heading,
-  Input,
-  List,
-  Stack,
-  Spinner,
-} from '@chakra-ui/react';
+import { Button, Heading, List, Spinner, Stack } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
-import { Comment } from './Comment';
 import Cookies from 'js-cookie';
+import React, { useCallback, useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { useAccount } from 'wagmi';
 import postData from '../utils/api.js';
 import { useSupabase } from '../utils/supabaseContext';
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
+import { Comment } from './Comment';
 // import { Button, Spinner } from '@chakra-ui/react';
-import { ethers } from 'ethers';
-import { useSignMessage } from 'wagmi';
-import { setCookie } from 'typescript-cookie';
-import jwtDecode from 'jwt-decode';
 import { formatDistanceToNow } from 'date-fns';
+import jwtDecode from 'jwt-decode';
+import { setCookie } from 'typescript-cookie';
+import { useSignMessage } from 'wagmi';
+import { AddComment } from './AddComment.js';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
@@ -249,36 +240,11 @@ export const Comments = ({ chainId, contractAddress }) => {
           COMMENTS ({comments.length})
         </Heading>
         {isLoggedIn && (
-          <Flex
-            alignItems="center"
-            background="#FFFFFF1A"
-            borderRadius="lg"
-            w="full"
-            py={4}
-            px={6}
-            gap={4}
-          >
-            <Avatar name="Dan Abramov" />
-            <Input
-              value={comment} // Bind the value of the input field to the comment state
-              onChange={(e) => setComment(e.target.value)}
-              variant="filled"
-              placeholder="Add a comment"
-              background="#00000026"
-              _hover={{ background: '#00000026' }}
-              _placeholder={{ color: '#ADADAD' }}
-              borderRadius="lg"
-            />
-            <Button
-              borderRadius="full"
-              background="white"
-              color="#101D42"
-              fontWeight={400}
-              onClick={addComment}
-            >
-              Send
-            </Button>
-          </Flex>
+          <AddComment
+            comment={comment}
+            setComment={setComment}
+            addComment={addComment}
+          />
         )}
         <List spacing={4}>
           {comments.map((comment) => (

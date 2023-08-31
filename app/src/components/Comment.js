@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { AddIcon, MinusIcon } from '@chakra-ui/icons';
 import {
   Avatar,
@@ -11,12 +10,15 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Reply } from 'lucide-react';
-import { useSupabase } from '../utils/supabaseContext';
+import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { useSupabase } from '../utils/supabaseContext';
+import { AddComment } from './AddComment';
 
 export const Comment = ({
   comment: { id, name, ref, timeAgo, message, isLoggedIn },
 }) => {
+  const [showReply, setShowReply] = useState(false);
   const [upvotes, setUpvotes] = useState(0);
   const { supabase } = useSupabase();
   const {
@@ -177,66 +179,74 @@ export const Comment = ({
     fetchUpvotes();
   }, []);
   return (
-    <ListItem
-      background="#FFFFFF1A"
-      py={4}
-      px={6}
-      borderRadius="lg"
-      display="flex"
-      gap={4}
-    >
-      <Stack
-        w="fit-content"
-        background="#0000001A"
-        borderRadius="xl"
-        alignItems="center"
+    <>
+      <ListItem
+        background="#FFFFFF1A"
+        py={4}
+        px={6}
+        borderRadius="lg"
+        display="flex"
+        gap={4}
       >
-        <IconButton
-          color="#A4BCFF"
-          variant="unstyled"
-          aria-label="Upvote"
-          icon={<AddIcon />}
-          onClick={upvote}
-        />
-        <Text fontSize="md" fontWeight="medium" mr={2}>
-          {upvotes}
-        </Text>
-        <IconButton
-          color="#A4BCFF"
-          variant="unstyled"
-          aria-label="Downvote"
-          icon={<MinusIcon />}
-          onClick={downvote}
-        />
-      </Stack>
-      <Stack flex={1}>
-        <Flex alignItems="center" justifyContent="space-between">
-          <Flex alignItems="center" gap={4}>
-            <Avatar size="sm" name={name} />
-            <Link color="#A4BCFF" fontWeight="semibold">
-              {name}
-            </Link>
-            <Text color="#FFFFFFCC" fontSize="sm">
-              {timeAgo}
-            </Text>
-            {ref && (
-              <Text
-                color="#A8DFF5"
-                fontWeight="semibold"
-              >{`#ref to <line of code or function>`}</Text>
-            )}
-          </Flex>
-          <Button
-            leftIcon={<Reply />}
-            variant="ghost"
+        <Stack
+          w="fit-content"
+          background="#0000001A"
+          borderRadius="xl"
+          alignItems="center"
+        >
+          <IconButton
             color="#A4BCFF"
-            _hover={{ background: 'transparent' }}
-          >
-            Reply
-          </Button>
-        </Flex>
-        <Text>{message}</Text>
-      </Stack>
-    </ListItem>
+            variant="unstyled"
+            aria-label="Upvote"
+            icon={<AddIcon />}
+            onClick={upvote}
+          />
+          <Text fontSize="md" fontWeight="medium" mr={2}>
+            {upvotes}
+          </Text>
+          <IconButton
+            color="#A4BCFF"
+            variant="unstyled"
+            aria-label="Downvote"
+            icon={<MinusIcon />}
+            onClick={downvote}
+          />
+        </Stack>
+        <Stack flex={1}>
+          <Flex alignItems="center" justifyContent="space-between">
+            <Flex alignItems="center" gap={4}>
+              <Avatar size="sm" name={name} />
+              <Link color="#A4BCFF" fontWeight="semibold">
+                {name}
+              </Link>
+              <Text color="#FFFFFFCC" fontSize="sm">
+                {timeAgo}
+              </Text>
+              {ref && (
+                <Text
+                  color="#A8DFF5"
+                  fontWeight="semibold"
+                >{`#ref to <line of code or function>`}</Text>
+              )}
+            </Flex>
+            <Button
+              leftIcon={<Reply />}
+              variant="ghost"
+              color="#A4BCFF"
+              _hover={{ background: 'transparent' }}
+              onClick={() => setShowReply(!showReply)}
+            >
+              Reply
+            </Button>
+          </Flex>
+          <Text>{message}</Text>
+        </Stack>
+      </ListItem>
+      {showReply && (
+        <ListItem>
+          <AddComment />
+        </ListItem>
+      )}
+    </>
   );
 };
