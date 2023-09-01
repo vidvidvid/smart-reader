@@ -11,10 +11,6 @@ const chainInfo = ({ chain }) => {
     blockExplorerApi = 'api.etherscan.io/api';
     blockExplorerUrl = 'https://etherscan.io';
     APIKEY = process.env.REACT_APP_ETHERSCAN_API_KEY;
-  } else if (chain?.id === 5) {
-    blockExplorerApi = 'api-goerli.etherscan.io/api';
-    blockExplorerUrl = 'https://goerli.etherscan.io/';
-    APIKEY = process.env.REACT_APP_GOERLI_API_KEY;
   }
 
   return {
