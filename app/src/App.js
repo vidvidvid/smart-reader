@@ -1,4 +1,4 @@
-import { Flex } from '@chakra-ui/react';
+import { Flex, Box } from '@chakra-ui/react';
 import './App.css';
 
 import {
@@ -39,7 +39,8 @@ function App() {
   return (
     <SupabaseProvider>
       <WagmiConfig config={wagmiClient}>
-        <Flex
+              <Flex
+                  position="relative"
           direction="column"
           h="full"
           p={6}
@@ -48,7 +49,8 @@ function App() {
         >
           <Main />
           <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
-        </Flex>
+          <Box position="absolute" inset={0} bgGradient="radial(53.95% 53.95% at 80.69% 66%, #172F74 0.18%, transparent 100%)" w="100%" h="100%" opacity="50%" zIndex={0} />
+              </Flex>
       </WagmiConfig>
     </SupabaseProvider>
   );

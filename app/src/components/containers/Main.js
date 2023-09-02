@@ -1,4 +1,4 @@
-import { Flex } from '@chakra-ui/react';
+import { Flex, Box } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { useNetwork } from 'wagmi';
 import { Content } from './Content';
@@ -11,7 +11,8 @@ export const Main = () => {
   const [address, setAddress] = useState('');
 
   return (
-    <Flex
+      <Flex
+          position="relative"
       h="full"
       w="full"
       direction="column"
@@ -27,7 +28,7 @@ export const Main = () => {
         address={address}
         fetching={fetching}
         setFetching={setFetching}
-      />
+          />
     </Flex>
   );
 };

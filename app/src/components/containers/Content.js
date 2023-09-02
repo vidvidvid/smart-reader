@@ -12,6 +12,8 @@ import {
 } from '@chakra-ui/react';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useAccount, useNetwork, useWalletClient } from 'wagmi';
 import chainInfo from '../../utils/chainInfo';
 import { contractsDatabase } from '../../utils/constants';
@@ -39,12 +41,17 @@ export const Content = ({ address, fetching, setFetching }) => {
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
   const [selectedDependencyName, setSelectedDependencyName] = useState(null);
+
   const [isLoadingContract, setIsLoadingContract] = useState(false);
   const [isLoadingFunction, setIsLoadingFunction] = useState(false);
   const [isLoadingDependency, setIsLoadingDependency] = useState(false);
   const [sourceCode, setSourceCode] = useState([]);
   const [inspectContract, setInspectContract] = useState();
   const [inspectFunction, setInspectFunction] = useState({
+    name: '',
+    code: '',
+  });
+  const [inspectDependency, setInspectDependency] = useState({
     name: '',
     code: '',
   });
@@ -55,12 +62,12 @@ export const Content = ({ address, fetching, setFetching }) => {
   const { APIKEY, blockExplorerApi, blockExplorerUrl } = chainInfo({ chain });
   const { onCopy, value, setValue, hasCopied } = useClipboard('');
   const [isFetchingCreator, setIsFetchingCreator] = useState(false);
-  
+
   const [contractCreation, setContractCreation] = useState({
     creator: '',
     creationTxn: '',
   });
-  
+
   const [validationResult, setValidationResult] = useState({
     isValid: false,
     message: '',
@@ -81,6 +88,11 @@ export const Content = ({ address, fetching, setFetching }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, chain?.id]);
 
+  const explanation = {
+    contract: 'contract',
+    function: 'function',
+    dependency: 'dependency',
+  };
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
@@ -99,9 +111,17 @@ export const Content = ({ address, fetching, setFetching }) => {
     }
   }, [sourceCode, chain?.id]);
 
+
   const fetchExplanation = useCallback(
     async (dep, code, type, arrayId = '') => {
+      // const relay = new GelatoRelay();
+
+      // const result = await getExplanation(address, inspectContract.name);
+
+      // console.log('getExplanation in fetchExplanation', result);
+
       let fileExplanationSuccess = false;
+
       // check if the explanation exists in the db
       const id = chain.id + '-' + address;
       const { data: supabaseResponse, error } = await supabase
@@ -223,7 +243,7 @@ export const Content = ({ address, fetching, setFetching }) => {
               }
 
               console.log('Item updated!', updatedData);
-          
+
             } else if (type === explanation.dependency) {
               console.log('data.choices[0]', data.choices[0]);
               setDependencyExplanation(data.choices[0].message.content);
@@ -366,7 +386,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           console.log('Object is empty');
           break;
         }
-       
+
       }
 
       if (allFieldsExist) {
@@ -389,6 +409,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         return;
       }
 
+      console.log('Item updated!', updatedData);
     }
     // If the item does not exist, insert it
     else {
@@ -435,11 +456,8 @@ export const Content = ({ address, fetching, setFetching }) => {
             creator: response.data.result[0].contractCreator,
             creationTxn: response.data.result[0].txHash,
           };
-    
         } catch (error) {
           console.log('Error fetching contract creation:', error);
-
-      
         }
 
         const contract = {
@@ -663,6 +681,12 @@ export const Content = ({ address, fetching, setFetching }) => {
     onClose: onCloseAnnotation,
   } = useDisclosure();
 
+  // const {
+  //   isOpen: isOpenDependency,
+  //   onOpen: onOpenDependency,
+  //   onClose: onCloseDependency,
+  // } = useDisclosure();
+
   const handleCodeClick = useCallback(() => {
     if (!selectedFunctionName || !selectedFunctionCode) {
       return;
@@ -681,6 +705,14 @@ export const Content = ({ address, fetching, setFetching }) => {
       explanation.function,
       selectedFunctionName
     );
+    // let formattedCode = '';
+    // if (inspectFunction && inspectFunction.code) {
+    //   const formattedCode = prettier.format(inspectContract.code, {
+    //     parser: 'typescript',
+    //     plugins: [typescript],
+    //   });
+    //
+    // }
   }, [
     selectedFunctionName,
     selectedFunctionCode,
@@ -703,7 +735,7 @@ export const Content = ({ address, fetching, setFetching }) => {
       {!userAddress ? (
         <ConnectWalletWarning />
       ) : undefined}
-      <ContractMetaData
+            <ContractMetaData
         contractName={contractName}
         validationResult={validationResult}
         address={address}
