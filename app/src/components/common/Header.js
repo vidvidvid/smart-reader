@@ -24,6 +24,7 @@ import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import useLogin from '../../hooks/useLogin';
 import { shortenAddress, validateContractAddress } from '../../utils/helpers';
+import { NavLink as RouterLink } from "react-router-dom";
 
 export const Header = ({ address, setAddress, setFetching }) => {
   const { open, setDefaultChain } = useWeb3Modal();
@@ -87,8 +88,10 @@ export const Header = ({ address, setAddress, setFetching }) => {
       justifyContent="space-between"
       zIndex={50}
     >
-      <Box>
-        <Image src="images/logo.svg" w={8} h={8} />
+          <Box>
+              <RouterLink to="/">
+                  <Image src="images/logo.svg" w={8} h={8} alt="SmartReader logo" />
+                  </RouterLink>
       </Box>
       <Flex alignItems="center" flexWrap="wrap" gap={6}>
         <Box w={{ base: 'full', lg: 'auto' }}>
@@ -186,9 +189,9 @@ export const Header = ({ address, setAddress, setFetching }) => {
             </Text>
           )}
         </Box>
-        <Link href="" target="_blank" color="white">
+        <RouterLink to="/about">
           About
-        </Link>
+        </RouterLink>
         {/* <Login /> */}
         <Button
           background="transparent"

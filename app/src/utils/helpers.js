@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { Honeybadger } from "@honeybadger-io/react";
 
 const shortenAddress = (address) => {
   if (!address) return '';
@@ -138,4 +139,8 @@ const validateContractAddress = (
   }
 };
 
-export { shortenAddress, isContract, validateContractAddress };
+const errorHandler = (error) => {
+    Honeybadger.notify(error);
+  };
+
+export { shortenAddress, isContract, validateContractAddress, errorHandler };
