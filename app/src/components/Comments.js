@@ -1,12 +1,4 @@
-import {
-  Avatar,
-  Button,
-  Flex,
-  Heading,
-  Input,
-  List,
-  Stack,
-} from '@chakra-ui/react';
+import { Heading, List, Stack } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -17,6 +9,7 @@ import { Comment } from './Comment';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../hooks/useLogin';
+import { AddComment } from './AddComment.js';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
@@ -186,36 +179,11 @@ export const Comments = ({ chainId, contractAddress }) => {
           COMMENTS ({comments.length})
         </Heading>
         {isLoggedIn && (
-          <Flex
-            alignItems="center"
-            background="#FFFFFF1A"
-            borderRadius="lg"
-            w="full"
-            py={4}
-            px={6}
-            gap={4}
-          >
-            <Avatar name="Dan Abramov" />
-            <Input
-              value={comment} // Bind the value of the input field to the comment state
-              onChange={(e) => setComment(e.target.value)}
-              variant="filled"
-              placeholder="Add a comment"
-              background="#00000026"
-              _hover={{ background: '#00000026' }}
-              _placeholder={{ color: '#ADADAD' }}
-              borderRadius="lg"
-            />
-            <Button
-              borderRadius="full"
-              background="white"
-              color="#101D42"
-              fontWeight={400}
-              onClick={addComment}
-            >
-              Send
-            </Button>
-          </Flex>
+          <AddComment
+            comment={comment}
+            setComment={setComment}
+            addComment={addComment}
+          />
         )}
         <List spacing={4}>
           {comments.map((comment) => (
