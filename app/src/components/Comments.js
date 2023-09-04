@@ -2,15 +2,15 @@ import { Button, Heading, List, Spinner, Stack } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
+import React, { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAccount } from 'wagmi';
-import postData from '../utils/api.js';
-import { useSupabase } from '../utils/supabaseContext';
 import { Comment } from './Comment';
 // import { Button, Spinner } from '@chakra-ui/react';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
-import { setCookie } from 'typescript-cookie';
+import useLogin from '../hooks/useLogin';
 import { useSignMessage } from 'wagmi';
 import { AddComment } from './AddComment.js';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
@@ -54,14 +54,6 @@ const examplecomments = [
 export const Comments = ({ chainId, contractAddress }) => {
   const [comment, setComment] = useState(''); // Initial state
   const [comments, setComments] = useState([]); // Initial state
-
-  const [message, setMessage] = React.useState(
-    `I am signing this message to authenticate my address with my account on Smart Reader.` // TODO could add nonce for extra security
-  );
-  const { signMessageAsync } = useSignMessage({
-    message,
-  });
-  const { supabase, setToken } = useSupabase();
   const {
     address: userAddress,
     isConnected,
@@ -69,27 +61,7 @@ export const Comments = ({ chainId, contractAddress }) => {
     isDisconnected,
   } = useAccount();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const checkLoggedIn = useCallback(() => {
-    const token = Cookies.get('supabasetoken');
-    if (!token) {
-      // Prompt the user to log in or sign up.
-    } else {
-      // Use Supabase client to set the session:
-
-      const decodedToken = jwtDecode(token);
-      // Check if it's expired
-      const currentTime = Date.now() / 1000; // in seconds
-      if (decodedToken.exp < currentTime) {
-        console.log('Token is expired');
-      } else {
-        setToken(token);
-
-        setIsLoggedIn(true);
-      }
-    }
-  }, []);
+  const { isLoggedIn, supabase, setIsLoggedIn, checkLoggedIn } = useLogin();
 
   const getComments = useCallback(async () => {
     //   async function getComments() {
@@ -125,36 +97,6 @@ export const Comments = ({ chainId, contractAddress }) => {
     checkLoggedIn();
   }, [chainId, contractAddress, getComments, checkLoggedIn]);
 
-  async function login() {
-    setIsLoggingIn(true);
-    const nonce = await postData(
-      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
-      {
-        address: userAddress,
-      }
-    );
-    const msg = await signMessageAsync();
-
-    // post sign message to api/verify with nonce and address
-    const loginResponse = await postData(
-      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
-      {
-        signed: msg,
-        nonce: nonce.nonce,
-        address: userAddress,
-      }
-    );
-    const token = loginResponse.token;
-    setCookie('supabasetoken', loginResponse.token);
-    setIsLoggingIn(false);
-    setIsLoggedIn(true);
-    setToken(token);
-  }
-
-  async function logout() {
-    setCookie('supabasetoken', '');
-    setIsLoggedIn(false);
-  }
   async function addComment() {
     const token = Cookies.get('supabasetoken');
     if (!comment || comment.length === 0) {
@@ -218,7 +160,7 @@ export const Comments = ({ chainId, contractAddress }) => {
     <>
       {isConnected && (
         <>
-          <Button
+          {/* <Button
             background="transparent"
             color="whiteAlpha.700"
             _hover={{ background: 'transparent', color: 'white' }}
@@ -228,7 +170,7 @@ export const Comments = ({ chainId, contractAddress }) => {
           >
             {isLoggingIn && <Spinner size="xs" mr={2} />}{' '}
             {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
-          </Button>
+          </Button> */}
           {!isLoggedIn && <h1>Please login to be able to add a comment</h1>}
         </>
       )}
