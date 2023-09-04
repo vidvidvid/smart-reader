@@ -1,8 +1,6 @@
-import { Button, Heading, List, Spinner, Stack } from '@chakra-ui/react';
+import { Heading, List, Stack } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useAccount } from 'wagmi';
 import React, { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAccount } from 'wagmi';
@@ -11,7 +9,6 @@ import { Comment } from './Comment';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../hooks/useLogin';
-import { useSignMessage } from 'wagmi';
 import { AddComment } from './AddComment.js';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
