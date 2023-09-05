@@ -4,7 +4,6 @@ import { Main } from '../components/Main';
 
 
 export const HomePage = ({ projectId, ethereumClient }) => {
-    console.log("HomePage", projectId, ethereumClient);
     return (
         <>
         <Flex

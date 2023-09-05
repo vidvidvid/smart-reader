@@ -169,22 +169,49 @@ export const Comments = ({ chainId, contractAddress }) => {
             {isLoggingIn && <Spinner size="xs" mr={2} />}{' '}
             {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
           </Button> */}
-          {!isLoggedIn && <h1>Please login to be able to add a comment</h1>}
+          {!isLoggedIn && <h2>Please login to be able to add a comment</h2>}
         </>
       )}
       {isDisconnected && (
-        <h1>Please connect your wallet to login and comment</h1>
+        <h2>Please connect your wallet to login and comment</h2>
       )}
       <Stack gap={4}>
         <Heading as="h1" size="md" fontWeight={600} noOfLines={1}>
           COMMENTS ({comments.length})
         </Heading>
         {isLoggedIn && (
-          <AddComment
-            comment={comment}
-            setComment={setComment}
-            addComment={addComment}
-          />
+          <Flex
+            alignItems="center"
+            background="#FFFFFF1A"
+            borderRadius="lg"
+            w="full"
+            py={4}
+            px={6}
+            gap={4}
+          >
+            <Avatar name="Dan Abramov" />
+            <Input
+              value={comment} // Bind the value of the input field to the comment state
+              onChange={(e) => setComment(e.target.value)}
+              variant="filled"
+              placeholder="Add a comment"
+              background="#00000026"
+              _hover={{ background: '#00000026' }}
+              _placeholder={{ color: '#ADADAD' }}
+                          borderRadius="lg"
+                          isDisabled={!isLoggedIn}
+            />
+            <Button
+              borderRadius="full"
+              background="white"
+              color="#101D42"
+              fontWeight={400}
+                          onClick={addComment}
+                            isDisabled={!isLoggedIn}
+            >
+              Send
+            </Button>
+          </Flex>
         )}
         <List spacing={4}>
           {comments.map((comment) => (

@@ -15,8 +15,9 @@ export const File = ({ file: { name, selected, dependency }, handleClick }) => {
       cursor="pointer"
       _hover={{ background: '#ffffff40' }}
     >
-      <Text
-        data-contractName={name}
+          <Text
+              as="span"
+        data-contract-name={name}
         className="dependency-name"
         pointerEvents="none"
       >

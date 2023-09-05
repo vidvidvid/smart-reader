@@ -49,7 +49,7 @@ const validateContractAddress = (
   if (input.length === 42 && input.startsWith('0x')) {
     isContract(input).then((result) => {
       if (result) {
-        message = 'Address is a contract';
+        message = `${input} is a valid contract address`;
 
         setValidationResult({
           result: true,
@@ -61,7 +61,7 @@ const validateContractAddress = (
         };
       } else {
         message =
-          'Address is not a contract or exists on a different network. Please check and try again.';
+          `${input} is not a contract or exists on a different network. Please check and try again.`;
 
         setValidationResult({
           result: false,

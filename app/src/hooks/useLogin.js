@@ -7,6 +7,7 @@ import { useSupabase } from '../utils/supabaseContext';
 import jwtDecode from 'jwt-decode';
 import { setCookie } from 'typescript-cookie';
 import { useSignMessage } from 'wagmi';
+import { useToast } from '@chakra-ui/react';
 
 const useLogin = () => {
   const [message, setMessage] = useState(
@@ -18,6 +19,8 @@ const useLogin = () => {
   const { supabase, setToken } = useSupabase();
 
   const { address: userAddress } = useAccount();
+
+  const toast = useToast();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -35,6 +38,13 @@ const useLogin = () => {
         console.log('Token is expired');
       } else {
         setToken(token);
+          toast({
+            title: 'Logged in',
+            description: 'You are now logged in.',
+            status: 'success',
+            duration: 9000,
+            isClosable: true,
+          });
 
         setIsLoggedIn(true);
       }
@@ -69,7 +79,7 @@ const useLogin = () => {
 
   async function logout() {
     setCookie('supabasetoken', '');
-    setIsLoggedIn(false);
+      setIsLoggedIn(false);
   }
 
   return {

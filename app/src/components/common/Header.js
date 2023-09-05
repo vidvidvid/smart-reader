@@ -97,7 +97,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
         <Box w={{ base: 'full', lg: 'auto' }}>
           <InputGroup size={{ base: 'sm', lg: 'md' }}>
             <InputLeftElement>
-              <Search2Icon color="white" />
+              <Search2Icon color={!userAddress ? "whiteAlpha.600" : "white"} />
             </InputLeftElement>
             <Input
               w={{ base: 'full', lg: '35rem' }}
@@ -107,7 +107,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
               pr={{ base: '6.5rem', lg: 0 }}
               _placeholder={{ color: 'white' }}
               _hover={{ background: '#00000026' }}
-              placeholder="Search contracts..."
+              placeholder={!userAddress ? "Connect to search contracts..." : "Search contracts..."}
               defaultValue={address}
               outline={
                 validationResult.message !== '' && validationResult.result
@@ -128,6 +128,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
                 e.target.value.length === 0 &&
                   setValidationResult({ result: false, message: '' });
               }}
+                          isDisabled={isSwitchingNetwork || !userAddress}
             />
 
             <InputRightElement width="8rem" justifyContent="flex-end" mr={2}>

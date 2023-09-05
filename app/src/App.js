@@ -6,11 +6,9 @@ import {
     w3mConnectors,
     w3mProvider,
 } from '@web3modal/ethereum';
-import { Web3Modal } from '@web3modal/react';
 import React from 'react';
 import { WagmiConfig, configureChains, createConfig } from 'wagmi';
 import { mainnet, polygon } from 'wagmi/chains';
-import { Main } from './components/containers/Main';
 import { AboutPage } from './pages/About';
 import { HomePage } from './pages/Home';
 

@@ -2,12 +2,13 @@ import { ChakraProvider, useColorMode } from '@chakra-ui/react';
 import '@fontsource-variable/figtree';
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Honeybadger, HoneybadgerErrorBoundary } from "@honeybadger-io/react"
-
+import { Honeybadger, HoneybadgerErrorBoundary } from "@honeybadger-io/react";
+import { ErrorBoundary } from './components/ErrorBoundary';
 import App from './App';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import theme from './theme';
+
 
 const config = {
   apiKey: "apikey",
@@ -15,31 +16,33 @@ const config = {
 }
 
 const honeybadger = Honeybadger.configure(config)
-
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 function ForceDarkMode(props) {
-  const { colorMode, toggleColorMode } = useColorMode();
+    const { colorMode, toggleColorMode } = useColorMode();
 
-  useEffect(() => {
-    if (colorMode === 'light') return;
-    toggleColorMode();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colorMode]);
+    useEffect(() => {
+        if (colorMode === 'light') return;
+        toggleColorMode();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [colorMode]);
 
-  return props.children;
+    return props.children;
 }
 
 root.render(
     <HoneybadgerErrorBoundary honeybadger={honeybadger}>
-  <ChakraProvider theme={theme}>
-    <ForceDarkMode>
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    </ForceDarkMode>
+    <ChakraProvider theme={theme}>
+            <ForceDarkMode>
+            <ErrorBoundary>
+                <React.StrictMode>
+                    <App />
+                </React.StrictMode>
+    </ErrorBoundary>
+            </ForceDarkMode>
         </ChakraProvider>
-        </HoneybadgerErrorBoundary>
+    </HoneybadgerErrorBoundary>
+
 );
 
 // If you want to start measuring performance in your app, pass a function
