@@ -33,7 +33,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
     isConnecting,
     isDisconnected,
   } = useAccount();
-  const { login, logout } = useLogin();
+  const { login, logout, isLoggedIn } = useLogin();
   const { disconnect } = useDisconnect();
   const { chain: networkChain, chains: networkChains } = useNetwork();
   const { chain, chains } = getNetwork();

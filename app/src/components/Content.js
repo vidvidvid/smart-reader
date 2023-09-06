@@ -37,6 +37,7 @@ import { useSupabase } from '../utils/supabaseContext';
 import { Annotate } from './Annotate';
 import { Comments } from './Comments';
 import { Files } from './Files';
+import Viewer from './MarkdownViewer';
 import { SimulateTransaction } from './SimulateTransaction';
 
 const functionMessages = [
@@ -1059,9 +1060,7 @@ export const Content = ({ address, fetching, setFetching }) => {
                       </Box>
                     )}
                     {contractExplanation && !isLoadingContract && (
-                      <Text ml={2} transition="ease-in-out">
-                        {contractExplanation}
-                      </Text>
+                      <Viewer>{contractExplanation}</Viewer>
                     )}
                     {explanationError !== '' && (
                       <Text ml={2} transition="ease-in-out" color="red.400">
