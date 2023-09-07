@@ -25,7 +25,7 @@ function App() {
     ]);
 
     const wagmiClient = createConfig({
-        autoConnect: true,
+        autoConnect: false,
         connectors: w3mConnectors({
             version: '1',
             appName: 'smartreader',

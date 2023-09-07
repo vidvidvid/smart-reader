@@ -1,4 +1,4 @@
-import { Heading, List, Stack } from '@chakra-ui/react';
+import { Heading, List, Stack, Flex, Avatar, Input, Button } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';

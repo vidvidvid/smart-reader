@@ -37,49 +37,56 @@ const useLogin = () => {
       if (decodedToken.exp < currentTime) {
         console.log('Token is expired');
       } else {
-        setToken(token);
-          toast({
-            title: 'Logged in',
-            description: 'You are now logged in.',
-            status: 'success',
-            duration: 9000,
-            isClosable: true,
-          });
-
+          console.log('Token is valid');
         setIsLoggedIn(true);
       }
     }
   }, []);
 
-  async function login() {
-    setIsLoggingIn(true);
-    const nonce = await postData(
-      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
-      {
-        address: userAddress,
-      }
-    );
-    const msg = await signMessageAsync();
+    async function login() {
+        try {
+            const nonce = await postData(
+              process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
+              {
+                address: userAddress,
+              }
+            );
+            const msg = await signMessageAsync();
 
-    // post sign message to api/verify with nonce and address
-    const loginResponse = await postData(
-      process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
-      {
-        signed: msg,
-        nonce: nonce.nonce,
-        address: userAddress,
+            // post sign message to api/verify with nonce and address
+            const loginResponse = await postData(
+              process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'login',
+              {
+                signed: msg,
+                nonce: nonce.nonce,
+                address: userAddress,
+              }
+            );
+            const token = loginResponse.token;
+            setCookie('supabasetoken', loginResponse.token);
+            setIsLoggingIn(false);
+            setIsLoggedIn(true);
+            setToken(token);
+      } catch (error) {
+        console.log('error', error);
+            setIsLoggedIn(false);
+            setIsLoggingIn(false);
+            setToken('');
+        toast({
+          title: 'Error',
+          description: error.message,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
       }
-    );
-    const token = loginResponse.token;
-    setCookie('supabasetoken', loginResponse.token);
-    setIsLoggingIn(false);
-    setIsLoggedIn(true);
-    setToken(token);
   }
 
   async function logout() {
     setCookie('supabasetoken', '');
       setIsLoggedIn(false);
+      setIsLoggingIn(false);
+      setToken('');
   }
 
   return {
