@@ -15,7 +15,6 @@ export const HomePage = ({ projectId, ethereumClient }) => {
             backgroundRepeat="no-repeat"
         >
             <Main />
-            <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
             <Box position="absolute" inset={0} bgGradient="radial(53.95% 53.95% at 80.69% 66%, #172F74 0.18%, transparent 100%)" w="100%" h="100%" opacity="50%" zIndex={0} />
             </Flex>
             </>

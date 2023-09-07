@@ -60,7 +60,7 @@ export const AboutPage = ({ projectId, ethereumClient }) => {
                         <Link as={RouterLink} to="/" background="whiteAlpha.400" px={5} py={3} borderRadius="full" border="2px" fontweight={600}>Use the dApp</Link>
                     </Flex>
                 </Stack>
-                <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+
                 <Box position="absolute" inset={0} bgGradient="radial(53.95% 53.95% at 80.69% 66%, #172F74 0.18%, transparent 100%)" w="100%" h="100%" opacity="50%" zIndex={0} />
             </Flex>
         </Flex>

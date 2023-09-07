@@ -7,17 +7,17 @@ import {
     w3mProvider,
 } from '@web3modal/ethereum';
 import React from 'react';
+import { Web3Modal } from '@web3modal/react'
 import { WagmiConfig, configureChains, createConfig } from 'wagmi';
 import { mainnet, polygon } from 'wagmi/chains';
 import { AboutPage } from './pages/About';
 import { HomePage } from './pages/Home';
-
+import { projectId} from './utils/constants';
 import { SupabaseProvider } from './utils/supabaseContext';
 
 export const Context = React.createContext();
 
 function App() {
-    const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID ?? '95acf4d616f997af76057a82ad846fae';
     const chains = [mainnet, polygon];
 
     const { publicClient } = configureChains(chains, [
@@ -36,16 +36,18 @@ function App() {
     });
 
     const ethereumClient = new EthereumClient(wagmiClient, chains);
+
     return (
         <SupabaseProvider>
             <WagmiConfig config={wagmiClient}>
                 <Router>
                     <Routes>
-                        <Route exact path="/" element={<HomePage projectId={projectId} ethereumClient={ethereumClient} />} />
-                        <Route path="/about" element={<AboutPage projectId={projectId} ethereumClient={ethereumClient} />} />
+                        <Route exact path="/" element={<HomePage />} />
+                        <Route path="/about" element={<AboutPage />} />
                     </Routes>
                 </Router>
             </WagmiConfig>
+            <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
         </SupabaseProvider>
 
     );
