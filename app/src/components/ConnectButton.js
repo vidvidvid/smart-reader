@@ -65,7 +65,7 @@ export const ConnectButton = () => {
     // }, [isConnected, isDisconnected]);
 
     return (
-        <Tooltip label={isConnected ? "Account options" : "Connect to Login"} aria-label={isConnected ? "Account options" : "Connect to Login"} bgColor="blue.500" hasArrow>
+        <Tooltip label={isConnected ? "Account options" : "Connect to login"} aria-label={isConnected ? "Account options" : "Connect to login"} bgColor="blue.500" fontWeight="600" hasArrow>
             <Button
                 background="transparent"
                 color="whiteAlpha.700"

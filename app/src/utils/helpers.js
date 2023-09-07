@@ -33,7 +33,8 @@ const validateContractAddress = (
   input,
   user,
   validationResult,
-  setValidationResult
+  setValidationResult,
+  toast
 ) => {
   let message = '';
   if (!input) setValidationResult({ result: true, message: '' });
