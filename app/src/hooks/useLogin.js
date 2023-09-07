@@ -8,6 +8,7 @@ import jwtDecode from 'jwt-decode';
 import { setCookie } from 'typescript-cookie';
 import { useSignMessage } from 'wagmi';
 import { useToast } from '@chakra-ui/react';
+import { errorHandler } from '../utils/helpers';
 
 const useLogin = () => {
   const [message, setMessage] = useState(
@@ -24,10 +25,14 @@ const useLogin = () => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   const checkLoggedIn = useCallback(() => {
     const token = Cookies.get('supabasetoken');
     if (!token) {
       // Prompt the user to log in or sign up.
+      console.log('No token found');
+      setIsLoggedIn(false);
+      return false;
     } else {
       // Use Supabase client to set the session:
 
@@ -36,9 +41,13 @@ const useLogin = () => {
       const currentTime = Date.now() / 1000; // in seconds
       if (decodedToken.exp < currentTime) {
         console.log('Token is expired');
+        setIsLoggedIn(false);
+
+        return false;
       } else {
           console.log('Token is valid');
         setIsLoggedIn(true);
+        return true;
       }
     }
   }, []);
@@ -66,19 +75,21 @@ const useLogin = () => {
             setCookie('supabasetoken', loginResponse.token);
             setIsLoggingIn(false);
             setIsLoggedIn(true);
-            setToken(token);
+          setToken(token);
+          console.log('token', {token, isLoggedIn, isLoggingIn});
       } catch (error) {
         console.log('error', error);
             setIsLoggedIn(false);
             setIsLoggingIn(false);
-            setToken('');
-        toast({
-          title: 'Error',
-          description: error.message,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
+          setToken('');
+          errorHandler(error);
+          toast({
+            title: 'Error',
+            description: error.message,
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
       }
   }
 

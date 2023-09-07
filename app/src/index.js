@@ -9,10 +9,13 @@ import './index.css';
 import reportWebVitals from './reportWebVitals';
 import theme from './theme';
 
+const {REACT_APP_HOST_URL} = process.env;
 
 const config = {
   apiKey: "apikey",
-  environment: "production"
+  environment: REACT_APP_HOST_URL === 'http://localhost:3000' ? "development" : "production",
+  report_data: false
+
 }
 
 const honeybadger = Honeybadger.configure(config)
@@ -33,13 +36,13 @@ function ForceDarkMode(props) {
 root.render(
     <HoneybadgerErrorBoundary honeybadger={honeybadger}>
     <ChakraProvider theme={theme}>
-            <ForceDarkMode>
             <ErrorBoundary>
+            <ForceDarkMode>
                 <React.StrictMode>
                     <App />
                 </React.StrictMode>
-    </ErrorBoundary>
             </ForceDarkMode>
+    </ErrorBoundary>
         </ChakraProvider>
     </HoneybadgerErrorBoundary>
 

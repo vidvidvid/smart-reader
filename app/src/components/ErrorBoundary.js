@@ -3,17 +3,19 @@ import React, { useEffect, useState } from "react";
 
 import { Icon } from "@iconify/react";
 import { Link as RouterLink } from "react-router-dom";
-
+import { errorHandler } from "../utils/helpers";
 
 
 export const ErrorBoundary = ({ children }) => {
   const [hasError, setHasError] = useState(false);
 
+  const handleError = (error: Event | Error) => {
+    setHasError(true);
+    errorHandler(error);
+    console.error("Uncaught error:", error);
+  };
+
   useEffect(() => {
-    const handleError = (error: Event | Error) => {
-      setHasError(true);
-      console.error("Uncaught error:", error);
-    };
 
     window.addEventListener("error", handleError);
     window.addEventListener("unhandledrejection", handleError);
