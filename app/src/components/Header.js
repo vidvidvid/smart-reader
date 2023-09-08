@@ -55,8 +55,8 @@ export const Header = ({ address, setAddress, setFetching }) => {
   }, []);
 
   useEffect(() => {
-    if (isConnected) login();
-    if (isDisconnected) logout();
+    if (isConnected && !isLoggedIn) login();
+    if (isDisconnected && isLoggedIn) logout();
   }, [isConnected, isDisconnected]);
 
   useEffect(() => {
@@ -74,11 +74,14 @@ export const Header = ({ address, setAddress, setFetching }) => {
 
   return (
     <Flex
-      h={16}
+      h={{ base: 'full', lg: 16 }}
+      w="full"
+      flexWrap="wrap"
       alignItems="center"
       background="#FFFFFF1A"
       backdropFilter="blur(8px)"
       px={6}
+      py={{ base: 6, lg: 0 }}
       gap={6}
       borderRadius="8px"
       justifyContent="space-between"
@@ -87,17 +90,18 @@ export const Header = ({ address, setAddress, setFetching }) => {
       <Box>
         <Image src="images/logo.svg" w={8} h={8} />
       </Box>
-      <Flex alignItems="center" gap={6}>
-        <Box>
-          <InputGroup size="md">
+      <Flex alignItems="center" flexWrap="wrap" gap={6}>
+        <Box w={{ base: 'full', lg: 'auto' }}>
+          <InputGroup size={{ base: 'sm', lg: 'md' }}>
             <InputLeftElement>
               <Search2Icon color="white" />
             </InputLeftElement>
             <Input
-              w="35rem"
+              w={{ base: 'full', lg: '35rem' }}
               borderRadius="full"
               variant="filled"
               background="#00000026"
+              pr={{ base: '6.5rem', lg: 0 }}
               _placeholder={{ color: 'white' }}
               _hover={{ background: '#00000026' }}
               placeholder="Search contracts..."
