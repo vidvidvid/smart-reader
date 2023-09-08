@@ -101,6 +101,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
               borderRadius="full"
               variant="filled"
               background="#00000026"
+              pr={{ base: '6.5rem', lg: 0 }}
               _placeholder={{ color: 'white' }}
               _hover={{ background: '#00000026' }}
               placeholder="Search contracts..."
