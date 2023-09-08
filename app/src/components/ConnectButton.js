@@ -3,15 +3,15 @@ import { useAccount, useDisconnect } from 'wagmi';
 import React, { useEffect, useCallback } from 'react'
 import { polygon } from 'wagmi/chains';
 
-import { useWeb3Modal, Web3Button } from '@web3modal/react'
-import { shortenAddress } from '../utils/helpers'
+import { useWeb3Modal } from '@web3modal/react'
+import { shortenAddress, lowercaseAddress } from '../utils/helpers'
 import useLogin from '../hooks/useLogin';
 
 export const ConnectButton = () => {
     const toast = useToast();
     const { open, setDefaultChain } = useWeb3Modal();
     const { login, logout, isLoggedIn, checkLoggedIn, setIsLoggedIn } = useLogin();
-    const { disconnect, disconnectAsync, isSuccess } = useDisconnect();
+    const { disconnect } = useDisconnect();
     const {
         address: userAddress,
         isConnected,
@@ -76,12 +76,11 @@ export const ConnectButton = () => {
             >
                 {isConnecting && <Spinner size="xs" mr={2} />}{' '}
                 {isConnected
-                    ? shortenAddress(userAddress)
+                    ? shortenAddress(lowercaseAddress(userAddress))
                     : (isConnecting && !isDisconnected)
                         ? 'Connecting'
                         : 'Connect wallet'}
             </Button>
-            {/* <Web3Button /> */}
         </Tooltip>
     )
 }

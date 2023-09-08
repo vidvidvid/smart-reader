@@ -4,8 +4,9 @@ import { useNetwork, useAccount } from 'wagmi';
 import { Web3Modal } from '@web3modal/react';
 import { NavLink as RouterLink } from "react-router-dom";
 import { Header } from '../components/Header';
+import {lowercaseAddress} from "../utils/helpers";
 
-export const AboutPage = ({ projectId, ethereumClient }) => {
+export const AboutPage = () => {
     const [fetching, setFetching] = useState(false);
     const { isConnected} = useAccount();
     const [address, setAddress] = useState(isConnected ? '0x0000000000000000000000000000000000001010' : '');
@@ -28,7 +29,7 @@ export const AboutPage = ({ projectId, ethereumClient }) => {
                 gap={4}
             >
                 <Header
-                    address={address}
+                    address={lowercaseAddress(address)}
                     setAddress={setAddress}
                     setFetching={setFetching}
                 />

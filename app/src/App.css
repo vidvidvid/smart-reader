@@ -37,6 +37,10 @@
   }
 }
 
+.explain-button {
+  border: 1px solid white
+}
+
 .highlight {
   background-color: rgba(128, 128, 128, 0.2);
   cursor: pointer;

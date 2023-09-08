@@ -140,8 +140,12 @@ const validateContractAddress = (
   }
 };
 
+const lowercaseAddress = (address) => {
+  return address.toLowerCase();
+};
+
 const errorHandler = (error) => {
     Honeybadger.notify(error);
   };
 
-export { shortenAddress, isContract, validateContractAddress, errorHandler };
+export { shortenAddress, isContract, validateContractAddress, errorHandler, lowercaseAddress };
