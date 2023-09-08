@@ -46,8 +46,8 @@ function App() {
                         <Route path="/about" element={<AboutPage />} />
                     </Routes>
                 </Router>
-            </WagmiConfig>
             <Web3Modal projectId={projectId} ethereumClient={ethereumClient} />
+            </WagmiConfig>
         </SupabaseProvider>
 
     );

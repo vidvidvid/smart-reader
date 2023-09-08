@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
 import { AddComment } from './AddComment.js';
+import { lowercaseAddress } from '../utils/helpers';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
@@ -60,6 +61,15 @@ export const Comments = ({ chainId, contractAddress }) => {
 
   const { isLoggedIn, supabase, setIsLoggedIn, checkLoggedIn } = useLogin();
 
+  // function to make username from wallet address after removing the 0x
+  function makeUsername(address) {
+    let username = address.slice(2);
+    username = lowercaseAddress(username);
+    return username;
+  }
+
+  const username = makeUsername(userAddress);
+
   const getComments = useCallback(async () => {
     //   async function getComments() {
     if (!contractAddress || !chainId || contractAddress.length === 0) return;
@@ -79,7 +89,7 @@ export const Comments = ({ chainId, contractAddress }) => {
       // const upvotes = await getUpvotes(comment.comment_id);
       commentsNew.push({
         id: comment.comment_id,
-        name: comment.user_address,
+        name: username,
         // upvotes: upvotes,
         message: comment.comment,
         ref: comment.ref,
@@ -189,7 +199,7 @@ export const Comments = ({ chainId, contractAddress }) => {
             px={6}
             gap={4}
           >
-            <Avatar name="Dan Abramov" />
+            <Avatar name={username} />
             <Input
               value={comment} // Bind the value of the input field to the comment state
               onChange={(e) => setComment(e.target.value)}
