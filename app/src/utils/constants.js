@@ -4,6 +4,7 @@ const alchemyPolygonUrl = process.env.REACT_APP_ALCHEMY_POLYGON_ENDPOINT;
 const alchemyMainnetUrl = process.env.REACT_APP_ALCHEMY_MAINNET_ENDPOINT;
 const ipfsGateway = 'https://smart-reader.infura-ipfs.io/ipfs';
 const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
+const honeybadgerApiKey = process.env.REACT_APP_HONEYBADGER_API_KEY;
 const contractsDatabase = 'contract-data';
 
 const functionMessages = [
@@ -29,5 +30,5 @@ const explanation = {
 };
 
 
-module.exports = { goerliUrl, ipfsGateway, contractsDatabase, functionMessages, contractMessages, explanation, alchemyMainnetUrl, alchemyPolygonUrl, projectId };
+module.exports = { goerliUrl, ipfsGateway, contractsDatabase, functionMessages, contractMessages, explanation, alchemyMainnetUrl, alchemyPolygonUrl, projectId, honeybadgerApiKey };
 

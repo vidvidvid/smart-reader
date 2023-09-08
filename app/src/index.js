@@ -3,18 +3,19 @@ import '@fontsource-variable/figtree';
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { Honeybadger, HoneybadgerErrorBoundary } from "@honeybadger-io/react";
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { ErrorComponent } from './components/ErrorComponent';
 import App from './App';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
 import theme from './theme';
+import { honeybadgerApiKey } from './utils/constants';
 
 const {REACT_APP_HOST_URL} = process.env;
 
 const config = {
-  apiKey: "apikey",
-  environment: REACT_APP_HOST_URL === 'http://localhost:3000' ? "development" : "production",
-  report_data: false
+  apiKey: honeybadgerApiKey,
+    environment: REACT_APP_HOST_URL === 'http://localhost:3000' ? "development" : "production",
+    report_data: false
 
 }
 
@@ -34,15 +35,13 @@ function ForceDarkMode(props) {
 }
 
 root.render(
-    <HoneybadgerErrorBoundary honeybadger={honeybadger}>
+    <HoneybadgerErrorBoundary honeybadger={honeybadger} ErrorComponent={<ErrorComponent />}>
     <ChakraProvider theme={theme}>
-            <ErrorBoundary>
             <ForceDarkMode>
                 <React.StrictMode>
                     <App />
                 </React.StrictMode>
             </ForceDarkMode>
-    </ErrorBoundary>
         </ChakraProvider>
     </HoneybadgerErrorBoundary>
 

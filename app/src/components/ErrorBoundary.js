@@ -37,6 +37,7 @@ export const ErrorBoundary = ({ children }) => {
 
     if (hasError) {
       console.log("hasError, ErrorBoundary triggered", hasError);
+
     return (
         <VStack align="center" justify="center" h="100vh" maxW="3xl" p={4} color="white" gap={16}>
             <HStack gap={1} alignItems="center">

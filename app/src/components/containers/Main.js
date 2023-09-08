@@ -12,8 +12,8 @@ export const Main = () => {
   const [address, setAddress] = useState(isConnected ? '0x0000000000000000000000000000000000001010' : '');
 
   return (
-      <Flex
-          position="relative"
+    <Flex
+      position="relative"
       h="full"
       w="full"
       direction="column"
@@ -29,7 +29,7 @@ export const Main = () => {
         address={address}
         fetching={fetching}
         setFetching={setFetching}
-          />
+      />
     </Flex>
   );
 };
