@@ -12,6 +12,7 @@ import {
 import { Reply } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
+import { shortenAddress } from '../utils/helpers';
 import { useSupabase } from '../utils/supabaseContext';
 import { AddComment } from './AddComment';
 
@@ -213,11 +214,11 @@ export const Comment = ({
           />
         </Stack>
         <Stack flex={1}>
-          <Flex alignItems="center" justifyContent="space-between">
+          <Flex alignItems="center" flexWrap="wrap" justifyContent="space-between">
             <Flex alignItems="center" gap={4}>
               <Avatar size="sm" name={name} />
               <Link color="#A4BCFF" fontWeight="semibold">
-                {name}
+                {shortenAddress(name)}
               </Link>
               <Text color="#FFFFFFCC" fontSize="sm">
                 {timeAgo}

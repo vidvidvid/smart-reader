@@ -848,12 +848,12 @@ export const Content = ({ address, fetching, setFetching }) => {
     >
       {!userAddress ? (
         <Box
-          position="absolute"
+          position={{ base: 'unset', lg: 'absolute' }}
           w="screen"
           h="12"
-          top={0}
-          right={0}
-          zIndex={-1}
+          top={{ base: 'unset', lg: 0 }}
+          right={{ base: 'unset', lg: 0 }}
+          zIndex={{ base: 'unset', lg: -1 }}
         >
           <Flex
             alignItems="center"
@@ -884,7 +884,7 @@ export const Content = ({ address, fetching, setFetching }) => {
                 color="#A4BCFF"
                 isExternal
               >
-                {address}
+                {shortenAddress(address)}
               </Link>
               <Button
                 variant="unstyled"
@@ -985,10 +985,15 @@ export const Content = ({ address, fetching, setFetching }) => {
         selectedContract={contractName}
         handleClick={handleContractChange}
       />
-      <Flex alignItems="center" w="full" h="lg">
+      <Flex
+        direction={{ base: 'column', lg: 'row' }}
+        alignItems="center"
+        w="full"
+        h={{ base: 'full', lg: 'lg' }}
+      >
         <Box
           background="#00000080"
-          w="50%"
+          w={{ base: 'full', lg: '50%' }}
           h="full"
           p={6}
           borderTopLeftRadius="lg"
@@ -1015,7 +1020,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         <Box
           ref={mainContentRef}
           background="#FFFFFF1A"
-          w="50%"
+          w={{ base: 'full', lg: '50%' }}
           h="full"
           p={6}
           borderTopRightRadius="lg"
