@@ -31,25 +31,31 @@ export const ConnectButton = () => {
             });
         },
         onConnect: async () => {
-            console.log('onConnect');
-            toast({
-                title: 'Connected',
-                description: 'Wallet connection successful.',
-                status: 'success',
-                duration: 5000,
-                isClosable: true,
-            });
-            await login();
+            try {
+                console.log('onConnect');
+                toast({
+                    title: 'Connected',
+                    description: 'Wallet connection successful.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
+                await login();
 
-            setIsLoggedIn(true);
-            toast({
-                title: 'Logged In',
-                description: 'You are now logged in.',
-                status: 'success',
-                duration: 5000,
-                isClosable: true,
-            });
+                setIsLoggedIn(true);
+                toast({
+                    title: 'Logged In',
+                    description: 'You are now logged in.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } catch (error) {
+                console.log('OMG error', {error});
+
+            }
         }
+
     });
 
     useEffect(() => {
