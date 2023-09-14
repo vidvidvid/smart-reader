@@ -7,7 +7,7 @@ import { useWeb3Modal } from '@web3modal/react'
 import { shortenAddress, lowercaseAddress } from '../utils/helpers'
 import useLogin from '../hooks/useLogin';
 
-export const ConnectButton = () => {
+export const ConnectButton = ({address, setAddress}) => {
     const toast = useToast();
     const { open, setDefaultChain } = useWeb3Modal();
     const { login, logout, isLoggedIn, checkLoggedIn, setIsLoggedIn } = useLogin();
@@ -19,9 +19,10 @@ export const ConnectButton = () => {
         isDisconnected,
     } = useAccount({
         onDisconnect: () => {
-            console.log('onDisconnect');
+            setAddress('');
             disconnect();
             logout();
+
             toast({
                 title: 'Disconnected',
                 description: 'You are now disconnected & logged out.',
@@ -32,7 +33,6 @@ export const ConnectButton = () => {
         },
         onConnect: async () => {
             try {
-                console.log('onConnect');
                 toast({
                     title: 'Connected',
                     description: 'Wallet connection successful.',

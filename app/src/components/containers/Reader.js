@@ -112,7 +112,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
       //   fileExplanationSuccess = false;
       // }
 
-      console.log('lol');
 
       let content;
       if (!fileExplanationSuccess) {
