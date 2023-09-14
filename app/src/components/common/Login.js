@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
-import postData from '../utils/api.js';
-import { useSupabase } from '../utils/supabaseContext';
+import postData from '../../utils/api.js';
+import { useSupabase } from '../../utils/supabaseContext.js';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { Button, Spinner } from '@chakra-ui/react';
 import { ethers } from 'ethers';

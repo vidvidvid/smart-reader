@@ -12,8 +12,8 @@ import {
 import { Reply } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { shortenAddress } from '../utils/helpers';
-import { useSupabase } from '../utils/supabaseContext';
+import { shortenAddress } from '../../utils/helpers';
+import { useSupabase } from '../../utils/supabaseContext';
 import { AddComment } from './AddComment';
 
 export const Comment = ({

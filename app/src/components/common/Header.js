@@ -22,8 +22,8 @@ import { CheckCircle2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
-import useLogin from '../hooks/useLogin';
-import { shortenAddress, validateContractAddress } from '../utils/helpers';
+import useLogin from '../../hooks/useLogin';
+import { shortenAddress, validateContractAddress } from '../../utils/helpers';
 
 export const Header = ({ address, setAddress, setFetching }) => {
   const { open, setDefaultChain } = useWeb3Modal();

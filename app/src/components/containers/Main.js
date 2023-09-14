@@ -2,7 +2,7 @@ import { Flex } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { useNetwork } from 'wagmi';
 import { Content } from './Content';
-import { Header } from './Header';
+import { Header } from '../common/Header';
 
 export const Main = () => {
   const { chain } = useNetwork();

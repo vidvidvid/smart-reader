@@ -10,12 +10,12 @@ import { Web3Modal } from '@web3modal/react';
 import React from 'react';
 import { WagmiConfig, configureChains, createConfig } from 'wagmi';
 import { goerli, mainnet, polygon } from 'wagmi/chains';
-import { Main } from './components/Main';
+import { Main } from './components/containers/Main';
 
 import { SupabaseProvider } from './utils/supabaseContext';
 
 export const Context = React.createContext();
-//newentery
+
 function App() {
   const projectId = process.env.REACT_APP_WALLETCONNECT_PROJECT_ID;
   const chains = [mainnet, polygon, goerli];
