@@ -145,7 +145,9 @@ const lowercaseAddress = (address) => {
 };
 
 const errorHandler = (error) => {
-    Honeybadger.notify(error);
+  /* would be nice to use something like honeybadger here */
+    // Honeybadger.notify(error);
+  console.log(error);
   };
 
 export { shortenAddress, isContract, validateContractAddress, errorHandler, lowercaseAddress };
