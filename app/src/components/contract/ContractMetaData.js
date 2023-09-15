@@ -16,7 +16,6 @@ export default function ContractMetaData({
   const { onCopy, value, setValue, hasCopied } = useClipboard('');
   const toast = useToast();
 
-  console.log({ tokenData, address });
   useEffect(() => {
     if (hasCopied) {
       toast({
