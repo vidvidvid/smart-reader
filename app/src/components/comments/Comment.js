@@ -1,27 +1,18 @@
-import { AddIcon, MinusIcon } from '@chakra-ui/icons';
-import {
-  Avatar,
-  Button,
-  Flex,
-  IconButton,
-  Link,
-  ListItem,
-  Stack,
-  Text,
-} from '@chakra-ui/react';
-import { Reply } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useAccount } from 'wagmi';
-import { shortenAddress, lowercaseAddress } from '../../utils/helpers';
+import { ListItem } from '@chakra-ui/react';
+import { formatDistanceToNow } from 'date-fns';
+import { useCallback, useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { useAccount, useNetwork } from 'wagmi';
+import { lowercaseAddress } from '../../utils/helpers';
 import { useSupabase } from '../../utils/supabaseContext';
 import { AddComment } from './AddComment';
+import CommentItem from './CommentItem';
 
-export const Comment = ({
-  comment: { id, name, ref, timeAgo, message, isLoggedIn },
-}) => {
+export const Comment = ({ comment }) => {
   const [showReply, setShowReply] = useState(false);
-  const [upvotes, setUpvotes] = useState(0);
+  const [replies, setReplies] = useState([]);
   const { supabase } = useSupabase();
+  const { chain } = useNetwork();
   const {
     address: user,
     isConnected,
@@ -31,223 +22,61 @@ export const Comment = ({
 
   const userAddress = lowercaseAddress(user);
 
-  async function getUpvotes() {
-    try {
-      const { data, error } = await supabase
-        .from('votes')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error && error.code === 'PGRST116') {
-        // Handle 406 error, i.e., create object if it doesn't exist
-        await supabase
-          .from('votes')
-          .insert([{ id: id, upvotes: [], downvotes: [] }]);
-        const { error: insertError } = await supabase
-          .from('votes')
-          .insert([{ id: id, upvotes: [], downvotes: [] }]);
-
-        if (insertError) {
-          throw insertError;
-        }
-        return 0;
-      } else if (error) {
-        throw error;
-      }
-
-      // subtract length of downvotes from upvotes
-      return data.upvotes.length - data.downvotes.length;
-    } catch (err) {
-      console.error('Error getting upvotes:', err);
-      return 0;
-    }
-  }
-
-  async function upvote() {
-    if (!isLoggedIn || !isConnected) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('votes')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error && error.statusCode === 406) {
-        // Handle 406 error, i.e., create object if it doesn't exist
-        await supabase
-          .from('votes')
-          .insert([{ id: id, upvotes: [userAddress], downvotes: [] }]);
-        const { error: insertError } = await supabase
-          .from('votes')
-          .insert([{ id: id, upvotes: [], downvotes: [] }]);
-
-        if (insertError) {
-          throw insertError;
-        }
-        return;
-      } else if (error) {
-        throw error;
-      }
-      let updatedUpvotes = [];
-
-      if (data.upvotes.includes(userAddress)) {
-        // this indicates they want to remove their positive vote
-        updatedUpvotes = data.upvotes.filter(
-          (address) => address !== userAddress
-        );
-      } else {
-        // add the wallet address to the upvote list
-        updatedUpvotes = [...data.upvotes, userAddress];
-      }
-
-      // remove from downvotes if it exists
-      const updatedDownvotes = data.upvotes.filter(
-        (address) => address !== userAddress
-      );
-
-      // update item
-      await supabase
-        .from('votes')
-        .update({ upvotes: updatedUpvotes, downvotes: updatedDownvotes })
-        .eq('id', id);
-
-      setUpvotes(updatedUpvotes.length - updatedDownvotes.length);
-    } catch (err) {
-      console.error('Error upvoting:', err);
-    }
-  }
-
-  async function downvote() {
-    if (!isLoggedIn || !isConnected) return;
-    try {
-      const { data, error } = await supabase
-        .from('votes')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error && error.statusCode === 'PGRST116') {
-        // Handle 406 error, i.e., create object if it doesn't exist
-
-        await supabase
-          .from('votes')
-          .insert([{ id: id, upvotes: [], downvotes: [userAddress] }]);
-        const { error: insertError } = await supabase
-          .from('votes')
-          .insert([{ id: id, upvotes: [], downvotes: [] }]);
-
-        if (insertError) {
-          throw insertError;
-        }
-        return;
-      } else if (error) {
-        throw error;
-      }
-
-      let updatedDownvotes = [];
-
-      if (data.downvotes.includes(userAddress)) {
-        // this indicates they want to remove their positive vote
-        updatedDownvotes = data.downvotes.filter(
-          (address) => address !== userAddress
-        );
-      } else {
-        // add the wallet address to the upvote list
-        updatedDownvotes = [...data.downvotes, userAddress];
-      }
-      // remove from upvotes if exists
-      const updatedUpvotes = data.upvotes.filter(
-        (address) => address !== userAddress
-      );
-
-      // update item
-      await supabase
-        .from('votes')
-        .update({ upvotes: updatedUpvotes, downvotes: updatedDownvotes })
-        .eq('id', id);
-      setUpvotes(updatedUpvotes.length - updatedDownvotes.length);
-    } catch (err) {
-      console.error('Error downvoting:', err);
-    }
-  }
-
   useEffect(() => {
-    async function fetchUpvotes() {
-      const count = await getUpvotes();
-      setUpvotes(count);
-    }
+    getReplies();
+  }, [comment?.id]);
 
-    fetchUpvotes();
-  }, []);
+  const getReplies = useCallback(async () => {
+    //   async function getComments() {
+    if (!comment?.address || !chain?.id || comment?.address.length === 0)
+      return;
+    let { data: replyData, error } = await supabase
+      .from('comments') // replace with your table name
+      .select('*')
+      .eq('parent', comment?.id);
+    if (error) console.log('Error: ', error);
+    console.log({ replyData });
+    if (!replyData) return;
+    // Map the data into the desired format
+    const repliesNew = [];
+    for (const comment of replyData) {
+      const timeAgo = formatDistanceToNow(new Date(comment.timestamp), {
+        addSuffix: true,
+      });
+      // const upvotes = await getUpvotes(comment.comment_id);
+      repliesNew.push({
+        id: comment.comment_id,
+        name: comment?.name,
+        address: comment?.address,
+        // upvotes: upvotes,
+        isParent: false,
+        message: comment.comment,
+        ref: comment.ref,
+        timeAgo: timeAgo,
+        isLoggedIn: comment?.isLoggedIn,
+      });
+    }
+    setReplies(repliesNew);
+  }, [comment?.address, chain?.id, supabase]);
+
   return (
     <>
-      <ListItem
-        background="#FFFFFF1A"
-        py={4}
-        px={6}
-        borderRadius="lg"
-        display="flex"
-        gap={4}
-      >
-        <Stack
-          w="fit-content"
-          background="#0000001A"
-          borderRadius="xl"
-          alignItems="center"
-        >
-          <IconButton
-            color="#A4BCFF"
-            variant="unstyled"
-            aria-label="Upvote"
-            icon={<AddIcon />}
-            onClick={upvote}
-          />
-          <Text fontSize="md" fontWeight="medium" mr={2}>
-            {upvotes}
-          </Text>
-          <IconButton
-            color="#A4BCFF"
-            variant="unstyled"
-            aria-label="Downvote"
-            icon={<MinusIcon />}
-            onClick={downvote}
-          />
-        </Stack>
-        <Stack flex={1}>
-          <Flex alignItems="center" flexWrap="wrap" justifyContent="space-between">
-            <Flex alignItems="center" gap={4}>
-              <Avatar size="sm" name={name} />
-              <Link color="#A4BCFF" fontWeight="semibold">
-                {shortenAddress(name)}
-              </Link>
-              <Text color="#FFFFFFCC" fontSize="sm">
-                {timeAgo}
-              </Text>
-              {ref && (
-                <Text
-                  color="#A8DFF5"
-                  fontWeight="semibold"
-                >{`#ref to <line of code or function>`}</Text>
-              )}
-            </Flex>
-            <Button
-              leftIcon={<Reply />}
-              variant="ghost"
-              color="#A4BCFF"
-              _hover={{ background: 'transparent' }}
-              onClick={() => setShowReply(!showReply)}
-            >
-              Reply
-            </Button>
-          </Flex>
-          <Text>{message}</Text>
-        </Stack>
-      </ListItem>
+      <CommentItem
+        comment={comment}
+        showReply={showReply}
+        setShowReply={setShowReply}
+      />
+      {replies.map((reply) => (
+        <CommentItem key={uuidv4()} comment={reply} />
+      ))}
       {showReply && (
         <ListItem>
-          <AddComment />
+          <AddComment
+            commentId={comment?.id}
+            contractId={comment?.address}
+            setShowReply={setShowReply}
+            getReplies={getReplies}
+          />
         </ListItem>
       )}
     </>

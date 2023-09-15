@@ -154,7 +154,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
                   ? '1px solid red'
                   : 'none'
               }
-              onBlur={(e) => {
+              onChange={(e) => {
                 setAddress(e.target.value);
                 validateContractAddress(
                   address,
