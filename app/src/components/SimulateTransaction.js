@@ -55,7 +55,6 @@ export const SimulateTransaction = ({
 
   const chainId = {
     ethereum: 1,
-    goerli: 5,
     polygon: 137,
   };
 

@@ -1,4 +1,4 @@
-import { Heading, List, Stack } from '@chakra-ui/react';
+import { Heading, List, Stack, Flex, Avatar, Input, Button } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
 import { AddComment } from './AddComment.js';
+import { lowercaseAddress } from '../../utils/helpers';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
@@ -60,6 +61,15 @@ export const Comments = ({ chainId, contractAddress }) => {
 
   const { isLoggedIn, supabase, setIsLoggedIn, checkLoggedIn } = useLogin();
 
+  // function to make username from wallet address after removing the 0x
+  function makeUsername(address) {
+    let username = address.slice(2);
+    username = lowercaseAddress(username);
+    return username;
+  }
+
+  const username = makeUsername(userAddress);
+
   const getComments = useCallback(async () => {
     //   async function getComments() {
     if (!contractAddress || !chainId || contractAddress.length === 0) return;
@@ -79,7 +89,7 @@ export const Comments = ({ chainId, contractAddress }) => {
       // const upvotes = await getUpvotes(comment.comment_id);
       commentsNew.push({
         id: comment.comment_id,
-        name: comment.user_address,
+        name: username,
         // upvotes: upvotes,
         message: comment.comment,
         ref: comment.ref,
@@ -169,22 +179,49 @@ export const Comments = ({ chainId, contractAddress }) => {
             {isLoggingIn && <Spinner size="xs" mr={2} />}{' '}
             {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
           </Button> */}
-          {!isLoggedIn && <h1>Please login to be able to add a comment</h1>}
+          {!isLoggedIn && <h2>Please login to be able to add a comment</h2>}
         </>
       )}
       {isDisconnected && (
-        <h1>Please connect your wallet to login and comment</h1>
+        <h2>Please connect your wallet to login and comment</h2>
       )}
       <Stack gap={4}>
         <Heading as="h1" size="md" fontWeight={600} noOfLines={1}>
           COMMENTS ({comments.length})
         </Heading>
         {isLoggedIn && (
-          <AddComment
-            comment={comment}
-            setComment={setComment}
-            addComment={addComment}
-          />
+          <Flex
+            alignItems="center"
+            background="#FFFFFF1A"
+            borderRadius="lg"
+            w="full"
+            py={4}
+            px={6}
+            gap={4}
+          >
+            <Avatar name={username} />
+            <Input
+              value={comment} // Bind the value of the input field to the comment state
+              onChange={(e) => setComment(e.target.value)}
+              variant="filled"
+              placeholder="Add a comment"
+              background="#00000026"
+              _hover={{ background: '#00000026' }}
+              _placeholder={{ color: '#ADADAD' }}
+                          borderRadius="lg"
+                          isDisabled={!isLoggedIn}
+            />
+            <Button
+              borderRadius="full"
+              background="white"
+              color="#101D42"
+              fontWeight={400}
+                          onClick={addComment}
+                            isDisabled={!isLoggedIn}
+            >
+              Send
+            </Button>
+          </Flex>
         )}
         <List spacing={4}>
           {comments.map((comment) => (

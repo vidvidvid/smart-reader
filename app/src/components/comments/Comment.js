@@ -12,7 +12,7 @@ import {
 import { Reply } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { shortenAddress } from '../../utils/helpers';
+import { shortenAddress, lowercaseAddress } from '../../utils/helpers';
 import { useSupabase } from '../../utils/supabaseContext';
 import { AddComment } from './AddComment';
 
@@ -23,11 +23,13 @@ export const Comment = ({
   const [upvotes, setUpvotes] = useState(0);
   const { supabase } = useSupabase();
   const {
-    address: userAddress,
+    address: user,
     isConnected,
     isConnecting,
     isDisconnected,
   } = useAccount();
+
+  const userAddress = lowercaseAddress(user);
 
   async function getUpvotes() {
     try {

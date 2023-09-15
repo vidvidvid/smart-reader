@@ -10,7 +10,7 @@ export default function CodeReader({
 }) {
   return (
     <Box
-      background="#00000080"
+      background="#101D42"
       w={{ base: 'full', lg: '50%' }}
       h="full"
       p={6}
@@ -21,12 +21,17 @@ export default function CodeReader({
       <Heading as="h3" size="md" noOfLines={1} pb={8}>
         SOURCE CODE
       </Heading>
-      <Box h="sm" overflow="auto">
+      <Box h="sm" overflow="auto" sx={{
+        "pre": {
+          bgColor: '#101D42!important',
+        }
+      }}>
         <SyntaxHighlighter
           language="javascript"
           style={{
             ...dracula,
             display: 'inline-table',
+            bgColor: '#101D42'
           }}
           onClick={() => handleCodeClick()}
           wrapLines={true}

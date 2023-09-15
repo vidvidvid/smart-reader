@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import { Honeybadger } from "@honeybadger-io/react";
 
 const shortenAddress = (address) => {
   if (!address) return '';
@@ -32,7 +33,8 @@ const validateContractAddress = (
   input,
   user,
   validationResult,
-  setValidationResult
+  setValidationResult,
+  toast
 ) => {
   let message = '';
   if (!input) setValidationResult({ result: true, message: '' });
@@ -48,7 +50,7 @@ const validateContractAddress = (
   if (input.length === 42 && input.startsWith('0x')) {
     isContract(input).then((result) => {
       if (result) {
-        message = 'Address is a contract';
+        message = `${input} is a valid contract address`;
 
         setValidationResult({
           result: true,
@@ -60,7 +62,7 @@ const validateContractAddress = (
         };
       } else {
         message =
-          'Address is not a contract or exists on a different network. Please check and try again.';
+          `${input} is not a contract or exists on a different network. Please check and try again.`;
 
         setValidationResult({
           result: false,
@@ -138,4 +140,14 @@ const validateContractAddress = (
   }
 };
 
-export { shortenAddress, isContract, validateContractAddress };
+const lowercaseAddress = (address) => {
+  return address.toLowerCase();
+};
+
+const errorHandler = (error) => {
+  /* would be nice to use something like honeybadger here */
+    // Honeybadger.notify(error);
+  console.log(error);
+  };
+
+export { shortenAddress, isContract, validateContractAddress, errorHandler, lowercaseAddress };

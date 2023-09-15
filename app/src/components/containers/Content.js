@@ -9,9 +9,12 @@ import {
   Stack,
   useClipboard,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
 import axios from 'axios';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useAccount, useNetwork, useWalletClient } from 'wagmi';
 import chainInfo from '../../utils/chainInfo';
 import { contractsDatabase } from '../../utils/constants';
@@ -26,12 +29,14 @@ import ContractMetaData from '../contract/ContractMetaData';
 import CodeReader from '../code/CodeReader';
 import CodeExplaination from '../code/CodeExplaination';
 import CodeModal from '../code/CodeModal';
+import Intro from '../Intro';
 import { functionMessages, contractMessages, explanation } from '../../utils/constants';
 
 export const Content = ({ address, fetching, setFetching }) => {
   const [contractABI, setContractABI] = useState([]);
   const [contractExplanation, setContractExplanation] = useState('');
   const [contractName, setContractName] = useState('No contract');
+  const [tokenData, setTokenData] = useState(null)
   const [functionExplanation, setFunctionExplanation] = useState('');
   const [dependencyExplanation, setDependencyExplanation] = useState('');
   const [explanationError, setExplanationError] = useState('');
@@ -39,6 +44,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
   const [selectedDependencyName, setSelectedDependencyName] = useState(null);
+
   const [isLoadingContract, setIsLoadingContract] = useState(false);
   const [isLoadingFunction, setIsLoadingFunction] = useState(false);
   const [isLoadingDependency, setIsLoadingDependency] = useState(false);
@@ -48,19 +54,24 @@ export const Content = ({ address, fetching, setFetching }) => {
     name: '',
     code: '',
   });
+  const [inspectDependency, setInspectDependency] = useState({
+    name: '',
+    code: '',
+  });
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
+  if (!address && userAddress) address = chain.id === 137 ? '0x0000000000000000000000000000000000001010' : '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
   const { data: signer } = useWalletClient();
-  const { APIKEY, blockExplorerApi, blockExplorerUrl } = chainInfo({ chain });
+  const { APIKEY, blockExplorerApi, blockExplorerUrl, ALCHEMY_API_KEY, alchemyUrl } = chainInfo({ chain });
   const { onCopy, value, setValue, hasCopied } = useClipboard('');
   const [isFetchingCreator, setIsFetchingCreator] = useState(false);
-  
+
   const [contractCreation, setContractCreation] = useState({
     creator: '',
     creationTxn: '',
   });
-  
+
   const [validationResult, setValidationResult] = useState({
     isValid: false,
     message: '',
@@ -68,6 +79,7 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const mainContentRef = useRef(null);
   const { supabase } = useSupabase();
+  const toast = useToast();
 
   useEffect(() => {
     if (address && address.length > 0) {
@@ -99,11 +111,19 @@ export const Content = ({ address, fetching, setFetching }) => {
     }
   }, [sourceCode, chain?.id]);
 
+
   const fetchExplanation = useCallback(
     async (dep, code, type, arrayId = '') => {
+      // const relay = new GelatoRelay();
+
+      // const result = await getExplanation(address, inspectContract.name);
+
+      // console.log('getExplanation in fetchExplanation', result);
+
       let fileExplanationSuccess = false;
+
       // check if the explanation exists in the db
-      const id = chain.id + '-' + address;
+      const id = chain?.id + '-' + address;
       const { data: supabaseResponse, error } = await supabase
         .from(contractsDatabase)
         .select('*')
@@ -223,7 +243,7 @@ export const Content = ({ address, fetching, setFetching }) => {
               }
 
               console.log('Item updated!', updatedData);
-          
+
             } else if (type === explanation.dependency) {
               console.log('data.choices[0]', data.choices[0]);
               setDependencyExplanation(data.choices[0].message.content);
@@ -366,7 +386,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           console.log('Object is empty');
           break;
         }
-       
+
       }
 
       if (allFieldsExist) {
@@ -389,6 +409,7 @@ export const Content = ({ address, fetching, setFetching }) => {
         return;
       }
 
+      console.log('Item updated!', updatedData);
     }
     // If the item does not exist, insert it
     else {
@@ -435,11 +456,8 @@ export const Content = ({ address, fetching, setFetching }) => {
             creator: response.data.result[0].contractCreator,
             creationTxn: response.data.result[0].txHash,
           };
-    
         } catch (error) {
           console.log('Error fetching contract creation:', error);
-
-      
         }
 
         const contract = {
@@ -459,6 +477,47 @@ export const Content = ({ address, fetching, setFetching }) => {
       fetchCreatorAndCreation(address);
     }
   }, [address, fetchCreatorAndCreation]);
+
+  const fetchTokenData = useCallback(async (address) => {
+    try {
+        const apiUrl = `${alchemyUrl}${ALCHEMY_API_KEY}`;
+        if (!address) return null;
+        const options = {
+            method: 'POST',
+            url: apiUrl,
+            headers: {
+                'Content-Type': 'application/json',
+                accept: 'application/json',
+            },
+            data: {
+                id: chain?.id,
+                jsonrpc: '2.0',
+                method: 'alchemy_getTokenMetadata',
+                params: [address],
+            }
+        }
+
+        const res = await axios(options);
+        const { name, logo, symbol } = res.data.result;
+        console.log({name, logo, symbol});
+        //   setContractName(name);
+        setTokenData({
+            name,
+            logo,
+            symbol,
+        });
+    } catch (error) {
+        console.log('Alchemy error', error);
+        toast({
+            title: 'Error',
+            description: error.message,
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+        });
+        setContractName('Unknown');
+    }
+}, [ALCHEMY_API_KEY, alchemyUrl, chain?.id, toast]);
 
   const fetchSourceCode = useCallback(async () => {
     if (!userAddress || userAddress === '') return;
@@ -522,13 +581,21 @@ export const Content = ({ address, fetching, setFetching }) => {
           );
           // console.log('name', contractsArray[0].name);
           setFetching(false);
+          toast({
+            title: 'Contract found',
+            description: `Contract ${contractsArray[0].name} found on ${chain.name}`,
+            status: 'success',
+            duration: 5000,
+            isClosable: true,
+        });
           return contract;
         } catch (err) {
           // Handle Error Here
           console.log('fetch source code error', err);
           setFetching(false);
           setSourceCode([]);
-          setContractName('Contract name');
+          setContractName('Unknown');
+          setTokenData({'name': 'Unknown', 'logo': '', 'symbol': ''});
           setExplanationError('');
           setContractExplanation('');
           setInspectContract(undefined);
@@ -541,9 +608,10 @@ export const Content = ({ address, fetching, setFetching }) => {
     setExplanationError('');
     setContractExplanation('');
     if (fetching) {
+      fetchTokenData(address);
       fetchSourceCode();
     }
-  }, [fetching, fetchSourceCode, setFetching, address, chain?.id]);
+  }, [fetching, fetchSourceCode, setFetching, address, chain?.id, fetchTokenData]);
 
   const handleContractChange = useCallback(
     async (e) => {
@@ -663,6 +731,12 @@ export const Content = ({ address, fetching, setFetching }) => {
     onClose: onCloseAnnotation,
   } = useDisclosure();
 
+  // const {
+  //   isOpen: isOpenDependency,
+  //   onOpen: onOpenDependency,
+  //   onClose: onCloseDependency,
+  // } = useDisclosure();
+
   const handleCodeClick = useCallback(() => {
     if (!selectedFunctionName || !selectedFunctionCode) {
       return;
@@ -681,6 +755,14 @@ export const Content = ({ address, fetching, setFetching }) => {
       explanation.function,
       selectedFunctionName
     );
+    // let formattedCode = '';
+    // if (inspectFunction && inspectFunction.code) {
+    //   const formattedCode = prettier.format(inspectContract.code, {
+    //     parser: 'typescript',
+    //     plugins: [typescript],
+    //   });
+    //
+    // }
   }, [
     selectedFunctionName,
     selectedFunctionCode,
@@ -691,19 +773,27 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   return (
     <Stack
-      h="full"
+      h={!userAddress ? "calc(100vh - 130px)" : "full"}
       w="full"
+      alignItems={!userAddress ? "center" : "stretch"}
+      justifyContent={!userAddress ? "center" : "flex-start"}
       background="#FFFFFF1A"
       backdropFilter="blur(8px)"
       p={6}
       borderRadius="8px"
       gap={8}
-      zIndex={0}
+      zIndex={10}
     >
       {!userAddress ? (
         <ConnectWalletWarning />
       ) : undefined}
-      <ContractMetaData
+
+      {!userAddress ? (
+        <Intro />
+
+      ) : (
+          <>
+            <ContractMetaData
         contractName={contractName}
         validationResult={validationResult}
         address={address}
@@ -714,7 +804,8 @@ export const Content = ({ address, fetching, setFetching }) => {
         blockExplorerUrl={blockExplorerUrl}
         contractCreation={contractCreation}
         isFetchingCreator={isFetchingCreator}
-        value={value}
+              value={value}
+              tokenData={tokenData}
       />
       <Files
         sourceCode={sourceCode}
@@ -741,11 +832,13 @@ export const Content = ({ address, fetching, setFetching }) => {
         />
       </Flex>
 
-      <Comments chainId={chain?.id} contractAddress={address} />
+      {address !== '' && <Comments chainId={chain?.id} contractAddress={address} />}
+            </>
+      )}
 
       <Modal isOpen={isOpenAnnotation} onClose={onCloseAnnotation}>
         <ModalOverlay />
-        <ModalContent minW="800px" maxH="calc(100% - 80px)" borderRadius={16}>
+        <ModalContent minW="800px" w="75%" maxH="calc(100% - 80px)" borderRadius={16}>
           <ModalHeader
             background="#262545"
             mt={2}
