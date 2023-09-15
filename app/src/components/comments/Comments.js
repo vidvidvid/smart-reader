@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
 import { AddComment } from './AddComment.js';
-import { lowercaseAddress } from '../utils/helpers';
+import { lowercaseAddress } from '../../utils/helpers';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 

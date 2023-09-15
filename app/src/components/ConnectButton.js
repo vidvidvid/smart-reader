@@ -1,7 +1,7 @@
 import { Button, Spinner, Tooltip, useToast } from '@chakra-ui/react'
 import { useAccount, useDisconnect } from 'wagmi';
 import React, { useEffect, useCallback } from 'react'
-import { polygon } from 'wagmi/chains';
+import { mainnet } from 'wagmi/chains';
 
 import { useWeb3Modal } from '@web3modal/react'
 import { shortenAddress, lowercaseAddress } from '../utils/helpers'
@@ -59,7 +59,7 @@ export const ConnectButton = ({address, setAddress}) => {
     });
 
     useEffect(() => {
-        setDefaultChain(polygon.chainId);
+        setDefaultChain(mainnet.chainId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

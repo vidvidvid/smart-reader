@@ -12,10 +12,9 @@ import {
 import { Reply } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { shortenAddress } from '../../utils/helpers';
+import { shortenAddress, lowercaseAddress } from '../../utils/helpers';
 import { useSupabase } from '../../utils/supabaseContext';
 import { AddComment } from './AddComment';
-import { lowercaseAddress } from '../utils/helpers';
 
 export const Comment = ({
   comment: { id, name, ref, timeAgo, message, isLoggedIn },

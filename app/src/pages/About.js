@@ -7,9 +7,11 @@ import { Header } from '../components/Header';
 import {lowercaseAddress} from "../utils/helpers";
 
 export const AboutPage = () => {
+    const { chain } = useNetwork();
     const [fetching, setFetching] = useState(false);
-    const { isConnected} = useAccount();
-    const [address, setAddress] = useState(isConnected ? '0x0000000000000000000000000000000000001010' : '');
+    const { isConnected } = useAccount();
+    const defaultContract = !isConnected ? '' : chain.id === 137 ? '0x0000000000000000000000000000000000001010' : '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'
+    const [address, setAddress] = useState(defaultContract);
 
     return (
         <Flex

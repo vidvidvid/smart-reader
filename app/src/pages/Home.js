@@ -1,5 +1,5 @@
 import { Box, Flex, Text } from '@chakra-ui/react';
-import { Main } from '../components/Main';
+import { Main } from '../components/containers/Main';
 
 
 export const HomePage = () => {
