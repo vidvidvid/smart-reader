@@ -1,4 +1,12 @@
-import { Heading, List, Stack, Flex, Avatar, Input, Button } from '@chakra-ui/react';
+import {
+  Avatar,
+  Button,
+  Flex,
+  Heading,
+  Input,
+  List,
+  Stack,
+} from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -9,7 +17,6 @@ import { Comment } from './Comment';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
-import { AddComment } from './AddComment.js';
 import { lowercaseAddress } from '../../utils/helpers';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -76,9 +83,10 @@ export const Comments = ({ chainId, contractAddress }) => {
     let { data: commentData, error } = await supabase
       .from('comments') // replace with your table name
       .select('*')
-      .eq('contract_id', chainId + '-' + contractAddress);
+      .eq('contract_id', chainId + '-' + contractAddress)
+      .is('parent', null);
     if (error) console.log('Error: ', error);
-    console.log(commentData)
+    console.log({ commentData });
     if (!commentData) return;
     // Map the data into the desired format
     const commentsNew = [];
@@ -90,7 +98,9 @@ export const Comments = ({ chainId, contractAddress }) => {
       commentsNew.push({
         id: comment.comment_id,
         name: username,
+        address: contractAddress,
         // upvotes: upvotes,
+        isParent: true,
         message: comment.comment,
         ref: comment.ref,
         timeAgo: timeAgo,
@@ -208,16 +218,16 @@ export const Comments = ({ chainId, contractAddress }) => {
               background="#00000026"
               _hover={{ background: '#00000026' }}
               _placeholder={{ color: '#ADADAD' }}
-                          borderRadius="lg"
-                          isDisabled={!isLoggedIn}
+              borderRadius="lg"
+              isDisabled={!isLoggedIn}
             />
             <Button
               borderRadius="full"
               background="white"
               color="#101D42"
               fontWeight={400}
-                          onClick={addComment}
-                            isDisabled={!isLoggedIn}
+              onClick={addComment}
+              isDisabled={!isLoggedIn}
             >
               Send
             </Button>
