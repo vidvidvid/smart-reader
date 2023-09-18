@@ -73,7 +73,7 @@ export const Header = ({ address, setAddress, setFetching }) => {
   useEffect(() => {
       handlePageName();
       console.log({pageName});
-  });
+  }, []);
 
   // useEffect(() => {
   //   if (isConnected && !isLoggedIn) login();

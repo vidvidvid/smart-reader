@@ -18,19 +18,18 @@ export const ConnectButton = ({address, setAddress}) => {
         isConnecting,
         isDisconnected,
     } = useAccount({
-        onDisconnect: () => {
-            setAddress('');
-            disconnect();
-            logout();
+        // onDisconnect: () => {
+        //     setAddress('');
+        //     logout();
 
-            toast({
-                title: 'Disconnected',
-                description: 'You are now disconnected & logged out.',
-                status: 'success',
-                duration: 5000,
-                isClosable: true,
-            });
-        },
+        //     toast({
+        //         title: 'Disconnected',
+        //         description: 'You are now disconnected & logged out.',
+        //         status: 'success',
+        //         duration: 5000,
+        //         isClosable: true,
+        //     });
+        // },
         onConnect: async () => {
             try {
                 toast({
