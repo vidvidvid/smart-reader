@@ -27,7 +27,7 @@ import { Files } from '../contract/Files';
 import ConnectWalletWarning from '../common/ConnectWalletWarning';
 import ContractMetaData from '../contract/ContractMetaData';
 import CodeReader from '../code/CodeReader';
-import CodeExplaination from '../code/CodeExplaination';
+import CodeExplanation from '../code/CodeExplanation';
 import CodeModal from '../code/CodeModal';
 import Intro from '../Intro';
 import { functionMessages, contractMessages, explanation } from '../../utils/constants';
@@ -644,13 +644,6 @@ export const Content = ({ address, fetching, setFetching }) => {
     (event) => {
       const codeNode = event.target;
       const lineNode = codeNode.parentElement;
-      const button = document.createElement('button');
-            button.innerText = 'Explain this function';
-            button.classList.add('explain-button');
-            button.style.position = 'absolute';
-            button.style.top = '-30px';
-            button.style.right = '-50px';
-      button.addEventListener('click', handleCodeClick);
 
       if (lineNode.nodeName === 'SPAN') {
         const childSpans = lineNode.querySelectorAll('span');
@@ -683,9 +676,6 @@ export const Content = ({ address, fetching, setFetching }) => {
             setSelectedFunctionCode(highlightedText);
           }
           if (foundFunction) {
-            console.log(`found function in span ${i}`, span);
-            span.style.position = 'relative';
-            span.appendChild(button);
             let nextSpan = span.nextElementSibling;
             let functionName = span.innerText.replace(/^.*function\s+/i, '');
 
@@ -836,7 +826,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           handleCodeHover={handleCodeHover}
           handleCodeClick={handleCodeClick}
         />
-        <CodeExplaination
+        <CodeExplanation
           contractExplanation={contractExplanation}
           isLoadingContract={isLoadingContract}
           explanationError={explanationError}

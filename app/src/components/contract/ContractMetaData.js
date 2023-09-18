@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
-import { Stack, Flex, Heading, Image, Link, Button, Spinner, Text, Tooltip, useToast, useClipboard } from '@chakra-ui/react';
-import { shortenAddress } from '../../utils/helpers';
+import { Stack, Flex, Heading, Image, Link, Button, Spinner, Text, Tooltip, useToast, useClipboard, useBreakpoint } from '@chakra-ui/react';
+import { shortenAddress, lowercaseAddress } from '../../utils/helpers';
 import { CopyIcon } from '@chakra-ui/icons';
 
 export default function ContractMetaData({
@@ -14,7 +14,11 @@ export default function ContractMetaData({
   tokenData,
 }) {
   const { onCopy, value, setValue, hasCopied } = useClipboard('');
-  const toast = useToast();
+    const toast = useToast();
+    const isMobile = useBreakpoint({ base: true, lg: false });
+    const { creator, creationTxn } = contractCreation;
+    const lowercaseCreator = lowercaseAddress(creator);
+    const lowercaseTxn = lowercaseAddress(creationTxn);
 
   useEffect(() => {
     if (hasCopied) {
@@ -49,10 +53,10 @@ export default function ContractMetaData({
             <Link
               href={`${blockExplorerUrl}/address/${address}`}
               fontSize="sm"
-              color="#A4BCFF"
+              color="link"
               isExternal
             >
-              {shortenAddress(address)}
+              {isMobile ? shortenAddress(address) : address}
             </Link>
             <Tooltip label="Copy address" hasArrow>
               <Button
@@ -95,21 +99,21 @@ export default function ContractMetaData({
         validationResult.result ? (
         <Flex gap={1}>
           <Link
-            href={`${blockExplorerUrl}/address/${contractCreation.creator}`}
+            href={`${blockExplorerUrl}/address/${lowercaseCreator}`}
             fontSize="sm"
-            color="#A4BCFF"
+            color="link"
             isExternal
           >
-            {shortenAddress(contractCreation.creator)}
+            {isMobile ? shortenAddress(lowercaseCreator) : lowercaseCreator}
           </Link>
           <Text fontSize="sm">at txn</Text>
           <Link
-            href={`${blockExplorerUrl}/tx/${contractCreation.creationTxn}`}
+            href={`${blockExplorerUrl}/tx/${lowercaseTxn}`}
             fontSize="sm"
-            color="#A4BCFF"
+            color="link"
             isExternal
           >
-            {shortenAddress(contractCreation.creationTxn)}
+            {isMobile ? shortenAddress(lowercaseTxn) : lowercaseTxn}
           </Link>
         </Flex>
       ) : (

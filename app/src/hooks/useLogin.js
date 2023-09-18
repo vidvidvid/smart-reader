@@ -54,6 +54,8 @@ const useLogin = () => {
 
     async function login() {
         try {
+            setIsLoggingIn(true);
+
             const nonce = await postData(
                 process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
                 {
@@ -76,7 +78,6 @@ const useLogin = () => {
             setIsLoggingIn(false);
             setIsLoggedIn(true);
             setToken(token);
-            console.log('token', { token, isLoggedIn, isLoggingIn });
         } catch (error) {
             console.log('error', error);
             setIsLoggedIn(false);
@@ -108,7 +109,7 @@ const useLogin = () => {
         isLoggingIn,
         setIsLoggedIn,
         setIsLoggingIn,
-        checkLoggedIn,
+        checkLoggedIn
     };
 };
 
