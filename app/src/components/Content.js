@@ -32,7 +32,7 @@ import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useAccount, useNetwork, useWalletClient } from 'wagmi';
 import { Icon } from '@iconify/react';
 import chainInfo from '../utils/chainInfo';
-import { contractsDatabase, alchemyMainnetUrl, alchemyPolygonUrl } from '../utils/constants';
+import { contractsDatabase } from '../utils/constants';
 import { shortenAddress, validateContractAddress } from '../utils/helpers';
 import { isContract } from '../utils/helpers.js';
 import { ConnectButton } from "./ConnectButton";
@@ -885,12 +885,6 @@ export const Content = ({ address, fetching, setFetching }) => {
         onOpen: onOpenAnnotation,
         onClose: onCloseAnnotation,
     } = useDisclosure();
-
-    // const {
-    //   isOpen: isOpenDependency,
-    //   onOpen: onOpenDependency,
-    //   onClose: onCloseDependency,
-    // } = useDisclosure();
 
     const handleCodeClick = useCallback(() => {
         if (!selectedFunctionName || !selectedFunctionCode) {

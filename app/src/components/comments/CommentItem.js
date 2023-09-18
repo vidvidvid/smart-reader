@@ -44,7 +44,7 @@ const CommentItem = ({
         // Handle 406 error, i.e., create object if it doesn't exist
         await supabase
           .from('votes')
-          .insert([{ id: id, upvotes: [userAddress], downvotes: [] }]);
+          .insert([{ id: id, upvotes: [userAddress.toLowerCase()], downvotes: [] }]);
         const { error: insertError } = await supabase
           .from('votes')
           .insert([{ id: id, upvotes: [], downvotes: [] }]);
@@ -70,7 +70,7 @@ const CommentItem = ({
 
       // remove from downvotes if it exists
       const updatedDownvotes = data.upvotes.filter(
-        (address) => address !== userAddress
+        (address) => address !== userAddress.toLowerCase()
       );
 
       // update item
