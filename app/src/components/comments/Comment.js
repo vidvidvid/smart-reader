@@ -46,7 +46,7 @@ export const Comment = ({ comment }) => {
       // const upvotes = await getUpvotes(comment.comment_id);
       repliesNew.push({
         id: comment.comment_id,
-        name: comment?.name,
+        name: comment?.user_address,
         address: comment?.address,
         // upvotes: upvotes,
         isParent: false,
@@ -65,9 +65,10 @@ export const Comment = ({ comment }) => {
         comment={comment}
         showReply={showReply}
         setShowReply={setShowReply}
+        type={'comment'}
       />
       {replies.map((reply) => (
-        <CommentItem key={uuidv4()} comment={reply} />
+        <CommentItem key={uuidv4()} comment={reply} type={'reply'}/>
       ))}
       {showReply && (
         <ListItem>
