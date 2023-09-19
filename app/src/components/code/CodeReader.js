@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect } from 'react'
-import { Box, Heading } from '@chakra-ui/react'
+import { Box, Heading } from '@chakra-ui/react';
+import debounce from 'lodash.debounce';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { hi } from 'date-fns/locale';
 
 export default function CodeReader({
   inspectContract,
@@ -9,7 +11,7 @@ export default function CodeReader({
   handleCodeClick,
 }) {
 
-    const handleButtonAdd = useCallback((parent, event, remove = false) => {
+    const handleButtonAdd = (parent, event, remove) => {
         try {
             const { target } = event;
 
@@ -19,29 +21,28 @@ export default function CodeReader({
             button.innerText = 'Explain this function';
             button.classList.add('explain-button');
             button.style.position = 'absolute';
-            button.style.top = '-30px';
-            button.style.right = '0';
-            button.addEventListener('click', handleCodeClick);
+            button.style.top = '-50px';
+            button.style.right = '-225px';
+            button.style.zIndex = 110;
+            button.addEventListener('click', () => handleCodeClick());
 
             if (highlighted.length === 0) {
                 return;
             }
 
 
-
             if (highlighted.length > 0) {
                 const wrapper = highlighted.forEach((element, i) => {
                     if (i === 0) {
-                        console.log('WWW element', element);
                         return element;
                     }
                 });
                 highlighted[0].style.position = 'relative';
-                highlighted[0].style.borderColor = 'red';
-                highlighted[0].style.borderWidth = '2px';
+                highlighted[0].style.zIndex = 100;
                 highlighted[0].appendChild(button);
             }
             if (remove) {
+                console.log('remove button');
                 highlighted[0].style.borderColor = 'transparent';
                 highlighted[0].style.borderWidth = '0px';
                 highlighted[0].removeChild(button);
@@ -50,7 +51,9 @@ export default function CodeReader({
         } catch (error) {
             console.log('handleButtonAdd error', {error});
         }
-    }, [handleCodeClick]);
+    }
+
+    const buttonAddCallback = useCallback(() => debounce(handleButtonAdd, 250), []);
 
 
     useEffect(() => {
@@ -58,14 +61,14 @@ export default function CodeReader({
         const codeContainer = document.querySelector('.code-container');
 
         if (codeContainer) {
-            codeContainer.addEventListener('mouseenter', (event) => handleButtonAdd(codeContainer, event));
-            codeContainer.addEventListener('mouseleave', (event) => handleButtonAdd(codeContainer,event, true));
+            codeContainer.addEventListener('mouseover', (event) => buttonAddCallback(handleButtonAdd(codeContainer, event), 250));
+            codeContainer.addEventListener('mouseleave', (event) => buttonAddCallback(handleButtonAdd(codeContainer,event, true), 250));
         }
 
         return () => {
             if (codeContainer) {
-                codeContainer.removeEventListener('mouseover', (event) => handleButtonAdd(codeContainer, event));
-                codeContainer.removeEventListener('mouseout', (event) => handleButtonAdd(codeContainer, event));
+                codeContainer.removeEventListener('mouseover', (event) => buttonAddCallback(codeContainer, event, true));
+                codeContainer.removeEventListener('mouseleave', (event) => buttonAddCallback(codeContainer, event, true));
             }
         }
 

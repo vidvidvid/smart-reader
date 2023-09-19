@@ -49,13 +49,10 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
                 //     duration: 0,
 
                 // })
-
-                await login();
                 const loggedIn = checkLoggedIn();
+                if (!loggedIn) await login();
 
                 if (loggedIn) {
-                    console.log('onconnect logged in?', { loggedIn });
-
                     toast({
                         title: 'Logged In',
                         description: 'You are now logged in.',

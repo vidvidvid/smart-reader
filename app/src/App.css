@@ -38,7 +38,10 @@
 }
 
 .explain-button {
-  border: 1px solid white
+  border: 1px solid white;
+  border-radius: 4px;
+  background-color: rgba(0 0 0/ 80%);
+  padding: 4px 8px;
 }
 
 .highlight {
