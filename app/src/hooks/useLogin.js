@@ -5,7 +5,7 @@ import postData from '../utils/api.js';
 import { useSupabase } from '../utils/supabaseContext';
 // import { Button, Spinner } from '@chakra-ui/react';
 import jwtDecode from 'jwt-decode';
-import { setCookie } from 'typescript-cookie';
+import { setCookie, removeCookie } from 'typescript-cookie';
 import { useSignMessage } from 'wagmi';
 import { useToast } from '@chakra-ui/react';
 import { errorHandler } from '../utils/helpers';
@@ -54,6 +54,8 @@ const useLogin = () => {
 
     async function login() {
         try {
+            setIsLoggingIn(true);
+
             const nonce = await postData(
                 process.env.REACT_APP_EDGE_FUNCTIONS_BASE_URL + 'nonce',
                 {
@@ -76,7 +78,6 @@ const useLogin = () => {
             setIsLoggingIn(false);
             setIsLoggedIn(true);
             setToken(token);
-            console.log('token', { token, isLoggedIn, isLoggingIn });
         } catch (error) {
             console.log('error', error);
             setIsLoggedIn(false);
@@ -98,6 +99,7 @@ const useLogin = () => {
         setIsLoggedIn(false);
         setIsLoggingIn(false);
         setToken('');
+        removeCookie('supabasetoken');
     }
 
     return {
@@ -108,7 +110,7 @@ const useLogin = () => {
         isLoggingIn,
         setIsLoggedIn,
         setIsLoggingIn,
-        checkLoggedIn,
+        checkLoggedIn
     };
 };
 

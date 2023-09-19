@@ -1,12 +1,4 @@
-import {
-  Avatar,
-  Button,
-  Flex,
-  Heading,
-  Input,
-  List,
-  Stack,
-} from '@chakra-ui/react';
+import { Heading, List, Stack, Flex, Avatar, Input, Button, Box } from '@chakra-ui/react';
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -17,7 +9,9 @@ import { Comment } from './Comment';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
+import { ConnectButton, LoginButton } from '../ConnectButton';
 import { lowercaseAddress } from '../../utils/helpers';
+
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
@@ -65,7 +59,7 @@ export const Comments = ({ chainId, contractAddress }) => {
     isConnecting,
     isDisconnected,
   } = useAccount();
-
+    const [addressFromButton, setAddressFromButton] = useState('');
   const { isLoggedIn, supabase, setIsLoggedIn, checkLoggedIn } = useLogin();
 
   // function to make username from wallet address after removing the 0x
@@ -164,36 +158,24 @@ export const Comments = ({ chainId, contractAddress }) => {
     }
     getComments();
 
-    // const comment = {
-    //   id: uuidv4(),
-    //   name: 'amyrobson',
-    //   timeAgo: '1 month ago',
-    //   upvotes: 12,
-    //   message: 'Impressive! Though it seems the drag feature could be improved.',
-    //   ref: false,
-    // };
   }
 
   return (
     <>
       {isConnected && (
         <>
-          {/* <Button
-            background="transparent"
-            color="whiteAlpha.700"
-            _hover={{ background: 'transparent', color: 'white' }}
-            border="2px solid white"
-            borderRadius="full"
-            onClick={() => (isLoggedIn ? logout() : login())}
-          >
-            {isLoggingIn && <Spinner size="xs" mr={2} />}{' '}
-            {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
-          </Button> */}
-          {!isLoggedIn && <h2>Please login to be able to add a comment</h2>}
+          {!isLoggedIn && (
+            <Box py={6} px={8} bg="blackAlpha.300" w="full" textAlign="left" borderRadius="lg">
+              <p>Please <LoginButton /> to be able to add a comment</p>
+            </Box>
+          )}
+
         </>
       )}
       {isDisconnected && (
-        <h2>Please connect your wallet to login and comment</h2>
+        <Box p="xl" bg="blackAlpha.300" w="full" textAlign="left" borderRadius="lg">
+          <p>In order to leave a comment, you need to <ConnectButton address={userAddress} setAddress={setAddressFromButton} cta="connect wallet" isSimple /> first.</p>
+        </Box>
       )}
       <Stack gap={4}>
         <Heading as="h1" size="md" fontWeight={600} noOfLines={1}>

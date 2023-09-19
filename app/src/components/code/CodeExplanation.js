@@ -1,25 +1,27 @@
 import React from 'react'
-import { Box, Stack, Heading, TabList, Tabs, TabPanels, TabPanel, Text, Spinner, useTab, Button } from '@chakra-ui/react'
+import { Box, Stack, Heading, TabList, Tabs, TabPanels, TabPanel, Text, Tooltip, Spinner, useTab, Button } from '@chakra-ui/react'
 import Viewer from '../MarkdownViewer'
 
 const CustomTab = React.forwardRef((props, ref) => {
-  const tabProps = useTab({ ...props, ref });
+    const tabProps = useTab({ ...props, ref });
+    const { isDisabled } = props;
   const isSelected = !!tabProps['aria-selected'];
-  const isDisabled = !!tabProps['aria-disabled'];
-  const bg = isDisabled ? 'red' : isSelected ? '#FFFFFF40' : 'transparent';
+//   const isDisabled = !!tabProps['aria-disabled'];
+  const bg = isDisabled ? 'transparent' : isSelected ? '#FFFFFF40' : 'transparent';
   const bgHover = isDisabled ? 'transparent' : '#ffffff40';
-  const cursor = isDisabled ? 'not-allowed' : 'pointer';
+    const cursor = isDisabled ? 'not-allowed' : 'pointer';
+
   return (
     <Button
       size="sm"
       w="full"
       variant="solid"
-      borderRadius="xl"
-      background={bg}
+      borderRadius="lg"
+          background={bg}
+          color={isDisabled ? 'whiteAlpha.500' : isSelected ? 'white' : 'whiteAlpha.600'}
       cursor={cursor}
       _hover={{ background: bgHover }}
-      fontWeight={400}
-      isDisabled={isDisabled}
+      fontWeight={600}
       {...tabProps}
     >
       {tabProps.children}
@@ -27,7 +29,7 @@ const CustomTab = React.forwardRef((props, ref) => {
   );
 });
 
-export default function CodeExplaination({
+export default function CodeExplanation({
   contractExplanation,
   isLoadingContract,
   explanationError,
@@ -51,16 +53,20 @@ export default function CodeExplaination({
         <Tabs size="sm" variant="unstyled">
           <TabList
             border="2px solid #FFFFFF40"
-            borderRadius="2xl"
-            p={1}
+            borderRadius="xl"
+            p={0.5}
             gap={1}
           >
             <CustomTab>Beginner</CustomTab>
-            <CustomTab isDisabled={true} aria-disabled="true">
-              Intermediate
+                      <CustomTab isDisabled aria-disabled="true">
+                          <Tooltip label="Coming soon" hasArrow>
+                              Intermediate
+                              </Tooltip>
             </CustomTab>
-            <CustomTab isDisabled={true} aria-disabled="true">
-              Advanced
+                      <CustomTab isDisabled aria-disabled="true">
+                          <Tooltip label="Coming soon" hasArrow>
+                              Advanced
+                              </Tooltip>
             </CustomTab>
           </TabList>
           <TabPanels>

@@ -27,7 +27,7 @@ import { Files } from '../contract/Files';
 import ConnectWalletWarning from '../common/ConnectWalletWarning';
 import ContractMetaData from '../contract/ContractMetaData';
 import CodeReader from '../code/CodeReader';
-import CodeExplaination from '../code/CodeExplaination';
+import CodeExplanation from '../code/CodeExplanation';
 import CodeModal from '../code/CodeModal';
 import Intro from '../Intro';
 import { functionMessages, contractMessages, explanation } from '../../utils/constants';
@@ -61,7 +61,9 @@ export const Content = ({ address, fetching, setFetching }) => {
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
+
   if (!address && userAddress) address = chain.id === 137 ? '0x0000000000000000000000000000000000001010' : '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
   const { data: signer } = useWalletClient();
   const { APIKEY, blockExplorerApi, blockExplorerUrl, ALCHEMY_API_KEY, alchemyUrl } = chainInfo({ chain });
   const { onCopy, value, setValue, hasCopied } = useClipboard('');
@@ -645,13 +647,14 @@ export const Content = ({ address, fetching, setFetching }) => {
 
       if (lineNode.nodeName === 'SPAN') {
         const childSpans = lineNode.querySelectorAll('span');
-        childSpans.forEach((span) => {
+        childSpans.forEach((span, i) => {
           let foundFunction = false;
           if (span.innerText.includes('function')) {
             foundFunction = true;
             const codeBlock = lineNode.closest('pre');
             const codeLines = codeBlock.querySelectorAll('span');
             const startIndex = Array.from(codeLines).indexOf(lineNode);
+            console.log('startIndex', startIndex);
             const closingBraceRegex = /}(\s)*$/;
             let endIndex = startIndex;
             while (!closingBraceRegex.test(codeLines[endIndex].innerText)) {
@@ -705,9 +708,11 @@ export const Content = ({ address, fetching, setFetching }) => {
               }
             }
             setSelectedFunctionName(concatenatedFunctionName);
+
             foundFunction = false;
           }
         });
+
       } else {
         if (highlightedFunction) {
           highlightedFunction.forEach((line) => {
@@ -731,11 +736,6 @@ export const Content = ({ address, fetching, setFetching }) => {
     onClose: onCloseAnnotation,
   } = useDisclosure();
 
-  // const {
-  //   isOpen: isOpenDependency,
-  //   onOpen: onOpenDependency,
-  //   onClose: onCloseDependency,
-  // } = useDisclosure();
 
   const handleCodeClick = useCallback(() => {
     if (!selectedFunctionName || !selectedFunctionCode) {
@@ -745,10 +745,13 @@ export const Content = ({ address, fetching, setFetching }) => {
 
     onOpenSimulate();
 
+    console.log('selectedFunctionCode', selectedFunctionCode);
+
     setInspectFunction({
       name: selectedFunctionName,
       code: selectedFunctionCode,
     });
+
     fetchExplanation(
       false,
       selectedFunctionCode,
@@ -823,7 +826,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           handleCodeHover={handleCodeHover}
           handleCodeClick={handleCodeClick}
         />
-        <CodeExplaination
+        <CodeExplanation
           contractExplanation={contractExplanation}
           isLoadingContract={isLoadingContract}
           explanationError={explanationError}

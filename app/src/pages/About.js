@@ -1,9 +1,8 @@
 import { Flex, Box, Heading, Image, Link, Stack, Text } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { useNetwork, useAccount } from 'wagmi';
-import { Web3Modal } from '@web3modal/react';
 import { NavLink as RouterLink } from "react-router-dom";
-import { Header } from '../components/Header';
+import { Header } from '../components/common/Header';
 import {lowercaseAddress} from "../utils/helpers";
 
 export const AboutPage = () => {

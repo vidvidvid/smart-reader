@@ -2,8 +2,8 @@ import { ChakraProvider, useColorMode } from '@chakra-ui/react';
 import '@fontsource-variable/figtree';
 import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { Honeybadger, HoneybadgerErrorBoundary } from "@honeybadger-io/react";
-import { ErrorComponent } from './components/ErrorComponent';
+// import { Honeybadger, HoneybadgerErrorBoundary } from "@honeybadger-io/react";
+// import { ErrorComponent } from './components/ErrorComponent';
 import App from './App';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
@@ -19,7 +19,7 @@ const config = {
 
 }
 
-const honeybadger = Honeybadger.configure(config)
+// const honeybadger = Honeybadger.configure(config)
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 function ForceDarkMode(props) {
@@ -35,7 +35,6 @@ function ForceDarkMode(props) {
 }
 
 root.render(
-    <HoneybadgerErrorBoundary honeybadger={honeybadger} ErrorComponent={<ErrorComponent />}>
     <ChakraProvider theme={theme}>
             <ForceDarkMode>
                 <React.StrictMode>
@@ -43,7 +42,6 @@ root.render(
                 </React.StrictMode>
             </ForceDarkMode>
         </ChakraProvider>
-    </HoneybadgerErrorBoundary>
 
 );
 
