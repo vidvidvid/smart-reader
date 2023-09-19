@@ -9,28 +9,46 @@ export default function CodeReader({
   handleCodeClick,
 }) {
 
-    const handleButtonAdd = useCallback((event) => {
+    const handleButtonAdd = useCallback((parent, event, remove = false) => {
         try {
-            console.log('event', event);
-            const highlightedFunction = document.querySelectorAll('.highlight');
+            const { target } = event;
+
+            const highlighted = parent.querySelectorAll('.highlight');
+
             const button = document.createElement('button');
             button.innerText = 'Explain this function';
             button.classList.add('explain-button');
             button.style.position = 'absolute';
             button.style.top = '-30px';
-            button.style.right = '-250px';
+            button.style.right = '0';
             button.addEventListener('click', handleCodeClick);
-            if (highlightedFunction.length === 0) {
+
+            if (highlighted.length === 0) {
                 return;
             }
-            highlightedFunction.forEach((element, i) => {
-                if (i === 0) {
-                    element.style.position = 'relative';
-                    element.appendChild(button);
-                }
-            });
+
+
+
+            if (highlighted.length > 0) {
+                const wrapper = highlighted.forEach((element, i) => {
+                    if (i === 0) {
+                        console.log('WWW element', element);
+                        return element;
+                    }
+                });
+                highlighted[0].style.position = 'relative';
+                highlighted[0].style.borderColor = 'red';
+                highlighted[0].style.borderWidth = '2px';
+                highlighted[0].appendChild(button);
+            }
+            if (remove) {
+                highlighted[0].style.borderColor = 'transparent';
+                highlighted[0].style.borderWidth = '0px';
+                highlighted[0].removeChild(button);
+
+            }
         } catch (error) {
-            console.log('error', error);
+            console.log('handleButtonAdd error', {error});
         }
     }, [handleCodeClick]);
 
@@ -40,12 +58,14 @@ export default function CodeReader({
         const codeContainer = document.querySelector('.code-container');
 
         if (codeContainer) {
-            codeContainer.addEventListener('mouseover', (event) => handleButtonAdd(event));
+            codeContainer.addEventListener('mouseenter', (event) => handleButtonAdd(codeContainer, event));
+            codeContainer.addEventListener('mouseleave', (event) => handleButtonAdd(codeContainer,event, true));
         }
 
         return () => {
             if (codeContainer) {
-                codeContainer.removeEventListener('mouseover', (event) => handleButtonAdd(event));
+                codeContainer.removeEventListener('mouseover', (event) => handleButtonAdd(codeContainer, event));
+                codeContainer.removeEventListener('mouseout', (event) => handleButtonAdd(codeContainer, event));
             }
         }
 

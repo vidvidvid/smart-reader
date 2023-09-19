@@ -5,7 +5,7 @@ import postData from '../utils/api.js';
 import { useSupabase } from '../utils/supabaseContext';
 // import { Button, Spinner } from '@chakra-ui/react';
 import jwtDecode from 'jwt-decode';
-import { setCookie } from 'typescript-cookie';
+import { setCookie, removeCookie } from 'typescript-cookie';
 import { useSignMessage } from 'wagmi';
 import { useToast } from '@chakra-ui/react';
 import { errorHandler } from '../utils/helpers';
@@ -99,6 +99,7 @@ const useLogin = () => {
         setIsLoggedIn(false);
         setIsLoggingIn(false);
         setToken('');
+        removeCookie('supabasetoken');
     }
 
     return {

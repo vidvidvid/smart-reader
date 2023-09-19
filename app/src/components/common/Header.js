@@ -8,13 +8,10 @@ import {
   InputGroup,
   InputLeftElement,
   InputRightElement,
-  Link,
   Menu,
   MenuButton,
   MenuItem,
   MenuList,
-  Spinner,
-  Text,
   useToast,
 } from '@chakra-ui/react';
 import { getNetwork } from '@wagmi/core';
@@ -32,15 +29,10 @@ import { ConnectButton} from '../ConnectButton';
 
 export const Header = ({ address, setAddress, setFetching }) => {
   const toast = useToast();
-  const { open, setDefaultChain } = useWeb3Modal();
+  const { setDefaultChain } = useWeb3Modal();
   const {
     address: userAddress,
-    isConnected,
-    isConnecting,
-    isDisconnected,
   } = useAccount();
-  const { login, logout, isLoggedIn } = useLogin();
-  const { disconnect } = useDisconnect();
   const { chain: networkChain, chains: networkChains } = useNetwork();
   const { chain, chains } = getNetwork();
   const {
@@ -60,33 +52,32 @@ export const Header = ({ address, setAddress, setFetching }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+    // TODO: need a way to check if the user is on the right network and switch network to mainnet if not. this just went into an infinite loop
+    // useEffect(() => {
+    //     if (userAddress && (chain?.id !== 1 || chain?.id !== 137)) {
+    //         switchNetwork(1);
+    //     }
+    // }, [userAddress]);
+
   const [pageName, setPageName] = useState(undefined);
   // useEffect that gets the current url and sets the page name
 
   const handlePageName = useCallback(() => {
       const path = window.location.pathname;
     const page = path.split("/").pop();
-    console.log({page});
       setPageName(page);
   }, []);
 
   useEffect(() => {
       handlePageName();
-      console.log({pageName});
-  }, []);
+  });
 
-  // useEffect(() => {
-  //   if (isConnected && !isLoggedIn) login();
-  //   if (isDisconnected && isLoggedIn) logout();
-  // }, [isConnected, isDisconnected]);
 
   useEffect(() => {
     if (pageName === 'about') {
-      console.log('about page');
       return;
     }
     if (address && pageName === '') {
-      console.log('address', address);
       validateContractAddress(
         address,
         userAddress,

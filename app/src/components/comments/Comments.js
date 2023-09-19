@@ -9,7 +9,7 @@ import { Comment } from './Comment';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
-import { ConnectButton } from '../ConnectButton';
+import { ConnectButton, LoginButton } from '../ConnectButton';
 import { lowercaseAddress } from '../../utils/helpers';
 
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
@@ -158,34 +158,15 @@ export const Comments = ({ chainId, contractAddress }) => {
     }
     getComments();
 
-    // const comment = {
-    //   id: uuidv4(),
-    //   name: 'amyrobson',
-    //   timeAgo: '1 month ago',
-    //   upvotes: 12,
-    //   message: 'Impressive! Though it seems the drag feature could be improved.',
-    //   ref: false,
-    // };
   }
 
   return (
     <>
       {isConnected && (
         <>
-          {/* <Button
-            background="transparent"
-            color="whiteAlpha.700"
-            _hover={{ background: 'transparent', color: 'white' }}
-            border="2px solid white"
-            borderRadius="full"
-            onClick={() => (isLoggedIn ? logout() : login())}
-          >
-            {isLoggingIn && <Spinner size="xs" mr={2} />}{' '}
-            {isLoggedIn ? 'Log out' : isLoggingIn ? 'Logging in...' : 'Log in'}
-          </Button> */}
           {!isLoggedIn && (
             <Box py={6} px={8} bg="blackAlpha.300" w="full" textAlign="left" borderRadius="lg">
-              <p>Please <ConnectButton address={userAddress} setAddress={setAddressFromButton} cta="login" isSimple /> to be able to add a comment</p>
+              <p>Please <LoginButton /> to be able to add a comment</p>
             </Box>
           )}
 

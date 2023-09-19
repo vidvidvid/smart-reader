@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import { useWeb3Modal } from '@web3modal/react'
 import { shortenAddress, lowercaseAddress } from '../utils/helpers'
 import useLogin from '../hooks/useLogin';
+import { set } from 'date-fns';
 
 export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) => {
     const toast = useToast();
@@ -18,13 +19,14 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
         isConnecting,
         isDisconnected,
     } = useAccount({
-        onDisconnect: () => {
+        onDisconnect: async () => {
             setAddress('');
-            logout();
+            disconnect();
+            await logout();
 
             toast({
                 title: 'Disconnected',
-                description: 'You are now disconnected & logged out.',
+                description: 'You are now logged out.',
                 status: 'success',
                 duration: 5000,
                 isClosable: true,
@@ -40,15 +42,20 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
                     duration: 5000,
                     isClosable: true,
                 });
+                // toast({
+                //     title: 'Logging in',
+                //     description: 'Logging you in to the app. Please wait...',
+                //     status: 'info',
+                //     duration: 0,
+
+                // })
+
                 await login();
-                const token = Cookies.get('supabasetoken');
-                const loggedIn = token.cookie ? true : false;
-                console.log('logged in?', { loggedIn, token });
+                const loggedIn = checkLoggedIn();
 
                 if (loggedIn) {
-                    console.log('logged in?', { loggedIn, token });
+                    console.log('onconnect logged in?', { loggedIn });
 
-                    setIsLoggedIn(true);
                     toast({
                         title: 'Logged In',
                         description: 'You are now logged in.',
@@ -61,8 +68,6 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
                 // throw new Error('Not logged in');
             } catch (error) {
                 console.log('OMG error', { error });
-
-
             }
         }
 
@@ -76,22 +81,37 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
 
             if (loggedIn) {
                 console.log('logged in?', { loggedIn, token });
-                return;
+                logout();
+                setIsLoggedIn(false);
+                toast({
+                    title: 'Logged Out',
+                    description: 'You are now logged out.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } else {
+                await login();
+                setIsLoggedIn(true);
+                toast({
+                    title: 'Logged In',
+                    description: 'You are now logged in.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
             }
-            await login();
-
-            setIsLoggedIn(true);
+        } catch (error) {
+            console.log('OMG error', { error });
             toast({
-                title: 'Logged In',
-                description: 'You are now logged in.',
-                status: 'success',
+                title: 'Error',
+                description: 'There was an error logging in.',
+                status: 'error',
                 duration: 5000,
                 isClosable: true,
             });
-        } catch (error) {
-            console.log('OMG error', { error });
         }
-    }, [login, setIsLoggedIn, toast]);
+    }, [login, setIsLoggedIn]);
 
     const displayAddress = (address) => {
         let formattedAddress = address;
@@ -109,30 +129,26 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        const loggedIn = checkLoggedIn();
 
-    // useEffect(() => {
-    //     console.log('logged in?', { isLoggedIn });
-    //     if (isConnected && userAddress) login();
-    //     if (isDisconnected) logout();
-    // }, [isConnected, isDisconnected]);
+        if (isLoggedIn) {
+            console.log('useeffect logged in?', { loggedIn });
+        }
+    }, [isLoggedIn]);
+
+
+
 
     return (
         <Tooltip label={isConnected ? "Connect to login" : "Connect to login"} aria-label={isConnected ? "Account options" : "Connect to login"} bgColor="blue.500" fontWeight="600" hasArrow>
-            {isSimple ? (
-                <Button
-                    variant="link"
-                    color="link"
-                    display="inline-flex"
-                    alignItems="center"
-                    onClick={() => (!isLoggedIn && isConnected ? login() : isConnected && isLoggedIn ? open({ route: 'Account'}) : open({ route: 'ConnectWallet' }))} isDisabled={isLoggingIn}>{isLoggingIn ? <Spinner /> : cta ? cta : 'connect to login'}</Button>
-            ) : (
-                <Button
+            <Button
                     background="transparent"
                     color="whiteAlpha.700"
                     _hover={{ background: 'transparent', color: 'white' }}
                     border="2px solid white"
                     borderRadius="full"
-                    onClick={() => (isConnected && !isLoggedIn ? login() : isConnected && isLoggedIn  ? open({ route: 'Account' }) : open({ route: 'ConnectWallet' }))}
+                    onClick={() => (isConnected && !isLoggedIn ? login() : isConnected && isLoggedIn ? open({ route: 'Account' }) : open({ route: 'ConnectWallet' }))}
                 >
                     {(isConnecting || isLoggingIn) && <Spinner size="xs" mr={2} />}{' '}
                     {!isLoggedIn && isConnected ? 'Login' : isConnected && isLoggedIn
@@ -141,7 +157,71 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
                             ? 'Connecting'
                             : 'Connect wallet'}
                 </Button>
-            )}
         </Tooltip>
+    )
+}
+
+export const LoginButton = () => {
+    const { login, logout, isLoggedIn, isLoggingIn, setIsLoggedIn } = useLogin();
+    const toast = useToast();
+
+    const handleLogin = useCallback(async () => {
+        try {
+            const token = Cookies.get('supabasetoken');
+            const loggedIn = token.cookie ? true : false;
+            console.log('logged in?', { loggedIn, token });
+
+            if (loggedIn) {
+                console.log('logged in?', { loggedIn, token });
+                logout();
+                setIsLoggedIn(false);
+                toast({
+                    title: 'Logged Out',
+                    description: 'You are now logged out.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } else {
+                await login();
+                setIsLoggedIn(true);
+                toast({
+                    title: 'Logged In',
+                    description: 'You are now logged in.',
+                    status: 'success',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
+        } catch (error) {
+            console.log('OMG error', { error });
+            toast({
+                title: 'Error',
+                description: 'There was an error logging in.',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+    }, [login, setIsLoggedIn]);
+
+    // useEffect(() => {
+
+    //     handleLogin
+
+
+    return (
+        <Button
+            variant="link"
+            color="link"
+            display="inline-flex"
+            alignItems="center"
+            onClick={() => handleLogin()} isDisabled={isLoggingIn}>
+            {isLoggingIn ? (
+                <>
+                    <Spinner /> {'logging In'}
+                </>
+                    ) : !isLoggedIn ? 'login' : 'logout'}
+        </Button>
     )
 }
