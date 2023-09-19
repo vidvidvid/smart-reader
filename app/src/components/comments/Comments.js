@@ -97,7 +97,7 @@ export const Comments = ({ chainId, contractAddress }) => {
       // const upvotes = await getUpvotes(comment.comment_id);
       commentsNew.push({
         id: comment.comment_id,
-        name: username,
+        name: comment.user_address,
         address: contractAddress,
         // upvotes: upvotes,
         isParent: true,
