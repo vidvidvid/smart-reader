@@ -20,6 +20,7 @@ export default function ContractMetaData({
     const lowercaseCreator = lowercaseAddress(creator);
     const lowercaseTxn = lowercaseAddress(creationTxn);
 
+  console.log(tokenData, 'tokenData', lowercaseTxn)
   useEffect(() => {
     if (hasCopied) {
       toast({
@@ -98,17 +99,18 @@ export default function ContractMetaData({
         contractCreation.creator !== '' &&
         validationResult.result ? (
         <Flex gap={1}>
-          <Link
+          <h3
             href={`${blockExplorerUrl}/address/${lowercaseCreator}`}
             fontSize="sm"
             color="link"
             isExternal
           >
-            {isMobile ? shortenAddress(lowercaseCreator) : lowercaseCreator}
-          </Link>
+            {lowercaseCreator}
+          </h3>
           <Text fontSize="sm">at txn</Text>
           <Link
-            href={`${blockExplorerUrl}/tx/${lowercaseTxn}`}
+          //@todo fix this
+            href={`${blockExplorerUrl}/address/${lowercaseTxn.slice(lowercaseTxn.lastIndexOf('_', -1))}`}
             fontSize="sm"
             color="link"
             isExternal

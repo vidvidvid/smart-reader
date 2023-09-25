@@ -54,10 +54,7 @@ export const Content = ({ address, fetching, setFetching }) => {
     name: '',
     code: '',
   });
-  const [inspectDependency, setInspectDependency] = useState({
-    name: '',
-    code: '',
-  });
+
   const { chain } = useNetwork();
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
@@ -116,11 +113,6 @@ export const Content = ({ address, fetching, setFetching }) => {
 
   const fetchExplanation = useCallback(
     async (dep, code, type, arrayId = '') => {
-      // const relay = new GelatoRelay();
-
-      // const result = await getExplanation(address, inspectContract.name);
-
-      // console.log('getExplanation in fetchExplanation', result);
 
       let fileExplanationSuccess = false;
 
@@ -668,11 +660,11 @@ export const Content = ({ address, fetching, setFetching }) => {
               line.classList.add('highlight');
             });
             setHighlightedFunction(highlightedLines);
-
+            console.log(highlightedLines.slice(1).map((line) => line.innerText.trim()))
             const highlightedText = highlightedLines
               .slice(1)
               .map((line) => line.innerText.trim())
-              .join('\n');
+              .join(' ');
             setSelectedFunctionCode(highlightedText);
           }
           if (foundFunction) {
@@ -758,14 +750,6 @@ export const Content = ({ address, fetching, setFetching }) => {
       explanation.function,
       selectedFunctionName
     );
-    // let formattedCode = '';
-    // if (inspectFunction && inspectFunction.code) {
-    //   const formattedCode = prettier.format(inspectContract.code, {
-    //     parser: 'typescript',
-    //     plugins: [typescript],
-    //   });
-    //
-    // }
   }, [
     selectedFunctionName,
     selectedFunctionCode,
@@ -793,10 +777,9 @@ export const Content = ({ address, fetching, setFetching }) => {
 
       {!userAddress ? (
         <Intro />
-
       ) : (
           <>
-            <ContractMetaData
+      <ContractMetaData
         contractName={contractName}
         validationResult={validationResult}
         address={address}
@@ -807,8 +790,8 @@ export const Content = ({ address, fetching, setFetching }) => {
         blockExplorerUrl={blockExplorerUrl}
         contractCreation={contractCreation}
         isFetchingCreator={isFetchingCreator}
-              value={value}
-              tokenData={tokenData}
+        value={value}
+        tokenData={tokenData}
       />
       <Files
         sourceCode={sourceCode}

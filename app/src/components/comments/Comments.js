@@ -15,51 +15,15 @@ import { lowercaseAddress } from '../../utils/helpers';
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-const examplecomments = [
-  {
-    name: 'amyrobson',
-    timeAgo: '1 month ago',
-    upvotes: 12,
-    message:
-      'Impressive! Though it seems the drag feature could be improved. But overall it looks incredible. You’ve nailed the design and the responsiveness at various breakpoints works really well.',
-    ref: true,
-  },
-  {
-    name: 'amyrobson',
-    timeAgo: '1 month ago',
-    upvotes: 12,
-    message:
-      'Impressive! Though it seems the drag feature could be improved. But overall it looks incredible. You’ve nailed the design and the responsiveness at various breakpoints works really well.',
-    ref: false,
-  },
-  {
-    name: 'amyrobson',
-    timeAgo: '1 month ago',
-    upvotes: 12,
-    message:
-      'Impressive! Though it seems the drag feature could be improved. But overall it looks incredible. You’ve nailed the design and the responsiveness at various breakpoints works really well.',
-    ref: true,
-  },
-  {
-    name: 'amyrobson',
-    timeAgo: '1 month ago',
-    upvotes: 12,
-    message:
-      'Impressive! Though it seems the drag feature could be improved. But overall it looks incredible. You’ve nailed the design and the responsiveness at various breakpoints works really well.',
-    ref: false,
-  },
-];
-
 export const Comments = ({ chainId, contractAddress }) => {
   const [comment, setComment] = useState(''); // Initial state
   const [comments, setComments] = useState([]); // Initial state
   const {
     address: userAddress,
     isConnected,
-    isConnecting,
     isDisconnected,
   } = useAccount();
-    const [addressFromButton, setAddressFromButton] = useState('');
+  const [addr, setAddressFromButton] = useState('');
   const { isLoggedIn, supabase, setIsLoggedIn, checkLoggedIn } = useLogin();
 
   // function to make username from wallet address after removing the 0x
@@ -102,14 +66,14 @@ export const Comments = ({ chainId, contractAddress }) => {
       });
     }
     setComments(commentsNew);
-  }, [contractAddress, chainId, supabase]);
+  }, [contractAddress, chainId]);
 
   useEffect(() => {
     getComments();
     checkLoggedIn();
-  }, [chainId, contractAddress, getComments, checkLoggedIn]);
+  }, [chainId, contractAddress]);
 
-  async function addComment() {
+ const addComment = useCallback(async () => {
     const token = Cookies.get('supabasetoken');
     if (!comment || comment.length === 0) {
       return;
@@ -133,7 +97,6 @@ export const Comments = ({ chainId, contractAddress }) => {
     // Check if it's expired
     const currentTime = Date.now() / 1000; // in seconds
     if (decodedToken.exp < currentTime) {
-      console.log('Token is expired');
       setIsLoggedIn(false);
       return;
     }
@@ -147,18 +110,11 @@ export const Comments = ({ chainId, contractAddress }) => {
       .insert([commentToUpload]);
     if (insertError && !insertedData) {
       console.log('Insert Error: ', insertError);
-      // tried this, it doesn't fix
-      // console.log('trying again');
-      // const { data: insertedData2ndAttempt, error: insertError2ndAttempt } =
-      //   await newSupabase.from('comments').insert([commentToUpload]);
-      // if (insertError2ndAttempt && !insertedData2ndAttempt) {
-      //   console.log('Insert Error: ', insertError2ndAttempt);
-      // }
       return;
     }
     getComments();
+  }, [comment])
 
-  }
 
   return (
     <>
@@ -216,8 +172,8 @@ export const Comments = ({ chainId, contractAddress }) => {
           </Flex>
         )}
         <List spacing={4}>
-          {comments.map((comment) => (
-            <Comment key={uuidv4()} comment={comment} />
+          {comments.map((com, i) => (
+            <Comment key={`id-comments-${i}`} comment={com} />
           ))}
         </List>
       </Stack>

@@ -3,7 +3,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAccount, useNetwork } from 'wagmi';
-import { lowercaseAddress } from '../../utils/helpers';
 import { useSupabase } from '../../utils/supabaseContext';
 import { AddComment } from './AddComment';
 import CommentItem from './CommentItem';
@@ -13,18 +12,11 @@ export const Comment = ({ comment }) => {
   const [replies, setReplies] = useState([]);
   const { supabase } = useSupabase();
   const { chain } = useNetwork();
-  const {
-    address: user,
-    isConnected,
-    isConnecting,
-    isDisconnected,
-  } = useAccount();
-
-  const userAddress = lowercaseAddress(user);
 
   useEffect(() => {
+    console.log('re-rendering')
     getReplies();
-  }, [comment?.id]);
+  }, []);
 
   const getReplies = useCallback(async () => {
     //   async function getComments() {
@@ -35,7 +27,6 @@ export const Comment = ({ comment }) => {
       .select('*')
       .eq('parent', comment?.id);
     if (error) console.log('Error: ', error);
-    console.log({ replyData });
     if (!replyData) return;
     // Map the data into the desired format
     const repliesNew = [];
@@ -57,7 +48,7 @@ export const Comment = ({ comment }) => {
       });
     }
     setReplies(repliesNew);
-  }, [comment?.address, chain?.id, supabase]);
+  }, [comment?.address, chain?.id]);
 
   return (
     <>
@@ -67,8 +58,8 @@ export const Comment = ({ comment }) => {
         setShowReply={setShowReply}
         type={'comment'}
       />
-      {replies.map((reply) => (
-        <CommentItem key={uuidv4()} comment={reply} type={'reply'}/>
+      {replies.map((reply, i) => (
+        <CommentItem key={`reply-${i}`} comment={reply} type={'reply'}/>
       ))}
       {showReply && (
         <ListItem>
