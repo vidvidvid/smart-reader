@@ -18,7 +18,6 @@ export default function CodeModal({
   userAddress,
   isConnected
 }) {
-  console.log(inspectFunction.code)
   return (
     <Modal isOpen={isOpenSimulate} onClose={onCloseSimulate} size="7xl">
       <ModalOverlay />

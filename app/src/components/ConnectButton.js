@@ -6,7 +6,6 @@ import Cookies from 'js-cookie';
 import { useWeb3Modal } from '@web3modal/react'
 import { shortenAddress, lowercaseAddress } from '../utils/helpers'
 import useLogin from '../hooks/useLogin';
-import { set } from 'date-fns';
 
 export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) => {
     const toast = useToast();
@@ -34,7 +33,6 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
         },
         onConnect: async () => {
             try {
-                // if (!isConnected) return;
                 toast({
                     title: 'Connected',
                     description: 'Wallet connection successful.',
@@ -42,73 +40,14 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
                     duration: 5000,
                     isClosable: true,
                 });
-                // toast({
-                //     title: 'Logging in',
-                //     description: 'Logging you in to the app. Please wait...',
-                //     status: 'info',
-                //     duration: 0,
-
-                // })
-                const loggedIn = checkLoggedIn();
-                if (!loggedIn) await login();
-
-                if (loggedIn) {
-                    toast({
-                        title: 'Logged In',
-                        description: 'You are now logged in.',
-                        status: 'success',
-                        duration: 5000,
-                        isClosable: true,
-                    });
-                    // return;
-                }
-                // throw new Error('Not logged in');
+                await login()
+                setIsLoggedIn(true);
             } catch (error) {
                 console.log('OMG error', { error });
             }
         }
 
     });
-
-    const handleLogin = useCallback(async () => {
-        try {
-            const token = Cookies.get('supabasetoken');
-            const loggedIn = token.cookie ? true : false;
-            console.log('logged in?', { loggedIn, token });
-
-            if (loggedIn) {
-                console.log('logged in?', { loggedIn, token });
-                logout();
-                setIsLoggedIn(false);
-                toast({
-                    title: 'Logged Out',
-                    description: 'You are now logged out.',
-                    status: 'success',
-                    duration: 5000,
-                    isClosable: true,
-                });
-            } else {
-                await login();
-                setIsLoggedIn(true);
-                toast({
-                    title: 'Logged In',
-                    description: 'You are now logged in.',
-                    status: 'success',
-                    duration: 5000,
-                    isClosable: true,
-                });
-            }
-        } catch (error) {
-            console.log('OMG error', { error });
-            toast({
-                title: 'Error',
-                description: 'There was an error logging in.',
-                status: 'error',
-                duration: 5000,
-                isClosable: true,
-            });
-        }
-    }, [login, setIsLoggedIn]);
 
     const displayAddress = (address) => {
         let formattedAddress = address;
@@ -133,9 +72,6 @@ export const ConnectButton = ({ address, setAddress, cta, isSimple = false }) =>
             console.log('useeffect logged in?', { loggedIn });
         }
     }, [isLoggedIn]);
-
-
-
 
     return (
         <Tooltip label={isConnected ? "Connect to login" : "Connect to login"} aria-label={isConnected ? "Account options" : "Connect to login"} bgColor="blue.500" fontWeight="600" hasArrow>

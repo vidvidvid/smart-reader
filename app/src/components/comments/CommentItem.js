@@ -27,16 +27,12 @@ const CommentItem = ({
   const {
     address: user,
     isConnected,
-    isConnecting,
-    isDisconnected,
   } = useAccount();
   
-  const userAddress = lowercaseAddress(user);
+  const userAddress = lowercaseAddress(user || '');
 
   async function upvote() {
-    console.log('in 1', isLoggedIn, isConnected)
-    if (!isConnected) return;
-    console.log('in')
+    if (!isConnected && !isLoggedIn) return;
     try {
       const { data, error } = await supabase
         .from('votes')
@@ -91,7 +87,8 @@ const CommentItem = ({
   }
 
   async function downvote() {
-    if (!isLoggedIn || !isConnected) return;
+    console.log('in downvote', isLoggedIn, isConnected)
+    if (!isLoggedIn && !isConnected) return;
     try {
       const { data, error } = await supabase
         .from('votes')
@@ -184,12 +181,12 @@ const CommentItem = ({
   useEffect(() => {
     async function fetchUpvotes() {
       const votes = await getUpvotes();
-      setUpvotes(votes.upvotes);
-      setDownvotes(votes.downvotes);
+      setUpvotes(votes?.upvotes || []);
+      setDownvotes(votes?.downvotes || []);
     }
 
     fetchUpvotes();
-  }, []);
+  }, [id]);
 
   return (
     <ListItem

@@ -43,7 +43,6 @@ export const Content = ({ address, fetching, setFetching }) => {
   const [highlightedFunction, setHighlightedFunction] = useState(null);
   const [selectedFunctionName, setSelectedFunctionName] = useState(null);
   const [selectedFunctionCode, setSelectedFunctionCode] = useState(null);
-  const [selectedDependencyName, setSelectedDependencyName] = useState(null);
 
   const [isLoadingContract, setIsLoadingContract] = useState(false);
   const [isLoadingFunction, setIsLoadingFunction] = useState(false);
@@ -56,6 +55,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   });
 
   const { chain } = useNetwork();
+
   const network = chain?.name?.toLowerCase();
   const { address: userAddress, isConnected } = useAccount();
 
@@ -79,19 +79,6 @@ export const Content = ({ address, fetching, setFetching }) => {
   const mainContentRef = useRef(null);
   const { supabase } = useSupabase();
   const toast = useToast();
-
-  useEffect(() => {
-    if (address && address.length > 0) {
-      validateContractAddress(
-        address,
-        userAddress,
-        validationResult,
-        setValidationResult
-      );
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, chain?.id]);
-
 
   useEffect(() => {
     if (sourceCode && sourceCode.length > 0) {
@@ -188,7 +175,7 @@ export const Content = ({ address, fetching, setFetching }) => {
               'Bearer ' + String(process.env.REACT_APP_OPENAI_API_KEY),
           },
           body: JSON.stringify({
-            model: 'gpt-3.5-turbo',
+            model: 'gpt-4',
             messages: [
               { role: 'system', content: 'You are a great teacher.' },
               {
@@ -197,7 +184,7 @@ export const Content = ({ address, fetching, setFetching }) => {
               },
             ],
             temperature: 0.3,
-            max_tokens: 3000,
+            max_tokens: 2000,
           }),
         };
 
@@ -473,6 +460,7 @@ export const Content = ({ address, fetching, setFetching }) => {
   }, [address, fetchCreatorAndCreation]);
 
   const fetchTokenData = useCallback(async (address) => {
+    console.log('fetching token data', address, chain?.id, alchemyUrl, ALCHEMY_API_KEY)
     try {
         const apiUrl = `${alchemyUrl}${ALCHEMY_API_KEY}`;
         if (!address) return null;
@@ -531,6 +519,14 @@ export const Content = ({ address, fetching, setFetching }) => {
           let sourceObj;
           let contracts;
           let contractsArray;
+          console.log('seeee', resp.data.result[0])
+          if (resp.data.result[0].Implementation) {
+            const message = `This is an implementation address, using the proxy address instead. ${resp.data.result[0].Implementation}`;
+            console.log(message);
+            resp = await axios.get(
+              `https://${blockExplorerApi}?module=contract&action=getsourcecode&address=${resp.data.result[0].Implementation}&apikey=${APIKEY}`
+            );
+          }
           if (!resp.data.result[0].SourceCode) {
             const message = `No source code found for ${address}. Are you on the correct network?`;
             setValidationResult({
@@ -563,10 +559,6 @@ export const Content = ({ address, fetching, setFetching }) => {
             source_code: contractsArray,
             abi: addressABI,
           };
-          // while (!inspectContract) {
-          //   // console.log('In here');
-          //   await new Promise((resolve) => setTimeout(resolve, 100));
-          // }
 
           fetchExplanation(
             false,
@@ -601,8 +593,8 @@ export const Content = ({ address, fetching, setFetching }) => {
   useEffect(() => {
     setExplanationError('');
     setContractExplanation('');
+    fetchTokenData(address);
     if (fetching) {
-      fetchTokenData(address);
       fetchSourceCode();
     }
   }, [fetching, fetchSourceCode, setFetching, address, chain?.id, fetchTokenData]);
@@ -808,6 +800,7 @@ export const Content = ({ address, fetching, setFetching }) => {
           inspectContract={inspectContract}
           handleCodeHover={handleCodeHover}
           handleCodeClick={handleCodeClick}
+          id={`${chain?.id}-${address}`}
         />
         <CodeExplanation
           contractExplanation={contractExplanation}

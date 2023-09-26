@@ -1,7 +1,6 @@
 import { ListItem } from '@chakra-ui/react';
 import { formatDistanceToNow } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useAccount, useNetwork } from 'wagmi';
 import { useSupabase } from '../../utils/supabaseContext';
 import { AddComment } from './AddComment';
@@ -48,7 +47,7 @@ export const Comment = ({ comment }) => {
       });
     }
     setReplies(repliesNew);
-  }, [comment?.address, chain?.id]);
+  }, [comment?.address, comment?.id, chain?.id]);
 
   return (
     <>
@@ -59,7 +58,7 @@ export const Comment = ({ comment }) => {
         type={'comment'}
       />
       {replies.map((reply, i) => (
-        <CommentItem key={`reply-${i}`} comment={reply} type={'reply'}/>
+        <CommentItem key={`reply-${i}-${comment?.id}`} comment={reply} type={'reply'}/>
       ))}
       {showReply && (
         <ListItem>

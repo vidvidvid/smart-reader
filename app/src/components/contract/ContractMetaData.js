@@ -19,8 +19,7 @@ export default function ContractMetaData({
     const { creator, creationTxn } = contractCreation;
     const lowercaseCreator = lowercaseAddress(creator);
     const lowercaseTxn = lowercaseAddress(creationTxn);
-
-  console.log(tokenData, 'tokenData', lowercaseTxn)
+  console.log('token data', tokenData)
   useEffect(() => {
     if (hasCopied) {
       toast({

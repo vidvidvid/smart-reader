@@ -2,10 +2,8 @@ import { Heading, List, Stack, Flex, Avatar, Input, Button, Box } from '@chakra-
 import { createClient } from '@supabase/supabase-js';
 import Cookies from 'js-cookie';
 import React, { useCallback, useEffect, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useAccount } from 'wagmi';
 import { Comment } from './Comment';
-// import { Button, Spinner } from '@chakra-ui/react';
 import { formatDistanceToNow } from 'date-fns';
 import jwtDecode from 'jwt-decode';
 import useLogin from '../../hooks/useLogin';
@@ -33,7 +31,7 @@ export const Comments = ({ chainId, contractAddress }) => {
     return username;
   }
 
-  const username = makeUsername(userAddress);
+  const username = userAddress && makeUsername(userAddress);
 
   const getComments = useCallback(async () => {
     //   async function getComments() {
@@ -173,7 +171,7 @@ export const Comments = ({ chainId, contractAddress }) => {
         )}
         <List spacing={4}>
           {comments.map((com, i) => (
-            <Comment key={`id-comments-${i}`} comment={com} />
+            <Comment key={`id-comments-${i}-${chainId}-${contractAddress}`} comment={com} />
           ))}
         </List>
       </Stack>

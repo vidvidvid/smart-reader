@@ -3,7 +3,6 @@ import { Box, Heading } from '@chakra-ui/react';
 import debounce from 'lodash.debounce';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { hi } from 'date-fns/locale';
 
 export default function CodeReader({
   inspectContract,
