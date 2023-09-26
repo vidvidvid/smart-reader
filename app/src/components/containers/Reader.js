@@ -18,17 +18,17 @@ import {
 } from '@chakra-ui/react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { dracula } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { SimulateTransaction } from './SimulateTransaction';
+import { SimulateTransaction } from '../SimulateTransaction';
 import axios from 'axios';
-import { uploadJSON } from '../utils/ipfs';
+import { uploadJSON } from '../../utils/ipfs';
 import { useAccount, useSigner, useNetwork } from 'wagmi';
-import { getExplanation } from '../utils/queries';
-import { ipfsGateway } from '../utils/constants';
-import { getContract } from '../utils/contract';
+import { getExplanation } from '../../utils/queries';
+import { ipfsGateway } from '../../utils/constants';
+import { getContract } from '../../utils/contract';
 import { GelatoRelay } from '@gelatonetwork/relay-sdk';
-import chainInfo from '../utils/chainInfo';
+import chainInfo from '../../utils/chainInfo';
 import { ChatIcon } from '@chakra-ui/icons';
-import { Annotate } from './Annotate';
+import { Annotate } from '../Annotate';
 
 const functionMessages = [
   'Deciphering the function',
@@ -112,7 +112,6 @@ export const Reader = ({ address, fetching, setFetching }) => {
       //   fileExplanationSuccess = false;
       // }
 
-      console.log('lol');
 
       let content;
       if (!fileExplanationSuccess) {
